@@ -26,6 +26,14 @@ help:  ## print short description of each target
 pre-commit:  ## run pre-commit on all files in the repository
 	uv run pre-commit run --all-files
 
+.PHONY: generate-guidance
+generate-guidance:  ## generate CMIP7 guidance markdown files
+	uv run python scripts/generate_guidance_docs.py
+
+.PHONY: check-guidance
+check-guidance:  ## check that generated CMIP7 guidance markdown files are up to date
+	uv run python scripts/generate_guidance_docs.py --check
+
 .PHONY: virtual-environment
 virtual-environment:  ## update virtual environment, create a new one if it doesn't already exist
 	uv sync
