@@ -1,0 +1,10 @@
+# Changes here will be overwritten by Copier
+_commit: v0.5.1
+_src_path: gl:openscm/copier-basic-python-repository
+email: zebedee.nicholls@climate-resource.com
+local_src: true
+name: Zebedee Nicholls
+notebooks: false
+package_manager: uv
+project_description_short: Generation of CMIP7 forcings and experiment setup guidance
+project_url: https://github.com/znichollscr/cmip7-forcings-experiment-setup-guidance-generation
