@@ -13,7 +13,6 @@ from local.guidance import (
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
     PICLIM_TIME_AXIS,
-    SETUP_GENERATION_TODO,
     ExperimentPage,
 )
 from local.rendering import (
@@ -55,7 +54,6 @@ def make_piclim_historical_forcing_variant_page(
             render_historical_forcing_setup(historical_forcings),
             "The 2021 values should be prescribed on repeat throughout the simulation.",
             extra_setup,
-            SETUP_GENERATION_TODO,
             PICLIM_TIME_AXIS,
         ).strip(),
         forcing_headlines=(

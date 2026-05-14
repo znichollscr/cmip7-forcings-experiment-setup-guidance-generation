@@ -10,7 +10,6 @@ from local.forcing_versions import (
 from local.guidance import (
     ABRUPT_4XCO2_LINK,
     PI_CONTROL_LINK,
-    SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
 )
@@ -32,7 +31,6 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 the concentrations used in the `piControl` simulation.
                 """
             ),
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=f"See general headlines for the {ABRUPT_4XCO2_LINK}.",
@@ -59,7 +57,6 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 the concentrations used in the `piControl` simulation.
                 """
             ),
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=f"See general headlines for the {ABRUPT_4XCO2_LINK}.",

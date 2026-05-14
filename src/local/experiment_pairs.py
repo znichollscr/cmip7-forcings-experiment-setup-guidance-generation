@@ -79,19 +79,30 @@ EMISSIONS_CONCENTRATION_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
     ),
 )
 
+AQ_AER_LEFT_TO_RIGHT_TEXT = (
+    "is the corresponding interactive-chemistry experiment for models "
+    "that include interactive chemistry."
+)
+AQ_AER_RIGHT_TO_LEFT_TEXT = (
+    "is the corresponding non-interactive-chemistry experiment for "
+    "models that do not include interactive chemistry."
+)
+
+
+def make_aq_aer_experiment_pair(*, aer_slug: str, aq_slug: str) -> ExperimentPair:
+    """Create an AQ/Aer experiment pair."""
+    return ExperimentPair(
+        left_slug=aer_slug,
+        right_slug=aq_slug,
+        left_to_right_text=AQ_AER_LEFT_TO_RIGHT_TEXT,
+        right_to_left_text=AQ_AER_RIGHT_TO_LEFT_TEXT,
+    )
+
+
 AQ_AER_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
-    ExperimentPair(
-        left_slug="hist-piaer",
-        right_slug="hist-piaq",
-        left_to_right_text=(
-            "is the corresponding interactive-chemistry experiment for models "
-            "that include interactive chemistry."
-        ),
-        right_to_left_text=(
-            "is the corresponding non-interactive-chemistry experiment for "
-            "models that do not include interactive chemistry."
-        ),
-    ),
+    make_aq_aer_experiment_pair(aer_slug="hist-piaer", aq_slug="hist-piaq"),
+    make_aq_aer_experiment_pair(aer_slug="scen7-h-aer", aq_slug="scen7-h-aq"),
+    make_aq_aer_experiment_pair(aer_slug="scen7-vl-aer", aq_slug="scen7-vl-aq"),
 )
 
 EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (

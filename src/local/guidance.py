@@ -164,10 +164,6 @@ class IndexGroup:
     activities: tuple[IndexActivity, ...]
 
 
-SETUP_GENERATION_TODO = (
-    "<!-- TODO: consider whether we can generate these sentences automatically "
-    "based on esgvoc -->"
-)
 PI_CONTROL_LINK = render_link("piControl simulation", "picontrol")
 ESM_PI_CONTROL_LINK = render_link("esm-piControl simulation", "esm-picontrol")
 HISTORICAL_LINK = render_link("historical simulation", "historical")
@@ -290,6 +286,10 @@ INDEX_GROUPS = (
                     "piclim-so2",
                     "hist-piaer",
                     "hist-piaq",
+                    "scen7-h-aer",
+                    "scen7-h-aq",
+                    "scen7-vl-aer",
+                    "scen7-vl-aq",
                 ),
             ),
             IndexActivity(

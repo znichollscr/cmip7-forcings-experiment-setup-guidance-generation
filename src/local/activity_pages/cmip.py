@@ -15,7 +15,6 @@ from local.guidance import (
     PI_CLIM_CONTROL_LINK,
     PI_CONTROL_LINK,
     PICLIM_TIME_AXIS,
-    SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
 )
@@ -49,7 +48,6 @@ def make_picontrol_spinup_page(
                 "(see [forcings](#forcings))."
             ),
             "These should be applied on repeat for the entirety of the simulation.",
-            SETUP_GENERATION_TODO,
             block(
                 """
                 You are free to start the time axis of your outputs at whatever year you like
@@ -91,7 +89,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied on repeat for the entirety of the simulation.",
-            SETUP_GENERATION_TODO,
             block(
                 """
                 You are free to start the time axis of your outputs at whatever year you like
@@ -129,7 +126,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The emissions-driven pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied on repeat for the entirety of the simulation.",
-            SETUP_GENERATION_TODO,
             block(
                 """
                 You are free to start the time axis of your outputs at whatever year you like
@@ -162,7 +158,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-            SETUP_GENERATION_TODO,
         ).strip(),
         forcing_headlines=block(
             """
@@ -188,7 +183,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The emissions-driven historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-            SETUP_GENERATION_TODO,
         ).strip(),
         forcing_headlines=block(
             """
@@ -214,7 +208,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             f"The 1pctCO2 simulation is a simple branch from the {PI_CONTROL_LINK}.",
             "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the simulation.",
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=(
@@ -263,7 +256,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 the concentrations used in the `piControl` simulation.
                 """
             ),
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=(
@@ -299,7 +291,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 they are not provided by a forcings provider).
                 """
             ),
-            SETUP_GENERATION_TODO,
             block(
                 """
                 The start-time of the simulation is not tied to a particular year but, rather, can be chosen arbitrarily
@@ -356,7 +347,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                     """
                 ),
             ),
-            SETUP_GENERATION_TODO,
             PICLIM_TIME_AXIS,
         ).strip(),
         forcing_headlines=(
@@ -428,7 +418,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The amip simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-            SETUP_GENERATION_TODO,
         ).strip(),
         forcing_headlines="The `amip` experiment is a time-varying forcings experiment.",
         notes=join_blocks(

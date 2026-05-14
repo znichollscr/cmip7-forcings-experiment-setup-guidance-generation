@@ -9,7 +9,6 @@ from local.forcing_versions import (
 )
 from local.guidance import (
     ONEPCTCO2_LINK,
-    SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
 )
@@ -32,7 +31,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 and does not see any other changes (e.g. changes in atmospheric temperatures).
                 """
             ),
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=f"See general headlines for the {ONEPCTCO2_LINK}.",
@@ -57,7 +55,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 and does not see any other changes (e.g. changes in atmospheric CO<sub>2</sub> concentrations).
                 """
             ),
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=f"See general headlines for the {ONEPCTCO2_LINK}.",
