@@ -19,8 +19,14 @@ class ExperimentPair:
 
     left_slug: str
     right_slug: str
-    left_to_right_text: str
-    right_to_left_text: str
+    left_to_right_text: str = (
+        "is the emissions-driven counterpart to this concentration-driven "
+        "experiment."
+    )
+    right_to_left_text: str = (
+        "is the concentration-driven counterpart to this emissions-driven "
+        "experiment."
+    )
 
     def reference_from(
         self,
@@ -62,38 +68,14 @@ EMISSIONS_CONCENTRATION_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
     ExperimentPair(
         left_slug="picontrol-spinup",
         right_slug="esm-picontrol-spinup",
-        left_to_right_text=(
-            "is the emissions-driven counterpart to this concentration-driven "
-            "spin-up experiment."
-        ),
-        right_to_left_text=(
-            "is the concentration-driven counterpart to this emissions-driven "
-            "spin-up experiment."
-        ),
     ),
     ExperimentPair(
         left_slug="picontrol",
         right_slug="esm-picontrol",
-        left_to_right_text=(
-            "is the emissions-driven counterpart to this concentration-driven "
-            "control experiment."
-        ),
-        right_to_left_text=(
-            "is the concentration-driven counterpart to this emissions-driven "
-            "control experiment."
-        ),
     ),
     ExperimentPair(
         left_slug="historical",
         right_slug="esm-hist",
-        left_to_right_text=(
-            "is the emissions-driven counterpart to this concentration-driven "
-            "historical experiment."
-        ),
-        right_to_left_text=(
-            "is the concentration-driven counterpart to this emissions-driven "
-            "historical experiment."
-        ),
     ),
 )
 

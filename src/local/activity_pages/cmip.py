@@ -60,7 +60,7 @@ def make_picontrol_spinup_page(
         forcing_headlines=block(
             f"""
             The `{experiment_name}` experiment is a fixed forcings experiment.
-            As with the control experiments, care is needed to use the correct pre-industrial
+            As with the pre-industrial control experiments, care is needed to use the correct pre-industrial
             values for stratospheric aerosol forcing, ozone and solar forcing.
             Please read the guidance pages linked under [notes](#notes)
             to ensure that you use the correct forcing values.
