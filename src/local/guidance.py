@@ -241,6 +241,42 @@ def render_versions_body(
     ).strip()
 
 
+NON_DOWNLOADABLE_FORCING_VALUES = {"not-available-yet"}
+
+
+def source_ids_from_forcing_versions(
+    *forcing_versions: Mapping[str, ForcingValue],
+    source_id_indexes: Mapping[str, int] | None = None,
+) -> tuple[str, ...]:
+    """Derive ESGF-downloadable source IDs from forcing-version mappings."""
+    source_id_indexes = source_id_indexes or {}
+    source_ids: list[str] = []
+    seen: set[str] = set()
+
+    for forcing_version in forcing_versions:
+        for forcing_id, value in forcing_version.items():
+            if value is None:
+                continue
+
+            if isinstance(value, str):
+                selected_source_ids = (
+                    () if value in NON_DOWNLOADABLE_FORCING_VALUES else (value,)
+                )
+            elif forcing_id in source_id_indexes:
+                selected_source_ids = (value[source_id_indexes[forcing_id]],)
+            else:
+                selected_source_ids = tuple(value)
+
+            for source_id in selected_source_ids:
+                if source_id in seen:
+                    continue
+
+                source_ids.append(source_id)
+                seen.add(source_id)
+
+    return tuple(source_ids)
+
+
 def render_data_access_body(
     *,
     experiment_name: str,
@@ -382,31 +418,15 @@ CMIP_FORCING_VERSIONS = OrderedDict(
     )
 )
 
-CMIP_FIXED_DOWNLOAD_SOURCE_IDS = (
-    "CEDS-CMIP-2025-04-18",
-    "CEDS-CMIP-2025-04-18-supplemental",
-    "DRES-CMIP-BB4CMIP7-2-0",
-    "UofMD-landState-3-1-1",
-    "CR-CMIP-1-0-0",
-    "UOEXETER-CMIP-2-2-1",
-    "FZJ-CMIP-ozone-1-2",
-    "FZJ-CMIP-nitrogen-1-2",
-    "SOLARIS-HEPPA-CMIP-4-6",
-    "PIK-CMIP-1-0-1",
-)
+CMIP_FIXED_SOURCE_ID_INDEXES = {
+    "nitrogen-deposition": 0,
+    "ozone": 0,
+}
 
-CMIP_TRANSIENT_DOWNLOAD_SOURCE_IDS = (
-    "CEDS-CMIP-2025-04-18",
-    "CEDS-CMIP-2025-04-18-supplemental",
-    "DRES-CMIP-BB4CMIP7-2-0",
-    "UofMD-landState-3-1-1",
-    "CR-CMIP-1-0-0",
-    "UOEXETER-CMIP-2-2-1",
-    "FZJ-CMIP-ozone-2-0",
-    "FZJ-CMIP-nitrogen-1-2",
-    "SOLARIS-HEPPA-CMIP-4-6",
-    "PIK-CMIP-1-0-1",
-)
+CMIP_TRANSIENT_SOURCE_ID_INDEXES = {
+    "nitrogen-deposition": 0,
+    "ozone": 1,
+}
 
 SCEN7_VL_FORCING_VERSIONS = OrderedDict(
     (
@@ -423,14 +443,6 @@ SCEN7_VL_FORCING_VERSIONS = OrderedDict(
     )
 )
 
-SCEN7_VL_DOWNLOAD_SOURCE_IDS = (
-    "IIASA-IAMC-vl-1-0-0",
-    "CR-vl-1-0-0",
-    "UOEXETER-ScenarioMIP-2-2-2",
-    "SOLARIS-HEPPA-ScenarioMIP-4-6",
-    "PIK-vl-1-0-0",
-)
-
 AMIP_FORCING_VERSIONS = OrderedDict(
     (
         (
@@ -438,11 +450,6 @@ AMIP_FORCING_VERSIONS = OrderedDict(
             ("PCMDI-AMIP-1-1-10",),
         ),
     )
-)
-
-AMIP_DOWNLOAD_SOURCE_IDS = (
-    "PCMDI-AMIP-1-1-10",
-    *CMIP_TRANSIENT_DOWNLOAD_SOURCE_IDS,
 )
 
 DATA_ACCESS_INTRO = block(
@@ -613,7 +620,10 @@ EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
         getting_the_data=render_data_access_body(
             experiment_name="piControl",
-            source_ids=CMIP_FIXED_DOWNLOAD_SOURCE_IDS,
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
         ),
     ),
     ExperimentPage(
@@ -662,7 +672,10 @@ EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
         getting_the_data=render_data_access_body(
             experiment_name="esm-piControl",
-            source_ids=CMIP_FIXED_DOWNLOAD_SOURCE_IDS,
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
         ),
     ),
     ExperimentPage(
@@ -701,7 +714,10 @@ EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
         getting_the_data=render_data_access_body(
             experiment_name="historical",
-            source_ids=CMIP_TRANSIENT_DOWNLOAD_SOURCE_IDS,
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
+            ),
         ),
     ),
     ExperimentPage(
@@ -742,7 +758,10 @@ EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
         getting_the_data=render_data_access_body(
             experiment_name="esm-hist",
-            source_ids=CMIP_TRANSIENT_DOWNLOAD_SOURCE_IDS,
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
+            ),
         ),
     ),
     ExperimentPage(
@@ -1379,7 +1398,7 @@ EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         getting_the_data=render_data_access_body(
             experiment_name="scen7-vl",
-            source_ids=SCEN7_VL_DOWNLOAD_SOURCE_IDS,
+            source_ids=source_ids_from_forcing_versions(SCEN7_VL_FORCING_VERSIONS),
         ),
     ),
     ExperimentPage(
@@ -1427,7 +1446,11 @@ EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ).strip(),
         getting_the_data=render_data_access_body(
             experiment_name="amip",
-            source_ids=AMIP_DOWNLOAD_SOURCE_IDS,
+            source_ids=source_ids_from_forcing_versions(
+                AMIP_FORCING_VERSIONS,
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
+            ),
         ),
     ),
 )
