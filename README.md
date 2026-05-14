@@ -54,7 +54,9 @@ uv run python scripts/generate_guidance_docs.py --output-dir /tmp/cmip7-guidance
 ## Repository Structure
 
 - `scripts/generate_guidance_docs.py`: command-line entrypoint.
-- `src/local/guidance.py`: page data, shared snippets, rendering helpers, and
-  file writing/checking functionality.
+- `src/local/guidance.py`: shared snippets, rendering helpers, and file
+  writing/checking functionality.
+- `src/local/activity_pages/`: experiment page definitions grouped by
+  responsible activity.
 - `Makefile`: convenience targets for generating, checking, and development
   setup.
