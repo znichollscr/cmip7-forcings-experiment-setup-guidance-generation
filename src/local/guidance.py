@@ -206,14 +206,22 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
     from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
     from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
+    from local.activity_pages.generic import make_generic_experiment_page
     from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
 
-    return (
+    detailed_pages = (
         *CMIP_EXPERIMENT_PAGES,
         *AERCHEMMIP_EXPERIMENT_PAGES,
         *CFMIP_EXPERIMENT_PAGES,
         *C4MIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
+    )
+    detailed_pages_by_slug = _pages_by_slug(detailed_pages)
+    _validate_experiment_slugs_to_generate(detailed_pages_by_slug)
+
+    return tuple(
+        detailed_pages_by_slug.get(slug) or make_generic_experiment_page(slug)
+        for slug in EXPERIMENT_SLUGS_TO_GENERATE
     )
 
 
@@ -302,23 +310,94 @@ INDEX_GROUPS = (
                     "piclim-so2",
                     "hist-piaer",
                     "hist-piaq",
+                    "esm-scen7-h-aer",
+                    "esm-scen7-h-aq",
+                    "esm-scen7-vl-aer",
+                    "esm-scen7-vl-aq",
+                    "scen7-h-aer",
+                    "scen7-h-aq",
+                    "scen7-vl-aer",
+                    "scen7-vl-aq",
                 ),
             ),
             IndexActivity(
                 activity_id="cfmip",
-                experiment_slugs=("abrupt-2xco2", "abrupt-0p5xco2"),
+                experiment_slugs=(
+                    "abrupt-2xco2",
+                    "abrupt-0p5xco2",
+                    "amip-p4k",
+                    "amip-piforcing",
+                ),
             ),
             IndexActivity(
                 activity_id="c4mip",
-                experiment_slugs=("1pctco2-bgc", "1pctco2-rad"),
+                experiment_slugs=(
+                    "1pctco2-bgc",
+                    "1pctco2-rad",
+                    "esm-flat10",
+                    "esm-flat10-cdr",
+                    "esm-flat10-zec",
+                ),
             ),
             IndexActivity(
                 activity_id="scenariomip",
-                experiment_slugs=("scen7-vl",),
+                experiment_slugs=(
+                    "scen7-h",
+                    "esm-scen7-h",
+                    "scen7-h-ext",
+                    "esm-scen7-h-ext",
+                    "scen7-hl",
+                    "esm-scen7-hl",
+                    "scen7-hl-ext",
+                    "esm-scen7-hl-ext",
+                    "scen7-l",
+                    "esm-scen7-l",
+                    "scen7-l-ext",
+                    "esm-scen7-l-ext",
+                    "scen7-ln",
+                    "esm-scen7-ln",
+                    "scen7-ln-ext",
+                    "esm-scen7-ln-ext",
+                    "scen7-m",
+                    "esm-scen7-m",
+                    "scen7-m-ext",
+                    "esm-scen7-m-ext",
+                    "scen7-ml",
+                    "esm-scen7-ml",
+                    "scen7-ml-ext",
+                    "esm-scen7-ml-ext",
+                    "scen7-vl",
+                    "esm-scen7-vl",
+                    "scen7-vl-ext",
+                    "esm-scen7-vl-ext",
+                ),
                 extra_markdown=SCENARIOMIP_EXTRA,
+            ),
+            IndexActivity(
+                activity_id="damip",
+                experiment_slugs=("hist-aer", "hist-ghg", "hist-nat"),
+            ),
+            IndexActivity(
+                activity_id="geomip",
+                experiment_slugs=("g7-1p5k-sai",),
+            ),
+            IndexActivity(
+                activity_id="pmip",
+                experiment_slugs=("abrupt-127k",),
+            ),
+            IndexActivity(
+                activity_id="rfmip",
+                experiment_slugs=("piclim-aer", "piclim-histaer", "piclim-histall"),
             ),
         ),
     ),
+)
+
+EXPERIMENT_SLUGS_TO_GENERATE = tuple(
+    slug
+    for group in INDEX_GROUPS
+    for activity in group.activities
+    for slug in activity.experiment_slugs
 )
 
 
@@ -330,6 +409,7 @@ def make_index_page(
         pages = content_pages()
 
     page_lookup = {page.slug: page for page in pages}
+    _validate_index_page_slugs(page_lookup)
     sections = [INDEX_INTRO]
 
     for group in INDEX_GROUPS:
@@ -359,6 +439,72 @@ def make_index_page(
         body=join_blocks(*sections).strip(),
         front_matter_title="Overview",
     )
+
+
+def _pages_by_slug(pages: tuple[ExperimentPage, ...]) -> dict[str, ExperimentPage]:
+    """Return pages keyed by slug, failing on duplicates."""
+    pages_by_slug: dict[str, ExperimentPage] = {}
+    duplicate_slugs: list[str] = []
+    for page in pages:
+        if page.slug in pages_by_slug:
+            duplicate_slugs.append(page.slug)
+        pages_by_slug[page.slug] = page
+
+    if duplicate_slugs:
+        msg = f"Duplicate detailed experiment page slugs: {', '.join(duplicate_slugs)}."
+        raise ValueError(msg)
+
+    return pages_by_slug
+
+
+def _validate_experiment_slugs_to_generate(
+    detailed_pages_by_slug: dict[str, ExperimentPage],
+) -> None:
+    """Validate the hard-coded experiment page inventory."""
+    duplicate_slugs = _duplicate_slugs(EXPERIMENT_SLUGS_TO_GENERATE)
+    if duplicate_slugs:
+        msg = "Duplicate hard-coded experiment slugs: " f"{', '.join(duplicate_slugs)}."
+        raise ValueError(msg)
+
+    unlisted_detailed_pages = tuple(
+        slug
+        for slug in detailed_pages_by_slug
+        if slug not in EXPERIMENT_SLUGS_TO_GENERATE
+    )
+    if unlisted_detailed_pages:
+        msg = (
+            "Detailed experiment pages are not listed in "
+            f"EXPERIMENT_SLUGS_TO_GENERATE: {', '.join(unlisted_detailed_pages)}."
+        )
+        raise ValueError(msg)
+
+    for slug in EXPERIMENT_SLUGS_TO_GENERATE:
+        get_experiment(slug)
+
+
+def _duplicate_slugs(slugs: tuple[str, ...]) -> tuple[str, ...]:
+    """Return duplicate slugs while preserving first duplicate order."""
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for slug in slugs:
+        if slug in seen and slug not in duplicates:
+            duplicates.append(slug)
+
+        seen.add(slug)
+
+    return tuple(duplicates)
+
+
+def _validate_index_page_slugs(
+    page_lookup: dict[str, ExperimentPage | SimplePage],
+) -> None:
+    """Validate that all index entries have generated pages."""
+    missing_slugs = tuple(
+        slug for slug in EXPERIMENT_SLUGS_TO_GENERATE if slug not in page_lookup
+    )
+    if missing_slugs:
+        msg = f"Index lists missing pages: {', '.join(missing_slugs)}."
+        raise ValueError(msg)
 
 
 def all_pages() -> tuple[SimplePage | ExperimentPage, ...]:

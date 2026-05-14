@@ -112,9 +112,12 @@ def render_related_experiments(
     slug: str,
     *,
     page_slugs: Collection[str],
-    experiment_pairs: Iterable[ExperimentPair] = EXPERIMENT_PAIRS,
+    experiment_pairs: Iterable[ExperimentPair] | None = None,
 ) -> str:
     """Render related-experiment cross-references for a page."""
+    if experiment_pairs is None:
+        experiment_pairs = _experiment_pairs_for_page_slugs(page_slugs)
+
     references = tuple(
         reference
         for pair in experiment_pairs
@@ -127,6 +130,90 @@ def render_related_experiments(
         "## Related experiments",
         "\n".join(f"- {reference}" for reference in references),
     ).strip()
+
+
+def _experiment_pairs_for_page_slugs(
+    page_slugs: Collection[str],
+) -> tuple[ExperimentPair, ...]:
+    """Return explicit and inferred experiment pairs for generated pages."""
+    pairs = list(EXPERIMENT_PAIRS)
+    pair_keys = {_pair_key(pair) for pair in pairs}
+
+    for pair in (
+        *_automatic_emissions_concentration_pairs(page_slugs),
+        *_automatic_aq_aer_pairs(page_slugs),
+    ):
+        pair_key = _pair_key(pair)
+        if pair_key in pair_keys:
+            continue
+
+        pairs.append(pair)
+        pair_keys.add(pair_key)
+
+    return tuple(pairs)
+
+
+def _automatic_emissions_concentration_pairs(
+    page_slugs: Collection[str],
+) -> tuple[ExperimentPair, ...]:
+    """Infer ``esm-*`` and concentration-driven pairs with matching slugs."""
+    pairs: list[ExperimentPair] = []
+    for emissions_slug in sorted(
+        slug for slug in page_slugs if slug.startswith("esm-")
+    ):
+        concentration_slug = emissions_slug.removeprefix("esm-")
+        if concentration_slug not in page_slugs:
+            continue
+
+        pairs.append(
+            ExperimentPair(
+                left_slug=concentration_slug,
+                right_slug=emissions_slug,
+                left_to_right_text=(
+                    "is the emissions-driven counterpart to this "
+                    "concentration-driven experiment."
+                ),
+                right_to_left_text=(
+                    "is the concentration-driven counterpart to this "
+                    "emissions-driven experiment."
+                ),
+            )
+        )
+
+    return tuple(pairs)
+
+
+def _automatic_aq_aer_pairs(
+    page_slugs: Collection[str],
+) -> tuple[ExperimentPair, ...]:
+    """Infer ``*Aer`` and ``*AQ`` pairs with matching slugs."""
+    pairs: list[ExperimentPair] = []
+    for aer_slug in sorted(slug for slug in page_slugs if slug.endswith("aer")):
+        aq_slug = f"{aer_slug[:-3]}aq"
+        if aq_slug not in page_slugs:
+            continue
+
+        pairs.append(
+            ExperimentPair(
+                left_slug=aer_slug,
+                right_slug=aq_slug,
+                left_to_right_text=(
+                    "is the corresponding AQ experiment for models that include "
+                    "interactive chemistry."
+                ),
+                right_to_left_text=(
+                    "is the corresponding Aer experiment for models that do not "
+                    "include interactive chemistry."
+                ),
+            )
+        )
+
+    return tuple(pairs)
+
+
+def _pair_key(pair: ExperimentPair) -> frozenset[str]:
+    """Return an order-independent key for a pair."""
+    return frozenset((pair.left_slug, pair.right_slug))
 
 
 def _render_reference(
