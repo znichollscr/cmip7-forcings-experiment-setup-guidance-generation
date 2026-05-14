@@ -18,6 +18,14 @@ class MissingParentExperimentPageError(ValueError):
     """Raised when a parent experiment has no generated guidance page."""
 
 
+class UnexpectedPiClimControlBranchParentError(ValueError):
+    """Raised when a piClim-control branch reference has the wrong parent."""
+
+
+PICLIM_CONTROL_BRANCH_INFORMATION = "Same as `piClim-control`"
+PICLIM_CONTROL_PARENT_EXPERIMENT_ID = "picontrol"
+
+
 def render_parent_information(
     experiment: Any,
     *,
@@ -52,7 +60,10 @@ def render_parent_information(
 
     return join_blocks(
         parent_summary,
-        _sentence(getattr(experiment, "branch_information", None)),
+        _render_branch_information(
+            experiment=experiment,
+            parent_experiment=parent_experiment,
+        ),
         _render_parent_mip_era(parent_mip_era),
         extra,
     ).strip()
@@ -75,6 +86,41 @@ def _render_parent_experiment_link(
         raise MissingParentExperimentPageError(msg)
 
     return render_link(parent_experiment.drs_name, parent_slug)
+
+
+def _render_branch_information(
+    *,
+    experiment: Any,
+    parent_experiment: Any | None,
+) -> str:
+    """Render branch information from an esgvoc experiment term."""
+    branch_information = getattr(experiment, "branch_information", None)
+    if branch_information == PICLIM_CONTROL_BRANCH_INFORMATION:
+        _check_piclim_control_parent(experiment, parent_experiment)
+        return (
+            f"Branch from {parent_experiment.drs_name} at the same time as "
+            "piClim-control."
+        )
+
+    return _sentence(branch_information)
+
+
+def _check_piclim_control_parent(
+    experiment: Any,
+    parent_experiment: Any | None,
+) -> None:
+    """Validate parent experiment for piClim-control branch references."""
+    parent_experiment_id = getattr(parent_experiment, "id", None)
+    if parent_experiment_id == PICLIM_CONTROL_PARENT_EXPERIMENT_ID:
+        return
+
+    msg = (
+        f"Experiment {experiment.id!r} has branch information "
+        f"{PICLIM_CONTROL_BRANCH_INFORMATION!r}, but its parent experiment is "
+        f"{parent_experiment_id!r} rather than "
+        f"{PICLIM_CONTROL_PARENT_EXPERIMENT_ID!r}."
+    )
+    raise UnexpectedPiClimControlBranchParentError(msg)
 
 
 def _render_parent_activity_link(parent_activity: Any) -> str:

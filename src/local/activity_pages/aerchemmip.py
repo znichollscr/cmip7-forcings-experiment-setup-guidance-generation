@@ -7,7 +7,6 @@ from local.forcing_versions import (
     source_ids_for_cmip_forcing_combination,
 )
 from local.guidance import (
-    AERCHEMMIP_UNCERTAIN_NOTE,
     HISTORICAL_LINK,
     PI_CONTROL_LINK,
     SETUP_GENERATION_TODO,
@@ -72,7 +71,6 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="hist-piaer",
-        pre_description_note=AERCHEMMIP_UNCERTAIN_NOTE,
         experiment_setup=join_blocks(
             # TODO: remove this
             "<!-- TODO: check this with someone who knows what they're reading -->",
@@ -120,7 +118,6 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="hist-piaq",
-        pre_description_note=AERCHEMMIP_UNCERTAIN_NOTE,
         experiment_setup=join_blocks(
             # TODO: remove this
             "<!-- TODO: check this with someone who knows what they're reading -->",
