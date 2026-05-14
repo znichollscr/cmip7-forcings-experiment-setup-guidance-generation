@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from local.experiment_dates import historical_end_year
 from local.forcing_versions import (
     cmip_forcing_ids_except,
     source_ids_for_cmip_forcing_combination,
@@ -52,7 +53,10 @@ def make_piclim_historical_forcing_variant_page(
                 f"{pluralize('forcing', historical_forcings)} listed below."
             ),
             render_historical_forcing_setup(historical_forcings),
-            "The 2021 values should be prescribed on repeat throughout the simulation.",
+            (
+                f"The {historical_end_year()} values should be prescribed on "
+                "repeat throughout the simulation."
+            ),
             extra_setup,
             PICLIM_TIME_AXIS,
         ).strip(),
@@ -79,7 +83,7 @@ def render_historical_forcing_setup(
     return join_blocks(
         (
             f"The following {pluralize('forcing', historical_forcings)} should "
-            f"use 2021 values from the {HISTORICAL_LINK}:"
+            f"use {historical_end_year()} values from the {HISTORICAL_LINK}:"
         ),
         render_historical_forcing_list(historical_forcings),
     ).strip()

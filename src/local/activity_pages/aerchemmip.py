@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from local.experiment_dates import historical_end_year
 from local.forcing_references import COMMON_FORCING_NOTES
 from local.forcing_versions import (
     CMIP_FORCING_VERSIONS,
@@ -29,7 +30,6 @@ from local.piclim_variants import (
 )
 from local.rendering import (
     block,
-    date_from_timestamp,
     join_blocks,
     join_lines,
     render_data_access_body,
@@ -46,7 +46,6 @@ SCEN7_AQ_FORCING_LABEL = (
     "anthropogenic non-CH4 tropospheric ozone precursor emissions, "
     "aerosols and aerosol precursor emissions"
 )
-HISTORICAL_EXPERIMENT_ID = "historical"
 
 
 @dataclass(frozen=True)
@@ -60,22 +59,6 @@ class Scen7AerChemPageSpec:
     aerchem_forcing_versions: Mapping[str, ForcingValue]
     base_forcing_versions: Mapping[str, ForcingValue]
     include_interactive_chemistry: bool
-
-
-def historical_end_year() -> int:
-    """Return the last year of the historical experiment."""
-    historical_experiment = get_experiment(HISTORICAL_EXPERIMENT_ID)
-    end_date = date_from_timestamp(
-        getattr(historical_experiment, "end_timestamp", None)
-    )
-    if end_date is None:
-        msg = (
-            "Cannot determine the historical end year because the CMIP7 CVs do "
-            "not define a supported end timestamp for 'historical'."
-        )
-        raise ValueError(msg)
-
-    return end_date.year
 
 
 def historical_end_year_setup_source() -> str:

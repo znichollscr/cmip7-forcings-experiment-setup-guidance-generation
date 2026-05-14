@@ -8,6 +8,7 @@ from pathlib import Path
 
 from local.activities import get_activity_definition
 from local.branching import render_parent_information
+from local.experiment_descriptions import render_experiment_description
 from local.experiment_pairs import render_related_experiments, sort_experiment_slugs
 from local.rendering import (
     block,
@@ -90,7 +91,7 @@ class ExperimentPage:
             render_front_matter(self.title),
             f"# {self.title}",
             self.pre_description_note,
-            experiment.description,
+            render_experiment_description(experiment.description),
             render_experiment_metadata_line(
                 experiment=experiment,
                 responsible_activity=responsible_activity,
