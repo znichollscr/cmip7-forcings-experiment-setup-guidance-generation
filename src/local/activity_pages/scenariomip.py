@@ -24,8 +24,6 @@ SCENARIOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The CMIP7 very low scenario simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
             SETUP_GENERATION_TODO,
-            "The simulation output should start on 2022-01-01 and end on 2100-12-31.",
-            "Only one ensemble member is required.",
         ).strip(),
         forcing_headlines="The `scen7-vl` experiment is a time-varying forcings experiment.",
         notes=COMMON_FORCING_NOTES,

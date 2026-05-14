@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping, Sequence
 from textwrap import dedent
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from local.forcing_versions import ForcingValue
 
@@ -95,6 +95,89 @@ def render_activity_urls(urls: Sequence[str]) -> str:
         "Further information:",
         render_url_bullet_list(urls),
     )
+
+
+def render_experiment_requirements(experiment: Any) -> str:
+    """Render experiment timing, length, and ensemble requirements."""
+    return join_blocks(
+        render_start_end_dates(experiment),
+        render_minimum_simulation_length(experiment),
+        render_minimum_ensemble_size(experiment),
+    ).strip()
+
+
+def render_start_end_dates(experiment: Any) -> str:
+    """Render start and end date requirements from an esgvoc experiment."""
+    start_date = format_timestamp(getattr(experiment, "start_timestamp", None))
+    end_date = format_timestamp(getattr(experiment, "end_timestamp", None))
+
+    if start_date and end_date:
+        return (
+            f"The simulation output should start on {start_date} "
+            f"and end on {end_date}."
+        )
+
+    if start_date:
+        return (
+            f"The simulation output should start on {start_date}. "
+            "The CMIP7 CVs do not define a fixed end date for this simulation."
+        )
+
+    if end_date:
+        return (
+            f"The simulation output should end on {end_date}. "
+            "The CMIP7 CVs do not define a fixed start date for this simulation."
+        )
+
+    return "The CMIP7 CVs do not define fixed start or end dates for this simulation."
+
+
+def render_minimum_simulation_length(experiment: Any) -> str:
+    """Render minimum simulation length from an esgvoc experiment."""
+    minimum_years = getattr(experiment, "min_number_yrs_per_sim", None)
+    if minimum_years is None:
+        return (
+            "The CMIP7 CVs do not define a minimum simulation length for this "
+            "experiment."
+        )
+
+    return (
+        "Simulations should be at least "
+        f"{format_number(minimum_years)} years in length."
+    )
+
+
+def render_minimum_ensemble_size(experiment: Any) -> str:
+    """Render minimum ensemble size from an esgvoc experiment."""
+    minimum_ensemble_size = getattr(experiment, "min_ensemble_size", None)
+    if minimum_ensemble_size is None:
+        return ""
+
+    if minimum_ensemble_size == 1:
+        return "Only one ensemble member is required."
+
+    return f"At least {minimum_ensemble_size} ensemble members are required."
+
+
+def format_timestamp(timestamp: Any) -> str:
+    """Format an esgvoc timestamp as an ISO date."""
+    if timestamp is None:
+        return ""
+
+    date = getattr(timestamp, "date", None)
+    if date is not None:
+        return date().isoformat()
+
+    return str(timestamp)
+
+
+def format_number(value: float) -> str:
+    """Format a numeric CV value without a redundant decimal."""
+    float_value = float(value)
+    if float_value.is_integer():
+        return str(int(float_value))
+
+    return str(value)
 
 
 def same_as_versions(label: str, slug: str) -> str:

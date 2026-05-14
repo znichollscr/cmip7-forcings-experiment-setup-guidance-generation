@@ -101,9 +101,6 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 """
             ),
             SETUP_GENERATION_TODO,
-            "The simulation output should start on 1850-01-01 and end on 2021-12-31.",
-            "<!-- TODO: double check, dunne et al. says 6?! -->",
-            "Only one ensemble member is required.",
         ).strip(),
         parent_experiment_extra=(
             "This branch time should match the branch time used for "
@@ -143,9 +140,6 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 """
             ),
             SETUP_GENERATION_TODO,
-            "The simulation output should start on 1850-01-01 and end on 2021-12-31.",
-            "<!-- TODO: double check, dunne et al. says 6?! -->",
-            "Only one ensemble member is required.",
         ).strip(),
         parent_experiment_extra=(
             "This branch time should match the branch time used for "

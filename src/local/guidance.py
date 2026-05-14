@@ -10,6 +10,7 @@ from local.rendering import (
     block,
     join_blocks,
     render_activity_urls,
+    render_experiment_requirements,
     render_front_matter,
     render_link,
 )
@@ -89,6 +90,8 @@ class ExperimentPage:
             experiment.description,
             "## Experiment set up",
             self.experiment_setup,
+            "### Timing, length and ensemble size",
+            render_experiment_requirements(experiment),
             "### Parent experiment",
             render_parent_information(
                 experiment,
@@ -173,8 +176,6 @@ PICLIM_TIME_AXIS = block(
     It is recommended that you use the same time axis as you use for your [piClim-control](./piclim-control.md) output
     to make life easy for analysts of your output
     (although this is not enforced so you are technically free to start the time axis of your outputs at whatever year you like).
-    Simulations should be at least 30 years in length.
-    Only one ensemble member is required.
     """
 )
 

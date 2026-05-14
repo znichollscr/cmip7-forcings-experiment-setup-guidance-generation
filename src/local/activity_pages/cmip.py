@@ -42,8 +42,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 """
                 You are free to start the time axis of your outputs at whatever year you like
                 (e.g. starting at year 1, or 1850, or year 500).
-                Simulations should be at least 400 years in length.
-                Only one ensemble member is required.
                 """
             ),
         ).strip(),
@@ -77,8 +75,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 """
                 You are free to start the time axis of your outputs at whatever year you like
                 (e.g. starting at year 1, or 1850, or year 500).
-                Simulations should be at least 400 years in length.
-                Only one ensemble member is required.
                 """
             ),
         ).strip(),
@@ -108,8 +104,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
             SETUP_GENERATION_TODO,
-            "The simulation output should start on 1850-01-01 and end on 2021-12-31.",
-            "Only one ensemble member is required.",
         ).strip(),
         forcing_headlines=block(
             """
@@ -136,8 +130,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The emissions-driven historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
             SETUP_GENERATION_TODO,
-            "The simulation output should start on 1850-01-01 and end on 2021-12-31.",
-            "Only one ensemble member is required.",
         ).strip(),
         forcing_headlines=block(
             """
@@ -166,8 +158,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the simulation.",
             SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
-            "Simulations should be at least 150 years in length.",
-            "Only one ensemble member is required.",
         ).strip(),
         forcing_headlines=(
             "The `1pctCO2` experiment is a fixed forcings experiment, "
@@ -212,8 +202,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
             SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
-            "Simulations should be at least 300 years in length.",
-            "Only one ensemble member is required.",
         ).strip(),
         forcing_headlines=(
             "The `abrupt-4xCO2` experiment is a fixed forcings experiment.\n"
@@ -251,8 +239,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 to be equal to the middle of the period over which the climatology was taken from the pre-industrial control experiment.
                 For example, if your climatology is taken over the years 120-150 in the pre-industrial control experiment,
                 then you could start the time axis of your `piClim-control` at 135.
-                Simulations should be at least 30 years in length.
-                Only one ensemble member is required.
                 """
             ),
         ).strip(),
@@ -354,8 +340,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The amip simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
             SETUP_GENERATION_TODO,
-            "The simulation output should start on 1979-01-01 and end on 2021-12-31.",
-            "Only one ensemble member is required.",
         ).strip(),
         forcing_headlines="The `amip` experiment is a time-varying forcings experiment.",
         notes=join_blocks(
