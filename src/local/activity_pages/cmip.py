@@ -34,7 +34,57 @@ from local.rendering import (
     same_as_versions,
 )
 
+
+def make_picontrol_spinup_page(
+    *,
+    slug: str,
+    experiment_name: str,
+    simulation_label: str,
+) -> ExperimentPage:
+    """Create a piControl spin-up page."""
+    return ExperimentPage(
+        slug=slug,
+        experiment_setup=join_blocks(
+            (
+                f"The {simulation_label} uses fixed pre-industrial forcings "
+                "(see [forcings](#forcings))."
+            ),
+            "These should be applied on repeat for the entirety of the simulation.",
+            SETUP_GENERATION_TODO,
+            block(
+                """
+                You are free to start the time axis of your outputs at whatever year you like
+                (e.g. starting at year 1, or 1850, or year 500).
+                """
+            ),
+        ).strip(),
+        forcing_headlines=block(
+            f"""
+            The `{experiment_name}` experiment is a fixed forcings experiment.
+            As with the control experiments, care is needed to use the correct pre-industrial
+            values for stratospheric aerosol forcing, ozone and solar forcing.
+            Please read the guidance pages linked under [notes](#notes)
+            to ensure that you use the correct forcing values.
+            """
+        ),
+        notes=COMMON_FORCING_NOTES,
+        versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
+        getting_the_data=render_data_access_body(
+            experiment_name=experiment_name,
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
+        ),
+    )
+
+
 CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
+    make_picontrol_spinup_page(
+        slug="picontrol-spinup",
+        experiment_name="piControl-spinup",
+        simulation_label="pre-industrial control spin-up simulation",
+    ),
     ExperimentPage(
         slug="picontrol",
         experiment_setup=join_blocks(
@@ -67,6 +117,11 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
             ),
         ),
+    ),
+    make_picontrol_spinup_page(
+        slug="esm-picontrol-spinup",
+        experiment_name="esm-piControl-spinup",
+        simulation_label="emissions-driven pre-industrial control spin-up simulation",
     ),
     ExperimentPage(
         slug="esm-picontrol",

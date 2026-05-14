@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from textwrap import dedent
 from typing import TYPE_CHECKING, Any, Protocol
 
@@ -18,7 +18,7 @@ class RenderablePage(Protocol):
 
     slug: str
 
-    def render(self) -> str:
+    def render(self, *, page_slugs: Collection[str] | None = None) -> str:
         """Render the page as markdown."""
 
 
@@ -315,4 +315,5 @@ def render_esgpull_script(
 
 def render_pages(pages: Sequence[RenderablePage]) -> dict[str, str]:
     """Render guidance pages keyed by output filename."""
-    return {f"{page.slug}.md": page.render() for page in pages}
+    page_slugs = frozenset(page.slug for page in pages)
+    return {f"{page.slug}.md": page.render(page_slugs=page_slugs) for page in pages}

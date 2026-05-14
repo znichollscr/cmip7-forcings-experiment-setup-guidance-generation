@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -76,7 +77,7 @@ class ExperimentPage:
         """Return this page's generated title."""
         return f"Experiment Setup and Forcings Guidance: {self.display_name}"
 
-    def render(self) -> str:
+    def render(self, *, page_slugs: Collection[str] | None = None) -> str:
         """Render the page as markdown."""
         experiment = self.experiment
         responsible_activity = get_responsible_activity(experiment)
@@ -95,6 +96,7 @@ class ExperimentPage:
             "### Parent experiment",
             render_parent_information(
                 experiment,
+                page_slugs=page_slugs or frozenset(),
                 extra=self.parent_experiment_extra,
             ),
             "## Forcings",
@@ -119,7 +121,7 @@ class SimplePage:
     body: str
     front_matter_title: str | None = None
 
-    def render(self) -> str:
+    def render(self, *, page_slugs: Collection[str] | None = None) -> str:
         """Render the page as markdown."""
         return join_blocks(
             render_front_matter(self.front_matter_title or self.title),
@@ -264,7 +266,9 @@ INDEX_GROUPS = (
             IndexActivity(
                 activity_id="cmip",
                 experiment_slugs=(
+                    "picontrol-spinup",
                     "picontrol",
+                    "esm-picontrol-spinup",
                     "esm-picontrol",
                     "historical",
                     "esm-hist",
