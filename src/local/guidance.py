@@ -89,13 +89,13 @@ class ExperimentPage:
         return join_blocks(
             render_front_matter(self.title),
             f"# {self.title}",
+            self.pre_description_note,
+            experiment.description,
             render_experiment_metadata_line(
                 experiment=experiment,
                 responsible_activity=responsible_activity,
             ),
             render_activity_urls(urls_from_term(responsible_activity)),
-            self.pre_description_note,
-            experiment.description,
             render_related_experiments(self.slug, page_slugs=page_slugs),
             "## Experiment set up",
             self.experiment_setup,
