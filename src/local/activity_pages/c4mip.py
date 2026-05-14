@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from local.forcing_versions import (
+    CMIP_FIXED_SOURCE_ID_INDEXES,
+    CMIP_FORCING_VERSIONS,
+    source_ids_from_forcing_versions,
+)
 from local.guidance import (
     EXPERIMENT_NAME_CONVENTION_TODO,
     ONEPCTCO2_LINK,
@@ -12,8 +17,8 @@ from local.guidance import (
 from local.rendering import (
     block,
     join_blocks,
+    render_data_access_body,
     same_as_versions,
-    see_instructions,
 )
 
 C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
@@ -35,7 +40,13 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=f"See general headlines for the {ONEPCTCO2_LINK}.",
         notes=f"See notes for the {ONEPCTCO2_LINK}.",
         versions_to_use=same_as_versions("1pctCO2 simulation", "1pctco2"),
-        getting_the_data=see_instructions("1pctCO2 simulation", "1pctco2"),
+        getting_the_data=render_data_access_body(
+            experiment_name="1pctCO2-bgc",
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
+        ),
     ),
     ExperimentPage(
         slug="1pctco2-rad",
@@ -55,6 +66,12 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=f"See general headlines for the {ONEPCTCO2_LINK}.",
         notes=f"See notes for the {ONEPCTCO2_LINK}.",
         versions_to_use=same_as_versions("1pctCO2 simulation", "1pctco2"),
-        getting_the_data=see_instructions("1pctCO2 simulation", "1pctco2"),
+        getting_the_data=render_data_access_body(
+            experiment_name="1pctCO2-rad",
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
+        ),
     ),
 )

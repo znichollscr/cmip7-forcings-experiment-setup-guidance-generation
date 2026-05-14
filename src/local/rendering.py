@@ -188,13 +188,6 @@ def same_as_versions(label: str, slug: str) -> str:
     )
 
 
-def see_instructions(label: str, slug: str, extra: str = "") -> str:
-    """Render a short data-access section that points to another page."""
-    return join_blocks(
-        f"See instructions for the {render_link(label, slug)}.", extra
-    ).strip()
-
-
 def render_forcing_reference_list(
     forcing_references: Sequence[ForcingReference],
 ) -> str:
@@ -280,6 +273,7 @@ def render_data_access_body(
     *,
     experiment_name: str,
     source_ids: Sequence[str],
+    extra: str = "",
 ) -> str:
     """Render the standard data-access section body."""
     return join_blocks(
@@ -293,6 +287,7 @@ def render_data_access_body(
             """
         ),
         render_esgpull_script(experiment_name=experiment_name, source_ids=source_ids),
+        extra,
     ).strip()
 
 

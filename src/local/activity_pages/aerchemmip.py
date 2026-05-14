@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from local.forcing_versions import (
+    cmip_forcing_ids_except,
+    source_ids_for_cmip_forcing_combination,
+)
 from local.guidance import (
     AERCHEMMIP_UNCERTAIN_NOTE,
     EXPERIMENT_NAME_CONVENTION_TODO,
@@ -16,7 +20,22 @@ from local.rendering import (
     block,
     join_blocks,
     join_lines,
+    render_data_access_body,
 )
+
+
+def source_ids_for_piclim_present_day_variant(
+    *present_day_forcing_ids: str,
+) -> tuple[str, ...]:
+    """Return source IDs for a piClim present-day forcing variant."""
+    return source_ids_for_cmip_forcing_combination(
+        fixed_forcing_ids=cmip_forcing_ids_except(
+            *present_day_forcing_ids,
+            "aerosol-optical-properties",
+        ),
+        transient_forcing_ids=present_day_forcing_ids,
+    )
+
 
 PICLIM_PRESENT_DAY_VARIANT_SETUP = join_blocks(
     (
@@ -52,7 +71,12 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
         notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
         versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=f"See instructions for the {PI_CLIM_CONTROL_LINK} and {HISTORICAL_LINK}.",
+        getting_the_data=render_data_access_body(
+            experiment_name="piClim-CH4",
+            source_ids=source_ids_for_piclim_present_day_variant(
+                "greenhouse-gas-concentrations",
+            ),
+        ),
     ),
     ExperimentPage(
         slug="piclim-n2o",
@@ -60,7 +84,12 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
         notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
         versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=f"See instructions for the {PI_CLIM_CONTROL_LINK} and {HISTORICAL_LINK}.",
+        getting_the_data=render_data_access_body(
+            experiment_name="piClim-N2O",
+            source_ids=source_ids_for_piclim_present_day_variant(
+                "greenhouse-gas-concentrations",
+            ),
+        ),
     ),
     ExperimentPage(
         slug="piclim-nox",
@@ -68,7 +97,12 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
         notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
         versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=f"See instructions for the {PI_CLIM_CONTROL_LINK} and {HISTORICAL_LINK}.",
+        getting_the_data=render_data_access_body(
+            experiment_name="piClim-NOx",
+            source_ids=source_ids_for_piclim_present_day_variant(
+                "anthropogenic-emissions",
+            ),
+        ),
     ),
     ExperimentPage(
         slug="piclim-ods",
@@ -76,7 +110,12 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
         notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
         versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=f"See instructions for the {PI_CLIM_CONTROL_LINK} and {HISTORICAL_LINK}.",
+        getting_the_data=render_data_access_body(
+            experiment_name="piClim-ODS",
+            source_ids=source_ids_for_piclim_present_day_variant(
+                "greenhouse-gas-concentrations",
+            ),
+        ),
     ),
     ExperimentPage(
         slug="piclim-so2",
@@ -84,7 +123,12 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
         notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
         versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=f"See instructions for the {PI_CLIM_CONTROL_LINK} and {HISTORICAL_LINK}.",
+        getting_the_data=render_data_access_body(
+            experiment_name="piClim-SO2",
+            source_ids=source_ids_for_piclim_present_day_variant(
+                "anthropogenic-emissions",
+            ),
+        ),
     ),
     ExperimentPage(
         slug="hist-piaer",
@@ -123,7 +167,16 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 f"the forcing versions relevant for this simulation are the same as for the {HISTORICAL_LINK}.",
             ),
         ).strip(),
-        getting_the_data=f"See instructions for the {PI_CONTROL_LINK} and {HISTORICAL_LINK}.",
+        getting_the_data=render_data_access_body(
+            experiment_name="hist-piAer",
+            source_ids=source_ids_for_cmip_forcing_combination(
+                fixed_forcing_ids=("anthropogenic-emissions",),
+                transient_forcing_ids=cmip_forcing_ids_except(
+                    "anthropogenic-emissions",
+                    "aerosol-optical-properties",
+                ),
+            ),
+        ),
     ),
     ExperimentPage(
         slug="hist-piaq",
@@ -162,6 +215,15 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 f"the forcing versions relevant for this simulation are the same as for the {HISTORICAL_LINK}.",
             ),
         ).strip(),
-        getting_the_data=f"See instructions for the {PI_CONTROL_LINK} and {HISTORICAL_LINK}.",
+        getting_the_data=render_data_access_body(
+            experiment_name="hist-piAQ",
+            source_ids=source_ids_for_cmip_forcing_combination(
+                fixed_forcing_ids=("anthropogenic-emissions",),
+                transient_forcing_ids=cmip_forcing_ids_except(
+                    "anthropogenic-emissions",
+                    "aerosol-optical-properties",
+                ),
+            ),
+        ),
     ),
 )

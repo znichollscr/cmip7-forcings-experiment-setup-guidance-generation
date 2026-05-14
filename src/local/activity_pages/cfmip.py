@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from local.forcing_versions import (
+    CMIP_FIXED_SOURCE_ID_INDEXES,
+    CMIP_FORCING_VERSIONS,
+    source_ids_from_forcing_versions,
+)
 from local.guidance import (
     ABRUPT_4XCO2_LINK,
     EXPERIMENT_NAME_CONVENTION_TODO,
@@ -13,8 +18,8 @@ from local.guidance import (
 from local.rendering import (
     block,
     join_blocks,
+    render_data_access_body,
     same_as_versions,
-    see_instructions,
 )
 
 CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
@@ -35,10 +40,14 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=f"See general headlines for the {ABRUPT_4XCO2_LINK}.",
         notes=f"See notes for the {PI_CONTROL_LINK}.",
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=join_blocks(
-            see_instructions("piControl simulation", "picontrol"),
-            "You have to double the atmospheric CO<sub>2</sub> concentrations yourself.",
-        ).strip(),
+        getting_the_data=render_data_access_body(
+            experiment_name="abrupt-2xCO2",
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
+            extra="You have to double the atmospheric CO<sub>2</sub> concentrations yourself.",
+        ),
     ),
     ExperimentPage(
         slug="abrupt-0p5xco2",
@@ -57,9 +66,13 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcing_headlines=f"See general headlines for the {ABRUPT_4XCO2_LINK}.",
         notes=f"See notes for the {PI_CONTROL_LINK}.",
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=join_blocks(
-            see_instructions("piControl simulation", "picontrol"),
-            "You have to halve the atmospheric CO<sub>2</sub> concentrations yourself.",
-        ).strip(),
+        getting_the_data=render_data_access_body(
+            experiment_name="abrupt-0p5xCO2",
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
+            extra="You have to halve the atmospheric CO<sub>2</sub> concentrations yourself.",
+        ),
     ),
 )

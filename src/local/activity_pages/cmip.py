@@ -8,6 +8,8 @@ from local.forcing_versions import (
     CMIP_FIXED_SOURCE_ID_INDEXES,
     CMIP_FORCING_VERSIONS,
     CMIP_TRANSIENT_SOURCE_ID_INDEXES,
+    cmip_forcing_ids_except,
+    source_ids_for_cmip_forcing_combination,
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
@@ -28,7 +30,6 @@ from local.rendering import (
     render_versions_body,
     render_versions_json,
     same_as_versions,
-    see_instructions,
 )
 
 CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
@@ -165,29 +166,35 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         notes=f"See notes for the {PI_CONTROL_LINK}.",
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=join_blocks(
-            see_instructions("piControl simulation", "picontrol"),
-            "You have to increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.",
-            block(
-                """
-                <!---
-                    TODO: discuss with Matt/someone else the specific implementation instructions.
-                    Set concentrations in first year to be higher than piControl
-                    (because, if you don't do this and you have a linear increase,
-                    then you'd have to drop concentrations in January of the first year in order to get the average correct)
-                    TODO: check formula rendering
-                -->
-                The annual-average concentrations should increase following the formula c(y) = c_0 * 1.01 ** (y - y_0 - 1),
-                where c is the annual-average concentration in year y and y_0 is the first year of the `1pctCO2` simulation
-                (i.e. average atmospheric CO<sub>2</sub> concentrations in the first year of the `1pctCO2` simulation
-                should be higher than in `piControl`).
-                It is up to you to decide whether you apply your concentrations as a series of step changes
-                (constant over each year) or as a steady linear increase
-                (such that e.g. concentrations in December are higher than those in January)
-                that results in the correct annual average being applied.
-                """
+        getting_the_data=render_data_access_body(
+            experiment_name="1pctCO2",
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
             ),
-        ).strip(),
+            extra=join_blocks(
+                "You have to increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.",
+                block(
+                    """
+                    <!---
+                        TODO: discuss with Matt/someone else the specific implementation instructions.
+                        Set concentrations in first year to be higher than piControl
+                        (because, if you don't do this and you have a linear increase,
+                        then you'd have to drop concentrations in January of the first year in order to get the average correct)
+                        TODO: check formula rendering
+                    -->
+                    The annual-average concentrations should increase following the formula c(y) = c_0 * 1.01 ** (y - y_0 - 1),
+                    where c is the annual-average concentration in year y and y_0 is the first year of the `1pctCO2` simulation
+                    (i.e. average atmospheric CO<sub>2</sub> concentrations in the first year of the `1pctCO2` simulation
+                    should be higher than in `piControl`).
+                    It is up to you to decide whether you apply your concentrations as a series of step changes
+                    (constant over each year) or as a steady linear increase
+                    (such that e.g. concentrations in December are higher than those in January)
+                    that results in the correct annual average being applied.
+                    """
+                ),
+            ).strip(),
+        ),
     ),
     ExperimentPage(
         slug="abrupt-4xco2",
@@ -209,10 +216,14 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         notes=f"See notes for the {PI_CONTROL_LINK}.",
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=join_blocks(
-            see_instructions("piControl simulation", "picontrol"),
-            "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
-        ).strip(),
+        getting_the_data=render_data_access_body(
+            experiment_name="abrupt-4xCO2",
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
+            extra="You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
+        ),
     ),
     ExperimentPage(
         slug="piclim-control",
@@ -260,16 +271,20 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 """
             ),
         ).strip(),
-        getting_the_data=join_blocks(
-            see_instructions("piControl simulation", "picontrol"),
-            block(
+        getting_the_data=render_data_access_body(
+            experiment_name="piClim-control",
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
+            extra=block(
                 """
                 As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
                 must come from model output from one of your own simulations,
                 they are not provided by a forcings provider.
                 """
             ),
-        ).strip(),
+        ),
     ),
     ExperimentPage(
         slug="piclim-4xco2",
@@ -292,10 +307,23 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
         versions_to_use=same_as_versions("piClim-control simulation", "piclim-control"),
-        getting_the_data=join_blocks(
-            see_instructions("piClim-control simulation", "piclim-control"),
-            "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
-        ).strip(),
+        getting_the_data=render_data_access_body(
+            experiment_name="piClim-4xCO2",
+            source_ids=source_ids_from_forcing_versions(
+                CMIP_FORCING_VERSIONS,
+                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            ),
+            extra=join_blocks(
+                "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
+                block(
+                    """
+                    As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
+                    must come from model output from one of your own simulations,
+                    they are not provided by a forcings provider.
+                    """
+                ),
+            ).strip(),
+        ),
     ),
     ExperimentPage(
         slug="piclim-anthro",
@@ -331,7 +359,27 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 f"the forcing versions relevant for this simulation are the same as for the {HISTORICAL_LINK}.",
             ),
         ).strip(),
-        getting_the_data=f"See instructions for the {PI_CLIM_CONTROL_LINK} and {HISTORICAL_LINK}.",
+        getting_the_data=render_data_access_body(
+            experiment_name="piClim-anthro",
+            source_ids=source_ids_for_cmip_forcing_combination(
+                fixed_forcing_ids=(
+                    "stratospheric-aerosol-forcing",
+                    "solar",
+                ),
+                transient_forcing_ids=cmip_forcing_ids_except(
+                    "stratospheric-aerosol-forcing",
+                    "solar",
+                    "aerosol-optical-properties",
+                ),
+            ),
+            extra=block(
+                """
+                As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
+                must come from model output from one of your own simulations,
+                they are not provided by a forcings provider.
+                """
+            ),
+        ),
     ),
     ExperimentPage(
         slug="amip",

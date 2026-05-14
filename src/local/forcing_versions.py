@@ -63,6 +63,58 @@ AMIP_FORCING_VERSIONS = OrderedDict(
 NON_DOWNLOADABLE_FORCING_VALUES = {"not-available-yet"}
 
 
+def cmip_forcing_ids_except(*excluded_forcing_ids: str) -> tuple[str, ...]:
+    """Return CMIP forcing IDs excluding the given IDs."""
+    excluded = set(excluded_forcing_ids)
+    return tuple(
+        forcing_id for forcing_id in CMIP_FORCING_VERSIONS if forcing_id not in excluded
+    )
+
+
+def source_ids_for_cmip_forcing_combination(
+    *,
+    fixed_forcing_ids: Sequence[str] = (),
+    transient_forcing_ids: Sequence[str] = (),
+) -> tuple[str, ...]:
+    """Derive source IDs for a mix of fixed and transient CMIP forcings."""
+    return merge_source_ids(
+        source_ids_from_forcing_versions(
+            select_forcing_versions(CMIP_FORCING_VERSIONS, fixed_forcing_ids),
+            source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+        ),
+        source_ids_from_forcing_versions(
+            select_forcing_versions(CMIP_FORCING_VERSIONS, transient_forcing_ids),
+            source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
+        ),
+    )
+
+
+def select_forcing_versions(
+    forcing_versions: Mapping[str, ForcingValue],
+    forcing_ids: Sequence[str],
+) -> Mapping[str, ForcingValue]:
+    """Select forcing versions by forcing ID while preserving source order."""
+    return OrderedDict(
+        (forcing_id, forcing_versions[forcing_id]) for forcing_id in forcing_ids
+    )
+
+
+def merge_source_ids(*source_id_collections: Sequence[str]) -> tuple[str, ...]:
+    """Merge source-ID collections while preserving order and de-duplicating."""
+    source_ids: list[str] = []
+    seen: set[str] = set()
+
+    for source_id_collection in source_id_collections:
+        for source_id in source_id_collection:
+            if source_id in seen:
+                continue
+
+            source_ids.append(source_id)
+            seen.add(source_id)
+
+    return tuple(source_ids)
+
+
 def source_ids_from_forcing_versions(
     *forcing_versions: Mapping[str, ForcingValue],
     source_id_indexes: Mapping[str, int] | None = None,
