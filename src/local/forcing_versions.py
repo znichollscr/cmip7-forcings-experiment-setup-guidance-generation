@@ -36,21 +36,6 @@ CMIP_TRANSIENT_SOURCE_ID_INDEXES = {
     "ozone": 1,
 }
 
-SCEN7_H_FORCING_VERSIONS = OrderedDict(
-    (
-        ("anthropogenic-emissions", ("IIASA-IAMC-h-1-0-0",)),
-        ("biomass-burning-emissions", ("IIASA-IAMC-h-1-0-0",)),
-        ("land-use", "not-available-yet"),
-        ("greenhouse-gas-concentrations", ("CR-h-1-0-0",)),
-        ("stratospheric-aerosol-forcing", ("UOEXETER-ScenarioMIP-2-2-2",)),
-        ("ozone", "not-available-yet"),
-        ("nitrogen-deposition", "not-available-yet"),
-        ("solar", ("SOLARIS-HEPPA-ScenarioMIP-4-6",)),
-        ("aerosol-optical-properties", None),
-        ("population-density", ("PIK-h-1-0-0",)),
-    )
-)
-
 SCEN7_VL_FORCING_VERSIONS = OrderedDict(
     (
         ("anthropogenic-emissions", ("IIASA-IAMC-vl-1-0-0",)),
@@ -76,6 +61,97 @@ AMIP_FORCING_VERSIONS = OrderedDict(
 )
 
 NON_DOWNLOADABLE_FORCING_VALUES = {"not-available-yet"}
+SCEN7_EXPERIMENT_PREFIX = "scen7-"
+SCEN7_ESM_EXPERIMENT_PREFIX = f"esm-{SCEN7_EXPERIMENT_PREFIX}"
+SCEN7_TEMPLATE_SUFFIX = "vl"
+SCEN7_FORCING_VERSION_SLUGS = (
+    "scen7-h",
+    "esm-scen7-h",
+    "scen7-h-ext",
+    "esm-scen7-h-ext",
+    "scen7-hl",
+    "esm-scen7-hl",
+    "scen7-hl-ext",
+    "esm-scen7-hl-ext",
+    "scen7-l",
+    "esm-scen7-l",
+    "scen7-l-ext",
+    "esm-scen7-l-ext",
+    "scen7-ln",
+    "esm-scen7-ln",
+    "scen7-ln-ext",
+    "esm-scen7-ln-ext",
+    "scen7-m",
+    "esm-scen7-m",
+    "scen7-m-ext",
+    "esm-scen7-m-ext",
+    "scen7-ml",
+    "esm-scen7-ml",
+    "scen7-ml-ext",
+    "esm-scen7-ml-ext",
+    "scen7-vl",
+    "esm-scen7-vl",
+    "scen7-vl-ext",
+    "esm-scen7-vl-ext",
+)
+
+
+def _scen7_forcing_versions_for_suffix(suffix: str) -> Mapping[str, ForcingValue]:
+    """Return ScenarioMIP forcing versions by replacing the template suffix."""
+    return OrderedDict(
+        (
+            forcing_id,
+            _replace_scen7_forcing_value_suffix(value, suffix=suffix),
+        )
+        for forcing_id, value in SCEN7_VL_FORCING_VERSIONS.items()
+    )
+
+
+def _scen7_suffix_from_slug(slug: str) -> str:
+    """Return the scenario suffix from a ScenarioMIP experiment slug."""
+    if slug.startswith(SCEN7_ESM_EXPERIMENT_PREFIX):
+        return slug.removeprefix(SCEN7_ESM_EXPERIMENT_PREFIX)
+
+    if slug.startswith(SCEN7_EXPERIMENT_PREFIX):
+        return slug.removeprefix(SCEN7_EXPERIMENT_PREFIX)
+
+    msg = f"Cannot derive ScenarioMIP suffix from {slug!r}."
+    raise ValueError(msg)
+
+
+def _replace_scen7_forcing_value_suffix(
+    value: ForcingValue,
+    *,
+    suffix: str,
+) -> ForcingValue:
+    """Replace the ScenarioMIP template suffix in a forcing-version value."""
+    if value is None:
+        return None
+
+    if isinstance(value, str):
+        return _replace_scen7_source_id_suffix(value, suffix=suffix)
+
+    return tuple(_replace_scen7_source_id_suffix(item, suffix=suffix) for item in value)
+
+
+def _replace_scen7_source_id_suffix(source_id: str, *, suffix: str) -> str:
+    """Replace the ScenarioMIP template suffix in one source ID."""
+    return source_id.replace(
+        f"-{SCEN7_TEMPLATE_SUFFIX}-",
+        f"-{suffix}-",
+    )
+
+
+def _scen7_forcing_versions_for_slug(slug: str) -> Mapping[str, ForcingValue]:
+    """Return ScenarioMIP forcing versions for an experiment slug."""
+    return _scen7_forcing_versions_for_suffix(_scen7_suffix_from_slug(slug))
+
+
+SCEN7_FORCING_VERSIONS_BY_SLUG = OrderedDict(
+    (slug, _scen7_forcing_versions_for_slug(slug))
+    for slug in SCEN7_FORCING_VERSION_SLUGS
+)
+SCEN7_H_FORCING_VERSIONS = SCEN7_FORCING_VERSIONS_BY_SLUG["scen7-h"]
 
 
 def cmip_forcing_ids_except(*excluded_forcing_ids: str) -> tuple[str, ...]:
