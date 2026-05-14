@@ -47,6 +47,16 @@ class ExperimentPair:
 
         return None
 
+    def related_slug_from(self, slug: str) -> str | None:
+        """Return the other slug in the pair if ``slug`` belongs to this pair."""
+        if slug == self.left_slug:
+            return self.right_slug
+
+        if slug == self.right_slug:
+            return self.left_slug
+
+        return None
+
 
 EMISSIONS_CONCENTRATION_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
     ExperimentPair(
@@ -115,18 +125,86 @@ def render_related_experiments(
     experiment_pairs: Iterable[ExperimentPair] = EXPERIMENT_PAIRS,
 ) -> str:
     """Render related-experiment cross-references for a page."""
-    references = tuple(
-        reference
+    references_by_slug = {
+        related_slug: reference
         for pair in experiment_pairs
+        if (related_slug := pair.related_slug_from(slug)) is not None
         if (reference := pair.reference_from(slug, page_slugs=page_slugs))
-    )
-    if not references:
+    }
+    if not references_by_slug:
         return ""
 
     return join_blocks(
         "## Related experiments",
-        "\n".join(f"- {reference}" for reference in references),
+        "\n".join(
+            f"- {references_by_slug[related_slug]}"
+            for related_slug in sort_experiment_slugs(references_by_slug)
+        ),
     ).strip()
+
+
+def sort_experiment_slugs(slugs: Iterable[str]) -> tuple[str, ...]:
+    """Sort experiment slugs, placing paired ``esm-*`` slugs after their pair."""
+    slug_tuple = tuple(slugs)
+    paired_sort_keys = _paired_sort_keys(slug_tuple)
+    return tuple(
+        sorted(
+            slug_tuple,
+            key=lambda slug: paired_sort_keys.get(
+                slug, (slug.lower(), 0, slug.lower())
+            ),
+        )
+    )
+
+
+def _paired_sort_keys(slugs: Iterable[str]) -> dict[str, tuple[str, int, str]]:
+    """Return sort-key overrides for recognised experiment pairs."""
+    slug_set = set(slugs)
+    paired_sort_keys: dict[str, tuple[str, int, str]] = {}
+
+    for pair in EXPERIMENT_PAIRS:
+        _add_pair_sort_keys(
+            pair.left_slug,
+            pair.right_slug,
+            slug_set=slug_set,
+            paired_sort_keys=paired_sort_keys,
+        )
+
+    for emissions_slug in (slug for slug in slug_set if slug.startswith("esm-")):
+        concentration_slug = emissions_slug.removeprefix("esm-")
+        _add_pair_sort_keys(
+            concentration_slug,
+            emissions_slug,
+            slug_set=slug_set,
+            paired_sort_keys=paired_sort_keys,
+        )
+
+    for aer_slug in (slug for slug in slug_set if slug.endswith("aer")):
+        aq_slug = f"{aer_slug[:-3]}aq"
+        _add_pair_sort_keys(
+            aer_slug,
+            aq_slug,
+            slug_set=slug_set,
+            paired_sort_keys=paired_sort_keys,
+        )
+
+    return paired_sort_keys
+
+
+def _add_pair_sort_keys(
+    left_slug: str,
+    right_slug: str,
+    *,
+    slug_set: set[str],
+    paired_sort_keys: dict[str, tuple[str, int, str]],
+) -> None:
+    """Add sort-key overrides for a pair if both slugs are present."""
+    if left_slug not in slug_set or right_slug not in slug_set:
+        return
+
+    primary_key = left_slug.lower()
+    paired_sort_keys.setdefault(left_slug, (primary_key, 0, left_slug.lower()))
+    paired_sort_keys.setdefault(right_slug, (primary_key, 1, right_slug.lower()))
 
 
 def _render_reference(

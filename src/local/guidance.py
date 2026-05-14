@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
 from local.branching import render_parent_information
-from local.experiment_pairs import render_related_experiments
+from local.experiment_pairs import render_related_experiments, sort_experiment_slugs
 from local.rendering import (
     block,
     join_blocks,
@@ -209,11 +209,21 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
 
     return (
-        *CMIP_EXPERIMENT_PAGES,
-        *AERCHEMMIP_EXPERIMENT_PAGES,
-        *CFMIP_EXPERIMENT_PAGES,
-        *C4MIP_EXPERIMENT_PAGES,
-        *SCENARIOMIP_EXPERIMENT_PAGES,
+        *_sort_experiment_pages(CMIP_EXPERIMENT_PAGES),
+        *_sort_experiment_pages(AERCHEMMIP_EXPERIMENT_PAGES),
+        *_sort_experiment_pages(CFMIP_EXPERIMENT_PAGES),
+        *_sort_experiment_pages(C4MIP_EXPERIMENT_PAGES),
+        *_sort_experiment_pages(SCENARIOMIP_EXPERIMENT_PAGES),
+    )
+
+
+def _sort_experiment_pages(
+    pages: Iterable[ExperimentPage],
+) -> tuple[ExperimentPage, ...]:
+    """Sort experiment pages using the displayed experiment-list ordering."""
+    page_lookup = {page.slug: page for page in pages}
+    return tuple(
+        page_lookup[slug] for slug in sort_experiment_slugs(page_lookup.keys())
     )
 
 
@@ -340,7 +350,7 @@ def make_index_page(
             activity_urls = urls_from_term(activity_term)
             links = [
                 f"1. [{page_lookup[slug].display_name}](./{slug}.md)"
-                for slug in activity.experiment_slugs
+                for slug in sort_experiment_slugs(activity.experiment_slugs)
             ]
             sections.append(
                 join_blocks(
