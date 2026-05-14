@@ -36,7 +36,9 @@ def render_parent_information(
         )
         parent_activity_suffix = ""
         if parent_activity is not None:
-            parent_activity_suffix = f" (part of {parent_activity.drs_name})"
+            parent_activity_suffix = (
+                f" (part of {_render_parent_activity_link(parent_activity)})"
+            )
 
         parent_summary = (
             f"`{experiment.drs_name}` branches from the "
@@ -68,6 +70,11 @@ def _render_parent_experiment_link(
         raise MissingParentExperimentPageError(msg)
 
     return render_link(parent_experiment.drs_name, parent_slug)
+
+
+def _render_parent_activity_link(parent_activity: Any) -> str:
+    """Render a link to the parent activity section on the index page."""
+    return f"[{parent_activity.drs_name}](./index.md#{parent_activity.id})"
 
 
 def _as_activity(activity: Any) -> Any | None:
