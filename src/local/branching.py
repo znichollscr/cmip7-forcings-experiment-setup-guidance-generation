@@ -114,7 +114,10 @@ def _render_parent_mip_era(parent_mip_era: Any) -> str:
     if url is not None:
         urls = (str(url),)
 
-    return f"Parent MIP era: {render_term_reference(parent_mip_era.drs_name, urls)}."
+    return (
+        "The parent experiment comes from "
+        f"{render_term_reference(parent_mip_era.drs_name, urls)}."
+    )
 
 
 def _sentence(text: str | None) -> str:
