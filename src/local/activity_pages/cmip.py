@@ -8,8 +8,6 @@ from local.forcing_versions import (
     CMIP_FIXED_SOURCE_ID_INDEXES,
     CMIP_FORCING_VERSIONS,
     CMIP_TRANSIENT_SOURCE_ID_INDEXES,
-    cmip_forcing_ids_except,
-    source_ids_for_cmip_forcing_combination,
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
@@ -21,6 +19,10 @@ from local.guidance import (
     SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
+)
+from local.piclim_variants import (
+    HistoricalForcing,
+    make_piclim_historical_forcing_variant_page,
 )
 from local.rendering import (
     block,
@@ -325,60 +327,41 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ).strip(),
         ),
     ),
-    ExperimentPage(
+    make_piclim_historical_forcing_variant_page(
         slug="piclim-anthro",
-        experiment_setup=join_blocks(
-            join_lines(
-                "The piClim-anthro simulation uses the same forcings as [piClim-control](./piclim-control.md),",
-                "except all anthropogenic forcings use 2021 values.",
+        historical_forcings=(
+            HistoricalForcing(
+                forcing_id="anthropogenic-emissions",
+                label="anthropogenic emissions",
             ),
-            "The 2021 values should be prescribed on repeat throughout the simulation.",
-            block(
-                """
-                Here, all anthropogenic forcings means all forcings included in the [historical](./historical.md) simulation
-                except for solar and stratospheric aerosol forcing
-                (these two forcings should remain as in [piClim-control](./piclim-control.md)).
-                """
+            HistoricalForcing(
+                forcing_id="biomass-burning-emissions",
+                label="biomass-burning emissions",
             ),
-            SETUP_GENERATION_TODO,
-            PICLIM_TIME_AXIS,
-        ).strip(),
-        forcing_headlines=(
-            "See general headlines for the "
-            "[`piClim-control` simulation](./piclim-control.md)."
+            HistoricalForcing(
+                forcing_id="land-use",
+                label="land-use forcing",
+            ),
+            HistoricalForcing(
+                forcing_id="greenhouse-gas-concentrations",
+                label="greenhouse-gas concentrations",
+            ),
+            HistoricalForcing(
+                forcing_id="ozone",
+                label="ozone",
+            ),
+            HistoricalForcing(
+                forcing_id="nitrogen-deposition",
+                label="nitrogen deposition",
+            ),
+            HistoricalForcing(
+                forcing_id="population-density",
+                label="population density",
+            ),
         ),
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=join_blocks(
-            join_lines(
-                "For natural forcings i.e. solar and stratospheric aerosol forcing,",
-                "and the prescribed sea-surface temperatures and sea-ice concentrations",
-                f"the relevant forcing is the same as for the {PI_CLIM_CONTROL_LINK}.",
-            ),
-            join_lines(
-                "For all other forcings i.e. anthropogenic forcings,",
-                f"the forcing versions relevant for this simulation are the same as for the {HISTORICAL_LINK}.",
-            ),
-        ).strip(),
-        getting_the_data=render_data_access_body(
-            experiment_name="piClim-anthro",
-            source_ids=source_ids_for_cmip_forcing_combination(
-                fixed_forcing_ids=(
-                    "stratospheric-aerosol-forcing",
-                    "solar",
-                ),
-                transient_forcing_ids=cmip_forcing_ids_except(
-                    "stratospheric-aerosol-forcing",
-                    "solar",
-                    "aerosol-optical-properties",
-                ),
-            ),
-            extra=block(
-                """
-                As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
-                must come from model output from one of your own simulations,
-                they are not provided by a forcings provider.
-                """
-            ),
+        extra_setup=(
+            "Solar and stratospheric aerosol forcing should remain as in "
+            "[piClim-control](./piclim-control.md)."
         ),
     ),
     ExperimentPage(

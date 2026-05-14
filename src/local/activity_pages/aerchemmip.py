@@ -10,11 +10,13 @@ from local.guidance import (
     AERCHEMMIP_UNCERTAIN_NOTE,
     EXPERIMENT_NAME_CONVENTION_TODO,
     HISTORICAL_LINK,
-    PI_CLIM_CONTROL_LINK,
     PI_CONTROL_LINK,
-    PICLIM_TIME_AXIS,
     SETUP_GENERATION_TODO,
     ExperimentPage,
+)
+from local.piclim_variants import (
+    HistoricalForcing,
+    make_piclim_historical_forcing_variant_page,
 )
 from local.rendering import (
     block,
@@ -23,110 +25,49 @@ from local.rendering import (
     render_data_access_body,
 )
 
-
-def source_ids_for_piclim_present_day_variant(
-    *present_day_forcing_ids: str,
-) -> tuple[str, ...]:
-    """Return source IDs for a piClim present-day forcing variant."""
-    return source_ids_for_cmip_forcing_combination(
-        fixed_forcing_ids=cmip_forcing_ids_except(
-            *present_day_forcing_ids,
-            "aerosol-optical-properties",
-        ),
-        transient_forcing_ids=present_day_forcing_ids,
-    )
-
-
-PICLIM_PRESENT_DAY_VARIANT_SETUP = join_blocks(
-    (
-        "This simulation uses the same forcings as "
-        "[piClim-control](./piclim-control.md), except the present-day forcing "
-        "identified in the CMIP7 CV description above uses 2021 values."
-    ),
-    "The 2021 values should be prescribed on repeat throughout the simulation.",
-    SETUP_GENERATION_TODO,
-    PICLIM_TIME_AXIS,
-).strip()
-
-PICLIM_PRESENT_DAY_VARIANT_HEADLINES = (
-    "See general headlines for the "
-    "[`piClim-control` simulation](./piclim-control.md)."
-)
-
-PICLIM_PRESENT_DAY_VARIANT_VERSIONS = join_blocks(
-    join_lines(
-        "For the present-day forcing identified in the CMIP7 CV description above,",
-        f"the forcing version relevant for this simulation is the same as for the {HISTORICAL_LINK}.",
-    ),
-    join_lines(
-        "For all other forcings,",
-        f"the forcing versions relevant for this simulation are the same as for the {PI_CLIM_CONTROL_LINK}.",
-    ),
-).strip()
-
 AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
-    ExperimentPage(
+    make_piclim_historical_forcing_variant_page(
         slug="piclim-ch4",
-        experiment_setup=PICLIM_PRESENT_DAY_VARIANT_SETUP,
-        forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=render_data_access_body(
-            experiment_name="piClim-CH4",
-            source_ids=source_ids_for_piclim_present_day_variant(
-                "greenhouse-gas-concentrations",
+        historical_forcings=(
+            HistoricalForcing(
+                forcing_id="greenhouse-gas-concentrations",
+                label="methane concentrations or emissions (as appropriate for the model)",
             ),
         ),
     ),
-    ExperimentPage(
+    make_piclim_historical_forcing_variant_page(
         slug="piclim-n2o",
-        experiment_setup=PICLIM_PRESENT_DAY_VARIANT_SETUP,
-        forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=render_data_access_body(
-            experiment_name="piClim-N2O",
-            source_ids=source_ids_for_piclim_present_day_variant(
-                "greenhouse-gas-concentrations",
+        historical_forcings=(
+            HistoricalForcing(
+                forcing_id="greenhouse-gas-concentrations",
+                label="nitrous oxide concentrations or emissions (as appropriate for the model)",
             ),
         ),
     ),
-    ExperimentPage(
+    make_piclim_historical_forcing_variant_page(
         slug="piclim-nox",
-        experiment_setup=PICLIM_PRESENT_DAY_VARIANT_SETUP,
-        forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=render_data_access_body(
-            experiment_name="piClim-NOx",
-            source_ids=source_ids_for_piclim_present_day_variant(
-                "anthropogenic-emissions",
+        historical_forcings=(
+            HistoricalForcing(
+                forcing_id="anthropogenic-emissions",
+                label="nitrogen oxides (NOx) emissions",
             ),
         ),
     ),
-    ExperimentPage(
+    make_piclim_historical_forcing_variant_page(
         slug="piclim-ods",
-        experiment_setup=PICLIM_PRESENT_DAY_VARIANT_SETUP,
-        forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=render_data_access_body(
-            experiment_name="piClim-ODS",
-            source_ids=source_ids_for_piclim_present_day_variant(
-                "greenhouse-gas-concentrations",
+        historical_forcings=(
+            HistoricalForcing(
+                forcing_id="greenhouse-gas-concentrations",
+                label="ozone-depleting substance concentrations",
             ),
         ),
     ),
-    ExperimentPage(
+    make_piclim_historical_forcing_variant_page(
         slug="piclim-so2",
-        experiment_setup=PICLIM_PRESENT_DAY_VARIANT_SETUP,
-        forcing_headlines=PICLIM_PRESENT_DAY_VARIANT_HEADLINES,
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=PICLIM_PRESENT_DAY_VARIANT_VERSIONS,
-        getting_the_data=render_data_access_body(
-            experiment_name="piClim-SO2",
-            source_ids=source_ids_for_piclim_present_day_variant(
-                "anthropogenic-emissions",
+        historical_forcings=(
+            HistoricalForcing(
+                forcing_id="anthropogenic-emissions",
+                label="sulfur dioxide (SO<sub>2</sub>) emissions",
             ),
         ),
     ),
@@ -134,8 +75,10 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         slug="hist-piaer",
         pre_description_note=AERCHEMMIP_UNCERTAIN_NOTE,
         experiment_setup=join_blocks(
+            # TODO: remove this
             "<!-- TODO: check this with someone who knows what they're reading -->",
             EXPERIMENT_NAME_CONVENTION_TODO,
+            # TODO: Get this from esgvoc instead
             block(
                 """
                 The `hist-piAer` simulation is a simple variant of the [historical simulation](./historical.md)
@@ -182,8 +125,10 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         slug="hist-piaq",
         pre_description_note=AERCHEMMIP_UNCERTAIN_NOTE,
         experiment_setup=join_blocks(
+            # TODO: remove this
             "<!-- TODO: check this with someone who knows what they're reading -->",
             EXPERIMENT_NAME_CONVENTION_TODO,
+            # TODO: Get this from esgvoc instead
             block(
                 """
                 The `hist-piAQ` simulation is a simple variant of the [historical simulation](./historical.md)
