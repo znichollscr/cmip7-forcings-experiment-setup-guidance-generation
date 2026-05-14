@@ -204,7 +204,6 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
     from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
     from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
-    from local.activity_pages.generic import make_generic_experiment_page
     from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
 
     detailed_pages = (
@@ -217,10 +216,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     detailed_pages_by_slug = _pages_by_slug(detailed_pages)
     _validate_experiment_slugs_to_generate(detailed_pages_by_slug)
 
-    return tuple(
-        detailed_pages_by_slug.get(slug) or make_generic_experiment_page(slug)
-        for slug in EXPERIMENT_SLUGS_TO_GENERATE
-    )
+    return tuple(detailed_pages_by_slug[slug] for slug in EXPERIMENT_SLUGS_TO_GENERATE)
 
 
 def content_pages() -> tuple[ExperimentPage | SimplePage, ...]:
@@ -465,6 +461,19 @@ def _validate_experiment_slugs_to_generate(
         msg = (
             "Detailed experiment pages are not listed in "
             f"EXPERIMENT_SLUGS_TO_GENERATE: {', '.join(unlisted_detailed_pages)}."
+        )
+        raise ValueError(msg)
+
+    missing_detailed_pages = tuple(
+        slug
+        for slug in EXPERIMENT_SLUGS_TO_GENERATE
+        if slug not in detailed_pages_by_slug
+    )
+    if missing_detailed_pages:
+        msg = (
+            "Cannot generate guidance pages with confidence because detailed page "
+            "definitions are missing for these experiment slugs: "
+            f"{', '.join(missing_detailed_pages)}."
         )
         raise ValueError(msg)
 
