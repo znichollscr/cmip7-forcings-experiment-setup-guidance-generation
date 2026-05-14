@@ -12,6 +12,7 @@ from local.experiment_pairs import render_related_experiments, sort_experiment_s
 from local.rendering import (
     block,
     join_blocks,
+    render_activity_index_link,
     render_activity_urls,
     render_experiment_requirements,
     render_front_matter,
@@ -88,7 +89,10 @@ class ExperimentPage:
         return join_blocks(
             render_front_matter(self.title),
             f"# {self.title}",
-            f"Responsible activity: {responsible_activity.drs_name}",
+            render_experiment_metadata_line(
+                experiment=experiment,
+                responsible_activity=responsible_activity,
+            ),
             render_activity_urls(urls_from_term(responsible_activity)),
             self.pre_description_note,
             experiment.description,
@@ -113,6 +117,16 @@ class ExperimentPage:
             "### Getting the data",
             self.getting_the_data,
         )
+
+
+def render_experiment_metadata_line(*, experiment, responsible_activity) -> str:
+    """Render the activity and tier metadata line for an experiment page."""
+    tier = getattr(experiment, "tier", None)
+    tier_label = "not defined" if tier is None else str(tier)
+    return (
+        f"Responsible activity: {render_activity_index_link(responsible_activity)}. "
+        f"Tier: {tier_label}"
+    )
 
 
 @dataclass(frozen=True)

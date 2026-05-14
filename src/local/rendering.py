@@ -139,6 +139,7 @@ def _should_preserve_line(line: str) -> bool:
     return (
         stripped.startswith("#")
         or stripped.startswith("!!!")
+        or stripped.startswith("Responsible activity:")
         or stripped.startswith("<!--")
         or stripped.startswith("<figure")
         or stripped.startswith("</figure")
@@ -291,6 +292,11 @@ def render_link(label: str, slug: str) -> str:
 def render_external_link(label: str, url: str) -> str:
     """Render an external markdown link."""
     return f"[{label}]({url})"
+
+
+def render_activity_index_link(activity: Any) -> str:
+    """Render a link to an activity section on the index page."""
+    return f"[{activity.drs_name}](./index.md#{activity.id})"
 
 
 def render_url_list(urls: Sequence[str]) -> str:

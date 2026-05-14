@@ -5,7 +5,12 @@ from __future__ import annotations
 from collections.abc import Collection
 from typing import Any
 
-from local.rendering import join_blocks, render_link, render_term_reference
+from local.rendering import (
+    join_blocks,
+    render_activity_index_link,
+    render_link,
+    render_term_reference,
+)
 from local.vocab import get_activity, get_experiment
 
 
@@ -74,7 +79,7 @@ def _render_parent_experiment_link(
 
 def _render_parent_activity_link(parent_activity: Any) -> str:
     """Render a link to the parent activity section on the index page."""
-    return f"[{parent_activity.drs_name}](./index.md#{parent_activity.id})"
+    return render_activity_index_link(parent_activity)
 
 
 def _as_activity(activity: Any) -> Any | None:
