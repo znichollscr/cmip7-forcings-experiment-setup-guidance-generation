@@ -38,7 +38,10 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=f"See general headlines for the {ABRUPT_4XCO2_LINK}.",
-        notes=f"See notes for the {PI_CONTROL_LINK}.",
+        notes=join_blocks(
+            f"See notes for the {PI_CONTROL_LINK}.",
+            "You have to double the atmospheric CO<sub>2</sub> concentrations yourself.",
+        ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=render_data_access_body(
             experiment_name="abrupt-2xCO2",
@@ -46,7 +49,6 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 CMIP_FORCING_VERSIONS,
                 source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
             ),
-            extra="You have to double the atmospheric CO<sub>2</sub> concentrations yourself.",
         ),
     ),
     ExperimentPage(
@@ -64,7 +66,10 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=f"See general headlines for the {ABRUPT_4XCO2_LINK}.",
-        notes=f"See notes for the {PI_CONTROL_LINK}.",
+        notes=join_blocks(
+            f"See notes for the {PI_CONTROL_LINK}.",
+            "You have to halve the atmospheric CO<sub>2</sub> concentrations yourself.",
+        ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=render_data_access_body(
             experiment_name="abrupt-0p5xCO2",
@@ -72,7 +77,6 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 CMIP_FORCING_VERSIONS,
                 source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
             ),
-            extra="You have to halve the atmospheric CO<sub>2</sub> concentrations yourself.",
         ),
     ),
 )

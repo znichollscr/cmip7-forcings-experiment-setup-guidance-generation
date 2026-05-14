@@ -58,7 +58,7 @@ def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
     wrapped: list[str] = []
     paragraph: list[str] = []
     index = 0
-    in_fenced_block = False
+    preserved_block_end: str | None = None
     front_matter_line_count = _front_matter_line_count(lines)
 
     def flush_paragraph() -> None:
@@ -77,15 +77,17 @@ def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
             index += 1
             continue
 
-        if stripped.startswith("```"):
-            flush_paragraph()
+        if preserved_block_end is not None:
             wrapped.append(line)
-            in_fenced_block = not in_fenced_block
+            if preserved_block_end in stripped:
+                preserved_block_end = None
             index += 1
             continue
 
-        if in_fenced_block:
+        if block_end := _preserved_block_end(stripped):
+            flush_paragraph()
             wrapped.append(line)
+            preserved_block_end = block_end
             index += 1
             continue
 
@@ -119,6 +121,17 @@ def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
 
     flush_paragraph()
     return "\n".join(wrapped) + "\n"
+
+
+def _preserved_block_end(stripped_line: str) -> str | None:
+    """Return the end marker for markdown blocks that should not be wrapped."""
+    if stripped_line.startswith("```"):
+        return "```"
+
+    if stripped_line.startswith("<!--") and "-->" not in stripped_line:
+        return "-->"
+
+    return None
 
 
 def _front_matter_line_count(lines: Sequence[str]) -> int:

@@ -221,7 +221,29 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The `1pctCO2` experiment is a fixed forcings experiment, "
             "except for CO<sub>2</sub> which is transient."
         ),
-        notes=f"See notes for the {PI_CONTROL_LINK}.",
+        notes=join_blocks(
+            f"See notes for the {PI_CONTROL_LINK}.",
+            "You have to increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.",
+            block(
+                """
+                <!---
+                    TODO: discuss with Matt/someone else the specific implementation instructions.
+                    Set concentrations in first year to be higher than piControl
+                    (because, if you don't do this and you have a linear increase,
+                    then you'd have to drop concentrations in January of the first year in order to get the average correct)
+                    TODO: check formula rendering
+                -->
+                The annual-average concentrations should increase following the formula c(y) = c_0 * 1.01 ** (y - y_0 - 1),
+                where c is the annual-average concentration in year y and y_0 is the first year of the `1pctCO2` simulation
+                (i.e. average atmospheric CO<sub>2</sub> concentrations in the first year of the `1pctCO2` simulation
+                should be higher than in `piControl`).
+                It is up to you to decide whether you apply your concentrations as a series of step changes
+                (constant over each year) or as a steady linear increase
+                (such that e.g. concentrations in December are higher than those in January)
+                that results in the correct annual average being applied.
+                """
+            ),
+        ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=render_data_access_body(
             experiment_name="1pctCO2",
@@ -229,28 +251,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 CMIP_FORCING_VERSIONS,
                 source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
             ),
-            extra=join_blocks(
-                "You have to increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.",
-                block(
-                    """
-                    <!---
-                        TODO: discuss with Matt/someone else the specific implementation instructions.
-                        Set concentrations in first year to be higher than piControl
-                        (because, if you don't do this and you have a linear increase,
-                        then you'd have to drop concentrations in January of the first year in order to get the average correct)
-                        TODO: check formula rendering
-                    -->
-                    The annual-average concentrations should increase following the formula c(y) = c_0 * 1.01 ** (y - y_0 - 1),
-                    where c is the annual-average concentration in year y and y_0 is the first year of the `1pctCO2` simulation
-                    (i.e. average atmospheric CO<sub>2</sub> concentrations in the first year of the `1pctCO2` simulation
-                    should be higher than in `piControl`).
-                    It is up to you to decide whether you apply your concentrations as a series of step changes
-                    (constant over each year) or as a steady linear increase
-                    (such that e.g. concentrations in December are higher than those in January)
-                    that results in the correct annual average being applied.
-                    """
-                ),
-            ).strip(),
         ),
     ),
     ExperimentPage(
@@ -271,7 +271,10 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The `abrupt-4xCO2` experiment is a fixed forcings experiment.\n"
             f"For further general headlines, please see the general headlines for the {PI_CONTROL_LINK}."
         ),
-        notes=f"See notes for the {PI_CONTROL_LINK}.",
+        notes=join_blocks(
+            f"See notes for the {PI_CONTROL_LINK}.",
+            "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
+        ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=render_data_access_body(
             experiment_name="abrupt-4xCO2",
@@ -279,7 +282,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 CMIP_FORCING_VERSIONS,
                 source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
             ),
-            extra="You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
         ),
     ),
     ExperimentPage(
