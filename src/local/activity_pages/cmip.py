@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from local.guidance import (
-    AMIP_FORCING_REFERENCES,
+from local.branching import branch_from
+from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
+from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
     CMIP_FIXED_SOURCE_ID_INDEXES,
     CMIP_FORCING_VERSIONS,
     CMIP_TRANSIENT_SOURCE_ID_INDEXES,
-    COMMON_FORCING_NOTES,
+    source_ids_from_forcing_versions,
+)
+from local.guidance import (
     EXPERIMENT_NAME_CONVENTION_TODO,
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
@@ -18,8 +21,9 @@ from local.guidance import (
     SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
+)
+from local.rendering import (
     block,
-    branch_from,
     join_blocks,
     join_lines,
     render_data_access_body,
@@ -27,7 +31,6 @@ from local.guidance import (
     render_versions_json,
     same_as_versions,
     see_instructions,
-    source_ids_from_forcing_versions,
 )
 
 CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (

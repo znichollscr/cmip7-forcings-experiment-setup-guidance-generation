@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from local.branching import branch_from
 from local.guidance import (
     ABRUPT_4XCO2_LINK,
     EXPERIMENT_NAME_CONVENTION_TODO,
@@ -9,8 +10,9 @@ from local.guidance import (
     SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
+)
+from local.rendering import (
     block,
-    branch_from,
     join_blocks,
     same_as_versions,
     see_instructions,

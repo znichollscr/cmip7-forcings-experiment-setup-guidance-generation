@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from local.branching import branch_from
 from local.guidance import (
     AERCHEMMIP_PLACEHOLDER_NOTE,
     AERCHEMMIP_UNCERTAIN_NOTE,
@@ -11,11 +12,12 @@ from local.guidance import (
     SETUP_GENERATION_TODO,
     ExperimentPage,
     SimplePage,
+    make_piclim_variant_page,
+)
+from local.rendering import (
     block,
-    branch_from,
     join_blocks,
     join_lines,
-    make_piclim_variant_page,
 )
 
 AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (

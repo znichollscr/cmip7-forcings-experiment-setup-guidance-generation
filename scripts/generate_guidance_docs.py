@@ -14,7 +14,7 @@ if str(SRC_DIR) not in sys.path:
 
 import typer
 
-from local.guidance import DEFAULT_OUTPUT_DIR, check_pages, render_pages, write_pages
+from local.guidance import DEFAULT_OUTPUT_DIR, all_pages, check_pages, write_pages
 
 
 def main(
@@ -47,11 +47,9 @@ def main(
     ] = False,
 ) -> None:
     """Generate CMIP7 experiment setup and forcings guidance pages."""
-    rendered_pages = render_pages()
-
     if list_files:
-        for filename in rendered_pages:
-            typer.echo(filename)
+        for page in all_pages():
+            typer.echo(f"{page.slug}.md")
         return
 
     if check:

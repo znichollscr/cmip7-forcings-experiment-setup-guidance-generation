@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from local.guidance import (
-    COMMON_FORCING_NOTES,
+from local.branching import branch_from
+from local.forcing_references import COMMON_FORCING_NOTES
+from local.forcing_versions import (
     SCEN7_VL_FORCING_VERSIONS,
+    source_ids_from_forcing_versions,
+)
+from local.guidance import (
     SETUP_GENERATION_TODO,
     ExperimentPage,
-    branch_from,
+)
+from local.rendering import (
     join_blocks,
     render_data_access_body,
     render_versions_body,
-    source_ids_from_forcing_versions,
 )
 
 SCENARIOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (

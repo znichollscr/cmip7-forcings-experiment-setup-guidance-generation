@@ -56,6 +56,9 @@ convention = "numpy"
     "E501",  # generated markdown prose intentionally keeps source lines readable
     "PLR0913",  # page factory helpers are clearer with named keyword fields
 ]
+"src/local/rendering.py" = [
+    "E501",  # generated markdown prose intentionally keeps source lines readable
+]
 "src/local/activity_pages/*.py" = [
     "E501",  # generated markdown prose intentionally keeps source lines readable
 ]
