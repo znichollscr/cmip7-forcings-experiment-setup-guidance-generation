@@ -4,14 +4,12 @@ from __future__ import annotations
 
 from local.branching import branch_from
 from local.guidance import (
-    AERCHEMMIP_PLACEHOLDER_NOTE,
     AERCHEMMIP_UNCERTAIN_NOTE,
     EXPERIMENT_NAME_CONVENTION_TODO,
     HISTORICAL_LINK,
     PI_CONTROL_LINK,
     SETUP_GENERATION_TODO,
     ExperimentPage,
-    SimplePage,
     make_piclim_variant_page,
 )
 from local.rendering import (
@@ -221,38 +219,5 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ).strip(),
         getting_the_data=f"See instructions for the {PI_CONTROL_LINK} and {HISTORICAL_LINK}.",
-    ),
-)
-
-AERCHEMMIP_PLACEHOLDER_PAGES: tuple[SimplePage, ...] = (
-    SimplePage(
-        slug="scen7-vl-aer",
-        title="scen7-vl-Aer Experiment Setup and Forcings Guidance",
-        display_name="scen7-vl-Aer",
-        body=AERCHEMMIP_PLACEHOLDER_NOTE,
-    ),
-    SimplePage(
-        slug="scen7-vl-aq",
-        title="scen7-vl-AQ Experiment Setup and Forcings Guidance",
-        display_name="scen7-vl-AQ",
-        body=join_blocks(
-            "Interactive chemistry equivalent of scen7-vl-Aer.",
-            AERCHEMMIP_PLACEHOLDER_NOTE,
-        ).strip(),
-    ),
-    SimplePage(
-        slug="scen7-h-aer",
-        title="scen7-h-Aer Experiment Setup and Forcings Guidance",
-        display_name="scen7-h-Aer",
-        body=AERCHEMMIP_PLACEHOLDER_NOTE,
-    ),
-    SimplePage(
-        slug="scen7-h-aq",
-        title="scen7-h-AQ Experiment Setup and Forcings Guidance",
-        display_name="scen7-h-AQ",
-        body=join_blocks(
-            "Interactive chemistry equivalent of scen7-h-Aer.",
-            AERCHEMMIP_PLACEHOLDER_NOTE,
-        ).strip(),
     ),
 )

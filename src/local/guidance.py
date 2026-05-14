@@ -183,17 +183,6 @@ AERCHEMMIP_UNCERTAIN_NOTE = block(
     """
 )
 
-AERCHEMMIP_PLACEHOLDER_NOTE = block(
-    """
-    Note, the information to put on this page is still being clarified.
-    We are awaiting documentation of the forcings for the AerChemMIP CMIP7 AFT experiments.
-    Some details may be available in [Fiedler et al](https://doi.org/10.5194/egusphere-2025-5669) (preprint)
-    and information on AerChemMIP can be found via the [CMIP IPO website](https://wcrp-cmip.org/mips/aerchemmip2/).
-    Please see [issue #124](https://github.com/WCRP-CMIP/cmip7-guidance/issues/124)
-    to track progress resolving this.
-    """
-)
-
 
 def make_piclim_variant_page(
     *,
@@ -264,16 +253,9 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     )
 
 
-def placeholder_pages() -> tuple[SimplePage, ...]:
-    """Return generated placeholder pages grouped by responsible activity."""
-    from local.activity_pages.aerchemmip import AERCHEMMIP_PLACEHOLDER_PAGES
-
-    return AERCHEMMIP_PLACEHOLDER_PAGES
-
-
 def content_pages() -> tuple[ExperimentPage | SimplePage, ...]:
     """Return all generated content pages except the index page."""
-    return (*experiment_pages(), *placeholder_pages())
+    return experiment_pages()
 
 
 INDEX_INTRO = block(
@@ -363,10 +345,6 @@ INDEX_GROUPS = (
                     "piclim-so2",
                     "hist-piaer",
                     "hist-piaq",
-                    "scen7-vl-aer",
-                    "scen7-vl-aq",
-                    "scen7-h-aer",
-                    "scen7-h-aq",
                 ),
             ),
             IndexActivity(
