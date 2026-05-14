@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from local.branching import render_parent_information
+from local.experiment_pairs import render_related_experiments
 from local.rendering import (
     block,
     join_blocks,
@@ -81,6 +82,7 @@ class ExperimentPage:
         """Render the page as markdown."""
         experiment = self.experiment
         responsible_activity = get_responsible_activity(experiment)
+        page_slugs = page_slugs or frozenset()
 
         return join_blocks(
             render_front_matter(self.title),
@@ -89,6 +91,7 @@ class ExperimentPage:
             render_activity_urls(urls_from_term(responsible_activity)),
             self.pre_description_note,
             experiment.description,
+            render_related_experiments(self.slug, page_slugs=page_slugs),
             "## Experiment set up",
             self.experiment_setup,
             "### Timing, length and ensemble size",
@@ -96,7 +99,7 @@ class ExperimentPage:
             "### Parent experiment",
             render_parent_information(
                 experiment,
-                page_slugs=page_slugs or frozenset(),
+                page_slugs=page_slugs,
                 extra=self.parent_experiment_extra,
             ),
             "## Forcings",

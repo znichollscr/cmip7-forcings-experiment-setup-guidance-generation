@@ -84,7 +84,6 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 The `hist-piAer` simulation is a simple variant of the [historical simulation](./historical.md)
                 where aerosol and tropospheric non-methane ozone precursor emissions are kept at pre-industrial levels.
                 `hist-piAer` is for models that do not include interactive chemistry.
-                For models with interactive chemistry, please see [hist-piAQ](./hist-piaq.md) instead.
                 """
             ),
             SETUP_GENERATION_TODO,
@@ -134,7 +133,6 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 The `hist-piAQ` simulation is a simple variant of the [historical simulation](./historical.md)
                 where aerosol and tropospheric non-methane ozone precursor emissions are kept at pre-industrial levels.
                 `hist-piAQ` is for models that include interactive chemistry.
-                For models without interactive chemistry, please see [hist-piAer](./hist-piaer.md) instead.
                 """
             ),
             SETUP_GENERATION_TODO,
