@@ -347,6 +347,10 @@ def make_index_page(
                     f"### {activity_term.drs_name}",
                     activity_term.description,
                     render_activity_urls(activity_urls),
+                    (
+                        "The following experiments are included in "
+                        f"`{activity_term.drs_name}`:"
+                    ),
                     "\n".join(links),
                     activity.extra_markdown,
                 ).strip()
