@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection, Iterable
+from collections.abc import Collection, Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from local.activities import get_activity_definition
 from local.branching import render_parent_information
 from local.experiment_pairs import render_related_experiments, sort_experiment_slugs
 from local.rendering import (
@@ -332,6 +333,30 @@ INDEX_GROUPS = (
 )
 
 
+def render_activity_section(
+    activity: IndexActivity,
+    *,
+    page_lookup: Mapping[str, ExperimentPage | SimplePage],
+) -> str:
+    """Render one activity section on the index page."""
+    activity_definition = get_activity_definition(activity.activity_id)
+    activity_term = get_activity(activity_definition.activity_id)
+    activity_urls = urls_from_term(activity_term)
+    links = [
+        f"1. [{page_lookup[slug].display_name}](./{slug}.md)"
+        for slug in sort_experiment_slugs(activity.experiment_slugs)
+    ]
+
+    return join_blocks(
+        f"### {activity_term.drs_name}",
+        activity_definition.description_from(activity_term.description),
+        render_activity_urls(activity_urls),
+        f"The following experiments are included in `{activity_term.drs_name}`:",
+        "\n".join(links),
+        activity.extra_markdown,
+    ).strip()
+
+
 def make_index_page(
     pages: tuple[ExperimentPage | SimplePage, ...] | None = None,
 ) -> SimplePage:
@@ -346,25 +371,7 @@ def make_index_page(
         sections.append(f"## {group.heading}")
 
         for activity in group.activities:
-            activity_term = get_activity(activity.activity_id)
-            activity_urls = urls_from_term(activity_term)
-            links = [
-                f"1. [{page_lookup[slug].display_name}](./{slug}.md)"
-                for slug in sort_experiment_slugs(activity.experiment_slugs)
-            ]
-            sections.append(
-                join_blocks(
-                    f"### {activity_term.drs_name}",
-                    activity_term.description,
-                    render_activity_urls(activity_urls),
-                    (
-                        "The following experiments are included in "
-                        f"`{activity_term.drs_name}`:"
-                    ),
-                    "\n".join(links),
-                    activity.extra_markdown,
-                ).strip()
-            )
+            sections.append(render_activity_section(activity, page_lookup=page_lookup))
 
     return SimplePage(
         slug="index",
