@@ -3,14 +3,29 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Collection, Mapping, Sequence
-from textwrap import dedent
+from textwrap import TextWrapper, dedent
 from typing import TYPE_CHECKING, Any, Protocol
 
 from local.forcing_versions import ForcingValue
 
 if TYPE_CHECKING:
     from local.forcing_references import ForcingReference
+
+
+MARKDOWN_WRAP_WIDTH = 120
+LIST_ITEM_RE = re.compile(r"^(\s*(?:[-*+]|\d+[.])\s+)(.*)$")
+MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^)]+\)")
+MARKDOWN_LINK_SPACE = "\x07"
+SENTENCE_BOUNDARY_RE = re.compile(
+    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
+    r"\s+(?=[`\"'(\[]?[A-Z])"
+)
+MISSING_SENTENCE_SPACE_RE = re.compile(
+    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
+    r"(?=[A-Z])"
+)
 
 
 class RenderablePage(Protocol):
@@ -35,6 +50,225 @@ def join_blocks(*parts: str) -> str:
 def join_lines(*parts: str) -> str:
     """Join markdown lines without paragraph breaks."""
     return "\n".join(part.strip("\n") for part in parts if part.strip())
+
+
+def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
+    """Wrap generated markdown prose at sentence boundaries or ``width``."""
+    lines = markdown.rstrip("\n").splitlines()
+    wrapped: list[str] = []
+    paragraph: list[str] = []
+    index = 0
+    in_fenced_block = False
+    front_matter_line_count = _front_matter_line_count(lines)
+
+    def flush_paragraph() -> None:
+        if not paragraph:
+            return
+
+        wrapped.extend(_wrap_paragraph(paragraph, width=width))
+        paragraph.clear()
+
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+
+        if index < front_matter_line_count:
+            wrapped.append(line)
+            index += 1
+            continue
+
+        if stripped.startswith("```"):
+            flush_paragraph()
+            wrapped.append(line)
+            in_fenced_block = not in_fenced_block
+            index += 1
+            continue
+
+        if in_fenced_block:
+            wrapped.append(line)
+            index += 1
+            continue
+
+        if not stripped:
+            flush_paragraph()
+            wrapped.append(line)
+            index += 1
+            continue
+
+        if _should_preserve_line(line):
+            flush_paragraph()
+            wrapped.append(line)
+            index += 1
+            continue
+
+        list_item_match = LIST_ITEM_RE.match(line)
+        if list_item_match:
+            flush_paragraph()
+            wrapped.extend(
+                _wrap_list_item(
+                    list_item_match.group(1),
+                    list_item_match.group(2),
+                    width=width,
+                )
+            )
+            index += 1
+            continue
+
+        paragraph.append(line)
+        index += 1
+
+    flush_paragraph()
+    return "\n".join(wrapped) + "\n"
+
+
+def _front_matter_line_count(lines: Sequence[str]) -> int:
+    """Return the number of leading front-matter lines."""
+    if not lines or lines[0].strip() != "---":
+        return 0
+
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            return index + 1
+
+    return 0
+
+
+def _should_preserve_line(line: str) -> bool:
+    """Return whether a markdown line should be left exactly as rendered."""
+    stripped = line.strip()
+    return (
+        stripped.startswith("#")
+        or stripped.startswith("!!!")
+        or stripped.startswith("<!--")
+        or stripped.startswith("<figure")
+        or stripped.startswith("</figure")
+        or stripped.startswith("<img")
+        or stripped.startswith("<figcaption")
+        or stripped.startswith("</figcaption")
+    )
+
+
+def _wrap_paragraph(lines: Sequence[str], *, width: int) -> list[str]:
+    """Wrap one markdown paragraph."""
+    indent = re.match(r"\s*", lines[0]).group(0)
+    text = " ".join(line.strip() for line in lines)
+    return _wrap_sentences(
+        text,
+        width=width,
+        first_indent=indent,
+        subsequent_indent=indent,
+        next_sentence_indent=indent,
+    )
+
+
+def _wrap_list_item(marker: str, text: str, *, width: int) -> list[str]:
+    """Wrap a single markdown list item."""
+    continuation_indent = " " * len(marker)
+    return _wrap_sentences(
+        text.strip(),
+        width=width,
+        first_indent=marker,
+        subsequent_indent=continuation_indent,
+        next_sentence_indent=continuation_indent,
+    )
+
+
+def _wrap_sentences(
+    text: str,
+    *,
+    width: int,
+    first_indent: str = "",
+    subsequent_indent: str = "",
+    next_sentence_indent: str | None = None,
+) -> list[str]:
+    """Wrap text, preferring one sentence per line."""
+    lines: list[str] = []
+    sentence_indent = first_indent
+    next_sentence_indent = (
+        first_indent if next_sentence_indent is None else next_sentence_indent
+    )
+
+    for sentence in _split_sentences(text):
+        lines.extend(
+            _wrap_sentence(
+                sentence,
+                width=width,
+                initial_indent=sentence_indent,
+                subsequent_indent=subsequent_indent,
+            )
+        )
+        sentence_indent = next_sentence_indent
+
+    return lines
+
+
+def _wrap_sentence(
+    sentence: str,
+    *,
+    width: int,
+    initial_indent: str,
+    subsequent_indent: str,
+) -> list[str]:
+    """Wrap a sentence without breaking long URLs or markdown links."""
+    protected_sentence = _protect_markdown_links(sentence)
+    if _first_token_exceeds_width(
+        protected_sentence,
+        initial_indent=initial_indent,
+        width=width,
+    ):
+        return [f"{initial_indent}{_restore_markdown_links(protected_sentence)}"]
+
+    wrapper = TextWrapper(
+        width=width,
+        initial_indent=initial_indent,
+        subsequent_indent=subsequent_indent,
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
+    return [
+        _restore_markdown_links(line)
+        for line in (wrapper.wrap(protected_sentence) or [initial_indent.rstrip()])
+    ]
+
+
+def _first_token_exceeds_width(
+    sentence: str,
+    *,
+    initial_indent: str,
+    width: int,
+) -> bool:
+    """Return whether wrapping would leave an empty marker-only first line."""
+    first_token = sentence.split(maxsplit=1)[0]
+    return len(initial_indent) + len(first_token) > width
+
+
+def _split_sentences(text: str) -> tuple[str, ...]:
+    """Split text at sentence boundaries while keeping punctuation."""
+    normalised = " ".join(text.split())
+    normalised = MISSING_SENTENCE_SPACE_RE.sub(
+        lambda match: f"{match.group('sentence_end')} ",
+        normalised,
+    )
+    marked = SENTENCE_BOUNDARY_RE.sub(
+        lambda match: f"{match.group('sentence_end')}\0",
+        normalised,
+    )
+    return tuple(
+        sentence.strip() for sentence in marked.split("\0") if sentence.strip()
+    )
+
+
+def _protect_markdown_links(text: str) -> str:
+    """Hide spaces inside markdown links from the text wrapper."""
+    return MARKDOWN_LINK_RE.sub(
+        lambda match: match.group(0).replace(" ", MARKDOWN_LINK_SPACE),
+        text,
+    )
+
+
+def _restore_markdown_links(text: str) -> str:
+    """Restore spaces inside markdown links after wrapping."""
+    return text.replace(MARKDOWN_LINK_SPACE, " ")
 
 
 def render_front_matter(title: str) -> str:
@@ -316,4 +550,7 @@ def render_esgpull_script(
 def render_pages(pages: Sequence[RenderablePage]) -> dict[str, str]:
     """Render guidance pages keyed by output filename."""
     page_slugs = frozenset(page.slug for page in pages)
-    return {f"{page.slug}.md": page.render(page_slugs=page_slugs) for page in pages}
+    return {
+        f"{page.slug}.md": wrap_markdown(page.render(page_slugs=page_slugs))
+        for page in pages
+    }

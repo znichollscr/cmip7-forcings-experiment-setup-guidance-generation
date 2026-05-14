@@ -151,9 +151,13 @@ SETUP_GENERATION_TODO = (
     "<!-- TODO: consider whether we can generate these sentences automatically "
     "based on esgvoc -->"
 )
-EXPERIMENT_NAME_CONVENTION_TODO = (
-    "<!-- TODO: decide and then consistently apply some convention about whether "
-    "experiment names are always surround by backticks `` or not -->"
+EXPERIMENT_NAME_CONVENTION_TODO = block(
+    """
+        <!--
+        TODO: decide and then consistently apply some convention about whether experiment names are always
+        surrounded by backticks `` or not.
+        -->
+        """
 )
 PI_CONTROL_LINK = render_link("piControl simulation", "picontrol")
 ESM_PI_CONTROL_LINK = render_link("esm-piControl simulation", "esm-picontrol")
