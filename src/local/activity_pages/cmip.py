@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
 from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
@@ -32,59 +34,212 @@ from local.rendering import (
     same_as_versions,
 )
 
+FIXED_FORCINGS_REPEAT_SETUP = join_blocks(
+    "These should be applied on repeat for the entirety of the simulation.",
+    block(
+        """
+        You are free to start the time axis of your outputs at whatever year you like
+        (e.g. starting at year 1, or 1850, or year 500).
+        """
+    ),
+).strip()
+TRANSIENT_FORCINGS_SETUP_TAIL = "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation."
+PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE = block(
+    """
+    As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
+    must come from model output from one of your own simulations,
+    they are not provided by a forcings provider.
+    """
+)
+PI_CONTROL_OZONE_FORCING_NOTE = block(
+    """
+    Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-1-2`,
+    no `piControl` data is included in `FZJ-CMIP-ozone-2-0`
+    (which only updates `historical` values).
+    """
+)
+HISTORICAL_OZONE_FORCING_NOTE = block(
+    """
+    Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-2-0`:
+    the CMIP Panel co-chairs are recommending that simulations based on `FZJ-CMIP-ozone-1-2` are re-run if possible.
+    `FZJ-CMIP-ozone-2-0` was released quite late, so if you have simulations based on `FZJ-CMIP-ozone-1-2`,
+    these would be of interest to the Forcings Task Team so please publish them
+    ([discussion of how to set the value for the forcing 'f' identifier in such files is ongoing](https://github.com/PCMDI/input4MIPs_CVs/issues/415)).
+    """
+)
+NITROGEN_DEPOSITION_FORCING_NOTE = block(
+    """
+    Please also note that the nitrogen deposition forcing should come from files with the source ID `FZJ-CMIP-nitrogen-2-0`.
+    `FZJ-CMIP-nitrogen-2-0` was released quite late and the impact of the change is likely to be small,
+    so if you have simulations based on `FZJ-CMIP-nitrogen-1-2`,
+    you do not need to re-run them.
+    """
+)
+HISTORICAL_NITROGEN_DEPOSITION_RECOMMENDATION = block(
+    """
+    Further, even if you have run pre-industrial control simulations with `FZJ-CMIP-nitrogen-1-2`,
+    it is recommended to nonetheless run historical simulations with `FZJ-CMIP-nitrogen-2-0`
+    because the discontinuity going from pre-industrial control `FZJ-CMIP-nitrogen-1-2`
+    to historical `FZJ-CMIP-nitrogen-2-0` is expected to introduce smaller issues
+    than using `FZJ-CMIP-nitrogen-1-2` over the historical period.
+    """
+)
+READ_FORCING_NOTES_GUIDANCE = block(
+    """
+    Please read the guidance pages linked under [notes](#notes)
+    to ensure that you use the correct forcing values.
+    """
+)
+CMIP_VERSIONS_TO_USE = render_versions_body(CMIP_FORCING_VERSIONS)
+
+
+def fixed_forcings_setup(first_sentence: str) -> str:
+    """Render setup guidance for a fixed-forcings CMIP experiment."""
+    return join_blocks(first_sentence, FIXED_FORCINGS_REPEAT_SETUP).strip()
+
+
+def transient_forcings_setup(simulation_label: str) -> str:
+    """Render setup guidance for a transient-forcings CMIP experiment."""
+    return join_blocks(
+        f"The {simulation_label} uses a specific set of forcings (see [forcings](#forcings)).",
+        TRANSIENT_FORCINGS_SETUP_TAIL,
+    ).strip()
+
+
+def fixed_cmip_data_access_body(experiment_name: str) -> str:
+    """Render the data-access body for fixed CMIP forcings."""
+    return cmip_data_access_body(
+        experiment_name,
+        source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+    )
+
+
+def transient_cmip_data_access_body(experiment_name: str) -> str:
+    """Render the data-access body for transient CMIP forcings."""
+    return cmip_data_access_body(
+        experiment_name,
+        source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
+    )
+
+
+def cmip_data_access_body(
+    experiment_name: str,
+    *,
+    source_id_indexes: Mapping[str, int],
+) -> str:
+    """Render the data-access body for CMIP forcing versions."""
+    return render_data_access_body(
+        experiment_name=experiment_name,
+        source_ids=cmip_source_ids(source_id_indexes=source_id_indexes),
+    )
+
+
+def fixed_cmip_source_ids() -> tuple[str, ...]:
+    """Return source IDs for fixed CMIP forcings."""
+    return cmip_source_ids(source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES)
+
+
+def cmip_source_ids(*, source_id_indexes: Mapping[str, int]) -> tuple[str, ...]:
+    """Return source IDs for CMIP forcing versions."""
+    return source_ids_from_forcing_versions(
+        CMIP_FORCING_VERSIONS,
+        source_id_indexes=source_id_indexes,
+    )
+
+
+def fixed_forcing_headlines(
+    experiment_name: str,
+    *,
+    forcing_values_experiment_name: str | None = None,
+) -> str:
+    """Render shared fixed-forcings headlines."""
+    forcing_values_experiment_name = forcing_values_experiment_name or experiment_name
+    return join_blocks(
+        block(
+            f"""
+        The `{experiment_name}` experiment is a fixed forcings experiment.
+
+        However, it can require some care to use the correct forcings for `{forcing_values_experiment_name}`.
+        This is particularly true for stratospheric aerosol forcing, ozone and solar
+        as the `{forcing_values_experiment_name}` values for these forcings aren't simply a repeat of 1850 values.
+        """
+        ),
+        PI_CONTROL_OZONE_FORCING_NOTE,
+        NITROGEN_DEPOSITION_FORCING_NOTE,
+        READ_FORCING_NOTES_GUIDANCE,
+    ).strip()
+
+
+def historical_forcing_headlines(experiment_name: str) -> str:
+    """Render shared historical-forcings headlines."""
+    return join_blocks(
+        block(
+            f"""
+        The `{experiment_name}` experiment is a time-varying forcings experiment.
+        """
+        ),
+        HISTORICAL_OZONE_FORCING_NOTE,
+        NITROGEN_DEPOSITION_FORCING_NOTE,
+        HISTORICAL_NITROGEN_DEPOSITION_RECOMMENDATION,
+        READ_FORCING_NOTES_GUIDANCE,
+    ).strip()
+
+
+def make_fixed_control_page(
+    *,
+    slug: str,
+    experiment_name: str,
+    simulation_label: str,
+    setup_forcing_description: str,
+    forcing_values_experiment_name: str | None = None,
+) -> ExperimentPage:
+    """Create a fixed pre-industrial control page."""
+    return ExperimentPage(
+        slug=slug,
+        experiment_setup=fixed_forcings_setup(
+            f"The {simulation_label} uses {setup_forcing_description} (see [forcings](#forcings))."
+        ),
+        forcing_headlines=fixed_forcing_headlines(
+            experiment_name,
+            forcing_values_experiment_name=forcing_values_experiment_name,
+        ),
+        notes=COMMON_FORCING_NOTES,
+        versions_to_use=CMIP_VERSIONS_TO_USE,
+        getting_the_data=fixed_cmip_data_access_body(experiment_name),
+    )
+
 
 def make_picontrol_spinup_page(
     *,
     slug: str,
     experiment_name: str,
     simulation_label: str,
+    forcing_values_experiment_name: str,
 ) -> ExperimentPage:
     """Create a piControl spin-up page."""
+    return make_fixed_control_page(
+        slug=slug,
+        experiment_name=experiment_name,
+        simulation_label=simulation_label,
+        setup_forcing_description="fixed pre-industrial forcings",
+        forcing_values_experiment_name=forcing_values_experiment_name,
+    )
+
+
+def make_historical_page(
+    *,
+    slug: str,
+    experiment_name: str,
+    simulation_label: str,
+) -> ExperimentPage:
+    """Create a historical page."""
     return ExperimentPage(
         slug=slug,
-        experiment_setup=join_blocks(
-            (
-                f"The {simulation_label} uses fixed pre-industrial forcings "
-                "(see [forcings](#forcings))."
-            ),
-            "These should be applied on repeat for the entirety of the simulation.",
-            block(
-                """
-                You are free to start the time axis of your outputs at whatever year you like
-                (e.g. starting at year 1, or 1850, or year 500).
-                """
-            ),
-        ).strip(),
-        forcing_headlines=block(
-            f"""
-            The `{experiment_name}` experiment is a fixed forcings experiment.
-
-            However, it can require some care to use the correct forcings for `esm-piControl`.
-            This is particularly true for stratospheric aerosol forcing, ozone and solar
-            as the `esm-piControl` values for these forcings aren't simply a repeat of 1850 values.
-
-            Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-1-2`,
-            no `piControl` data is included in `FZJ-CMIP-ozone-2-0`
-            (which only updates `historical` values).
-
-            Please also note that the nitrogen deposition forcing should come from files with the source ID `FZJ-CMIP-nitrogen-2-0`.
-            `FZJ-CMIP-nitrogen-2-0` was released quite late and the impact of the change is likely to be small,
-            so if you have simulations based on `FZJ-CMIP-nitrogen-1-2`,
-            you do not need to re-run them.
-
-            Please read the guidance pages linked under [notes](#notes)
-            to ensure that you use the correct forcing values.
-            """
-        ),
+        experiment_setup=transient_forcings_setup(simulation_label),
+        forcing_headlines=historical_forcing_headlines(experiment_name),
         notes=COMMON_FORCING_NOTES,
-        versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
-        getting_the_data=render_data_access_body(
-            experiment_name=experiment_name,
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
-            ),
-        ),
+        versions_to_use=CMIP_VERSIONS_TO_USE,
+        getting_the_data=transient_cmip_data_access_body(experiment_name),
     )
 
 
@@ -93,179 +248,35 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         slug="picontrol-spinup",
         experiment_name="piControl-spinup",
         simulation_label="pre-industrial control spin-up simulation",
+        forcing_values_experiment_name="piControl",
     ),
-    ExperimentPage(
+    make_fixed_control_page(
         slug="picontrol",
-        experiment_setup=join_blocks(
-            "The pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
-            "These should be applied on repeat for the entirety of the simulation.",
-            block(
-                """
-                You are free to start the time axis of your outputs at whatever year you like
-                (e.g. starting at year 1, or 1850, or year 500).
-                """
-            ),
-        ).strip(),
-        forcing_headlines=block(
-            """
-            The `piControl` experiment is a fixed forcings experiment.
-
-            However, it can require some care to use the correct forcings for `piControl`.
-            This is particularly true for stratospheric aerosol forcing, ozone and solar
-            as the `piControl` values for these forcings aren't simply a repeat of 1850 values.
-
-            Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-1-2`,
-            no `piControl` data is included in `FZJ-CMIP-ozone-2-0`
-            (which only updates `historical` values).
-
-            Please also note that the nitrogen deposition forcing should come from files with the source ID `FZJ-CMIP-nitrogen-2-0`.
-            `FZJ-CMIP-nitrogen-2-0` was released quite late and the impact of the change is likely to be small,
-            so if you have simulations based on `FZJ-CMIP-nitrogen-1-2`,
-            you do not need to re-run them.
-
-            Please read the guidance pages linked under [notes](#notes)
-            to ensure that you use the correct forcing values.
-            """
-        ),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
-        getting_the_data=render_data_access_body(
-            experiment_name="piControl",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
-            ),
-        ),
+        experiment_name="piControl",
+        simulation_label="pre-industrial control simulation",
+        setup_forcing_description="a specific set of forcings",
     ),
     make_picontrol_spinup_page(
         slug="esm-picontrol-spinup",
         experiment_name="esm-piControl-spinup",
         simulation_label="emissions-driven pre-industrial control spin-up simulation",
+        forcing_values_experiment_name="esm-piControl",
     ),
-    ExperimentPage(
+    make_fixed_control_page(
         slug="esm-picontrol",
-        experiment_setup=join_blocks(
-            "The emissions-driven pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
-            "These should be applied on repeat for the entirety of the simulation.",
-            block(
-                """
-                You are free to start the time axis of your outputs at whatever year you like
-                (e.g. starting at year 1, or 1850, or year 500).
-                """
-            ),
-        ).strip(),
-        forcing_headlines=block(
-            """
-            The `esm-piControl` experiment is a fixed forcings experiment.
-
-            However, it can require some care to use the correct forcings for `esm-piControl`.
-            This is particularly true for stratospheric aerosol forcing, ozone and solar
-            as the `esm-piControl` values for these forcings aren't simply a repeat of 1850 values.
-
-            Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-1-2`,
-            no `piControl` data is included in `FZJ-CMIP-ozone-2-0`
-            (which only updates `historical` values).
-
-            Please also note that the nitrogen deposition forcing should come from files with the source ID `FZJ-CMIP-nitrogen-2-0`.
-            `FZJ-CMIP-nitrogen-2-0` was released quite late and the impact of the change is likely to be small,
-            so if you have simulations based on `FZJ-CMIP-nitrogen-1-2`,
-            you do not need to re-run them.
-
-            Please read the guidance pages linked under [notes](#notes)
-            to ensure that you use the correct forcing values.
-            """
-        ),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
-        getting_the_data=render_data_access_body(
-            experiment_name="esm-piControl",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
-            ),
-        ),
+        experiment_name="esm-piControl",
+        simulation_label="emissions-driven pre-industrial control simulation",
+        setup_forcing_description="a specific set of forcings",
     ),
-    ExperimentPage(
+    make_historical_page(
         slug="historical",
-        experiment_setup=join_blocks(
-            "The historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
-            "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-        ).strip(),
-        forcing_headlines=block(
-            """
-            The `historical` experiment is a time-varying forcings experiment.
-
-            Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-2-0`:
-            the CMIP Panel co-chairs are recommending that simulations based on `FZJ-CMIP-ozone-1-2` are re-run if possible.
-            `FZJ-CMIP-ozone-2-0` was released quite late, so if you have simulations based on `FZJ-CMIP-ozone-1-2`,
-            these would be of interest to the Forcings Task Team so please publish them
-            ([discussion of how to set the value for the forcing 'f' identifier in such files is ongoing](https://github.com/PCMDI/input4MIPs_CVs/issues/415)).
-
-            Please also note that the nitrogen deposition forcing should come from files with the source ID `FZJ-CMIP-nitrogen-2-0`.
-            `FZJ-CMIP-nitrogen-2-0` was released quite late and the impact of the change is likely to be small,
-            so if you have simulations based on `FZJ-CMIP-nitrogen-1-2`,
-            you do not need to re-run them.
-
-            Further, even if you have run pre-industrial control simulations with `FZJ-CMIP-nitrogen-1-2`,
-            it is recommended to nonetheless run historical simulations with `FZJ-CMIP-nitrogen-2-0`
-            because the discontinuity going from pre-industrial control `FZJ-CMIP-nitrogen-1-2`
-            to historical `FZJ-CMIP-nitrogen-2-0` is expected to introduce smaller issues
-            than using `FZJ-CMIP-nitrogen-1-2` over the historical period.
-
-            Please read the guidance pages linked under [notes](#notes)
-            to ensure that you use the correct forcing values.
-            """
-        ),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
-        getting_the_data=render_data_access_body(
-            experiment_name="historical",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
-            ),
-        ),
+        experiment_name="historical",
+        simulation_label="historical simulation",
     ),
-    ExperimentPage(
+    make_historical_page(
         slug="esm-hist",
-        experiment_setup=join_blocks(
-            "The emissions-driven historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
-            "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-        ).strip(),
-        forcing_headlines=block(
-            """
-            The `esm-hist` experiment is a time-varying forcings experiment.
-
-            Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-2-0`:
-            the CMIP Panel co-chairs are recommending that simulations based on `FZJ-CMIP-ozone-1-2` are re-run if possible.
-            `FZJ-CMIP-ozone-2-0` was released quite late, so if you have simulations based on `FZJ-CMIP-ozone-1-2`,
-            these would be of interest to the Forcings Task Team so please publish them
-            ([discussion of how to set the value for the forcing 'f' identifier in such files is ongoing](https://github.com/PCMDI/input4MIPs_CVs/issues/415)).
-
-            Please also note that the nitrogen deposition forcing should come from files with the source ID `FZJ-CMIP-nitrogen-2-0`.
-            `FZJ-CMIP-nitrogen-2-0` was released quite late and the impact of the change is likely to be small,
-            so if you have simulations based on `FZJ-CMIP-nitrogen-1-2`,
-            you do not need to re-run them.
-
-            Further, even if you have run pre-industrial control simulations with `FZJ-CMIP-nitrogen-1-2`,
-            it is recommended to nonetheless run historical simulations with `FZJ-CMIP-nitrogen-2-0`
-            because the discontinuity going from pre-industrial control `FZJ-CMIP-nitrogen-1-2`
-            to historical `FZJ-CMIP-nitrogen-2-0` is expected to introduce smaller issues
-            than using `FZJ-CMIP-nitrogen-1-2` over the historical period.
-
-            Please read the guidance pages linked under [notes](#notes)
-            to ensure that you use the correct forcing values.
-            """
-        ),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=render_versions_body(CMIP_FORCING_VERSIONS),
-        getting_the_data=render_data_access_body(
-            experiment_name="esm-hist",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
-            ),
-        ),
+        experiment_name="esm-hist",
+        simulation_label="emissions-driven historical simulation",
     ),
     ExperimentPage(
         slug="1pctco2",
@@ -302,13 +313,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=render_data_access_body(
-            experiment_name="1pctCO2",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
-            ),
-        ),
+        getting_the_data=fixed_cmip_data_access_body("1pctCO2"),
     ),
     ExperimentPage(
         slug="abrupt-4xco2",
@@ -331,13 +336,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
         ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=render_data_access_body(
-            experiment_name="abrupt-4xCO2",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
-            ),
-        ),
+        getting_the_data=fixed_cmip_data_access_body("abrupt-4xCO2"),
     ),
     ExperimentPage(
         slug="piclim-control",
@@ -373,30 +372,21 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         notes=f"See notes for the {PI_CONTROL_LINK}.",
         versions_to_use=join_blocks(
             same_as_versions("piControl simulation", "picontrol"),
-            block(
-                """
-                As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
-                must come from model output from one of your own simulations,
-                they are not provided by a forcings provider.
+            join_lines(
+                PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
+                block(
+                    """
                 We recommend including information in your `piClim-control` output
                 that identifies the `piControl` simulation and time period used to generate
                 the prescribed sea-surface temperatures and sea-ice concentrations.
                 """
+                ),
             ),
         ).strip(),
         getting_the_data=render_data_access_body(
             experiment_name="piClim-control",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
-            ),
-            extra=block(
-                """
-                As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
-                must come from model output from one of your own simulations,
-                they are not provided by a forcings provider.
-                """
-            ),
+            source_ids=fixed_cmip_source_ids(),
+            extra=PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
         ),
     ),
     ExperimentPage(
@@ -424,19 +414,10 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         getting_the_data=render_data_access_body(
             experiment_name="piClim-4xCO2",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
-            ),
+            source_ids=fixed_cmip_source_ids(),
             extra=join_blocks(
                 "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
-                block(
-                    """
-                    As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
-                    must come from model output from one of your own simulations,
-                    they are not provided by a forcings provider.
-                    """
-                ),
+                PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
             ).strip(),
         ),
     ),
@@ -479,10 +460,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="amip",
-        experiment_setup=join_blocks(
-            "The amip simulation uses a specific set of forcings (see [forcings](#forcings)).",
-            "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-        ).strip(),
+        experiment_setup=transient_forcings_setup("amip simulation"),
         forcing_headlines="The `amip` experiment is a time-varying forcings experiment.",
         notes=join_blocks(
             f"See notes for the {PI_CONTROL_LINK}.",
