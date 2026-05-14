@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
+from local.rendering import join_blocks, render_link
+
 ActivityDescriptionModifier = Callable[[str], str]
+SCENARIOMIP_DESCRIPTION_TRUNCATION_MARKER = "In CMIP7, the priority tier"
 
 
 class MissingActivityDefinitionError(KeyError):
@@ -18,11 +21,53 @@ class ActivityDefinition:
 
     activity_id: str
     description_modifier: ActivityDescriptionModifier
+    further_details: str = ""
 
     def description_from(self, esgvoc_description: str) -> str:
         """Return this activity's rendered description."""
         return self.description_modifier(esgvoc_description)
 
+
+SCEN7_VL_LINK = render_link("`scen7-vl`", "scen7-vl")
+SCENARIOMIP_FURTHER_DETAILS = join_blocks(
+    (
+        "The priority of ScenarioMIP experiments (expressed as Tier 1 and 2) "
+        "is summarized in the flowchart below, which is based on Table 1 of "
+        "[Van Vuuren et al. 2026]"
+        "(https://gmd.copernicus.org/articles/19/2627/2026/). "
+        "Emissions-driven experiments, indicated in yellow, have names "
+        "beginning with `esm-`."
+    ),
+    "\n".join(
+        (
+            "- If your model is capable of running in emissions-driven mode, "
+            "ScenarioMIP request emissions-driven scenarios, and additionally "
+            "the concentration-driven experiment `scen7-m`, at Tier-1 "
+            "(highest priority).",
+            "- If your model will run only the concentration-driven "
+            "experiments, ScenarioMIP request all concentration-driven "
+            "scenarios at Tier-1.",
+        )
+    ),
+    (
+        "If you are running in emissions-driven mode, you are welcome to run "
+        "other scenarios in concentration-driven mode, but they have not been "
+        "assigned a specific tier (i.e., are lowest priority)."
+    ),
+    "\n".join(
+        (
+            "<figure>",
+            '  <img src="figures/ScenarioMIP-tiers_v3.svg">',
+            "  <figcaption>",
+            (
+                "    ScenarioMIP experiments, with emissions-driven experiments "
+                "indicated in yellow."
+            ),
+            "  </figcaption>",
+            "</figure>",
+        )
+    ),
+).strip()
 
 CMIP = ActivityDefinition(
     activity_id="cmip",
@@ -42,7 +87,11 @@ C4MIP = ActivityDefinition(
 )
 SCENARIOMIP = ActivityDefinition(
     activity_id="scenariomip",
-    description_modifier=lambda description: description,
+    description_modifier=lambda description: description.split(
+        SCENARIOMIP_DESCRIPTION_TRUNCATION_MARKER,
+        maxsplit=1,
+    )[0].rstrip(),
+    further_details=SCENARIOMIP_FURTHER_DETAILS,
 )
 
 ACTIVITY_DEFINITIONS: tuple[ActivityDefinition, ...] = (

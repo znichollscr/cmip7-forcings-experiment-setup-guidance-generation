@@ -140,7 +140,6 @@ class IndexActivity:
 
     activity_id: str
     experiment_slugs: tuple[str, ...]
-    extra_markdown: str = ""
 
 
 @dataclass(frozen=True)
@@ -260,23 +259,6 @@ INDEX_INTRO = block(
     """
 )
 
-SCENARIOMIP_EXTRA = block(
-    """
-    The priority of ScenarioMIP experiments (expressed as Tier 1 and 2) is summarized in the flowchart below, which is based on Table 1 of [Van Vuuren et al. 2026](https://gmd.copernicus.org/articles/19/2627/2026/).
-    Emissions-driven experiments, indicated in yellow, have names beginning with `esm-`.
-
-    - If your model is capable of running in emissions-driven mode, ScenarioMIP request emissions-driven scenarios, and additionally the concentration-driven experiment `scen7-m`, at Tier-1 (highest priority).
-    - If your model will run only the concentration-driven experiments, ScenarioMIP request all concentration-driven scenarios at Tier-1.
-
-    If you are running in emissions-driven mode, you are welcome to run other scenarios in concentration-driven mode, but they have not been assigned a specific tier (i.e., are lowest priority).
-
-    <figure>
-      <img src="figures/ScenarioMIP-tiers_v3.svg">
-      <figcaption>ScenarioMIP experiments, with emissions-driven experiments indicated in yellow.</figcaption>
-    </figure>
-    """
-)
-
 INDEX_GROUPS = (
     IndexGroup(
         heading="DECK experiments",
@@ -326,7 +308,6 @@ INDEX_GROUPS = (
             IndexActivity(
                 activity_id="scenariomip",
                 experiment_slugs=("scen7-vl",),
-                extra_markdown=SCENARIOMIP_EXTRA,
             ),
         ),
     ),
@@ -350,10 +331,10 @@ def render_activity_section(
     return join_blocks(
         f"### {activity_term.drs_name}",
         activity_definition.description_from(activity_term.description),
+        activity_definition.further_details,
         render_activity_urls(activity_urls),
         f"The following experiments are included in `{activity_term.drs_name}`:",
         "\n".join(links),
-        activity.extra_markdown,
     ).strip()
 
 
