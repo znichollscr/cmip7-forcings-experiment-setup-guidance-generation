@@ -5,7 +5,7 @@ from __future__ import annotations
 from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
 from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
-    CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
+    CMIP_FIXED_FORCING_VERSIONS,
     CMIP_FORCING_VERSIONS,
     source_ids_from_forcing_versions,
 )
@@ -87,10 +87,7 @@ READ_FORCING_NOTES_GUIDANCE = block(
     to ensure that you use the correct forcing values.
     """
 )
-CMIP_FIXED_VERSIONS_TO_USE = render_versions_body(
-    CMIP_FORCING_VERSIONS,
-    preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
-)
+CMIP_FIXED_VERSIONS_TO_USE = render_versions_body(CMIP_FIXED_FORCING_VERSIONS)
 CMIP_TRANSIENT_VERSIONS_TO_USE = render_versions_body(CMIP_FORCING_VERSIONS)
 
 
@@ -130,10 +127,7 @@ def cmip_data_access_body(experiment_name: str) -> str:
 
 def fixed_cmip_source_ids() -> tuple[str, ...]:
     """Return source IDs for fixed CMIP forcings."""
-    return source_ids_from_forcing_versions(
-        CMIP_FORCING_VERSIONS,
-        preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
-    )
+    return source_ids_from_forcing_versions(CMIP_FIXED_FORCING_VERSIONS)
 
 
 def cmip_source_ids() -> tuple[str, ...]:

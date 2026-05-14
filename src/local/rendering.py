@@ -540,27 +540,16 @@ def render_forcing_reference_list(
 
 
 def render_forcing_value(
-    forcing_id: str,
     value: ForcingValue,
-    *,
-    preferred_source_id_indexes: Mapping[str, int] | None = None,
 ) -> Any:
     """Render one forcing version value as a JSON-serialisable object."""
-    if value is None:
+    if value.preferred is None and not value.acceptable:
         return None
 
     rendered_value: dict[str, Any] = {
-        "preferred": preferred_forcing_value(
-            forcing_id=forcing_id,
-            value=value,
-            preferred_source_id_indexes=preferred_source_id_indexes,
-        ),
+        "preferred": preferred_forcing_value(value=value),
     }
-    acceptable_values = acceptable_forcing_values(
-        forcing_id=forcing_id,
-        value=value,
-        preferred_source_id_indexes=preferred_source_id_indexes,
-    )
+    acceptable_values = acceptable_forcing_values(value=value)
     if acceptable_values:
         rendered_value["acceptable"] = list(acceptable_values)
 
@@ -569,16 +558,10 @@ def render_forcing_value(
 
 def render_versions_json(
     forcing_versions: Mapping[str, ForcingValue],
-    *,
-    preferred_source_id_indexes: Mapping[str, int] | None = None,
 ) -> str:
     """Render forcing versions as a JSON code block."""
     rendered_versions = {
-        forcing_id: render_forcing_value(
-            forcing_id,
-            value,
-            preferred_source_id_indexes=preferred_source_id_indexes,
-        )
+        forcing_id: render_forcing_value(value)
         for forcing_id, value in forcing_versions.items()
     }
 
@@ -589,7 +572,6 @@ def render_versions_body(
     forcing_versions: Mapping[str, ForcingValue],
     *,
     include_multiple_options_note: bool = True,
-    preferred_source_id_indexes: Mapping[str, int] | None = None,
 ) -> str:
     """Render the standard forcing versions section body."""
     multiple_options_note = ""
@@ -615,10 +597,7 @@ def render_versions_body(
             """
         ),
         multiple_options_note,
-        render_versions_json(
-            forcing_versions,
-            preferred_source_id_indexes=preferred_source_id_indexes,
-        ),
+        render_versions_json(forcing_versions),
     ).strip()
 
 

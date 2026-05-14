@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from local.forcing_versions import (
-    CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
-    CMIP_FORCING_VERSIONS,
+    CMIP_FIXED_FORCING_VERSIONS,
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
@@ -41,10 +40,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=render_data_access_body(
             experiment_name="abrupt-2xCO2",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
-            ),
+            source_ids=source_ids_from_forcing_versions(CMIP_FIXED_FORCING_VERSIONS),
         ),
     ),
     ExperimentPage(
@@ -67,10 +63,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=render_data_access_body(
             experiment_name="abrupt-0p5xCO2",
-            source_ids=source_ids_from_forcing_versions(
-                CMIP_FORCING_VERSIONS,
-                preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
-            ),
+            source_ids=source_ids_from_forcing_versions(CMIP_FIXED_FORCING_VERSIONS),
         ),
     ),
 )
