@@ -326,7 +326,8 @@ def render_activity_urls(urls: Sequence[str]) -> str:
         return ""
 
     return join_lines(
-        "Further information:",
+        "These pages are intended as a summary guide only. ",
+        "For full details of experiments, please see the following URLs:",
         render_url_bullet_list(urls),
     )
 
