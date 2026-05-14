@@ -5,15 +5,22 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from local.branching import render_parent_information
 from local.rendering import (
     block,
     join_blocks,
-    join_lines,
+    render_activity_urls,
     render_front_matter,
     render_link,
 )
 from local.rendering import (
     render_pages as render_page_map,
+)
+from local.vocab import (
+    get_activity,
+    get_experiment,
+    get_responsible_activity,
+    urls_from_term,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -45,33 +52,48 @@ class ExperimentPage:
     """A full experiment setup and forcings guidance page."""
 
     slug: str
-    title: str
-    display_name: str
-    responsible_activity: str
-    description: str
     experiment_setup: str
-    parent_experiment: str
     forcing_headlines: str
     notes: str
     versions_to_use: str
     getting_the_data: str
     pre_description_note: str = ""
+    parent_experiment_extra: str = ""
+
+    @property
+    def experiment(self):
+        """Return this page's esgvoc experiment term."""
+        return get_experiment(self.slug)
+
+    @property
+    def display_name(self) -> str:
+        """Return this experiment's DRS name."""
+        return self.experiment.drs_name
+
+    @property
+    def title(self) -> str:
+        """Return this page's generated title."""
+        return f"Experiment Setup and Forcings Guidance: {self.display_name}"
 
     def render(self) -> str:
         """Render the page as markdown."""
+        experiment = self.experiment
+        responsible_activity = get_responsible_activity(experiment)
+
         return join_blocks(
             render_front_matter(self.title),
             f"# {self.title}",
-            ESGVOC_ACTIVITY_TODO,
-            f"Responsible activity: {self.responsible_activity}",
+            f"Responsible activity: {responsible_activity.drs_name}",
+            render_activity_urls(urls_from_term(responsible_activity)),
             self.pre_description_note,
-            ESGVOC_DESCRIPTION_TODO,
-            self.description,
+            experiment.description,
             "## Experiment set up",
             self.experiment_setup,
             "### Parent experiment",
-            PARENT_EXPERIMENT_TODO,
-            self.parent_experiment,
+            render_parent_information(
+                experiment,
+                extra=self.parent_experiment_extra,
+            ),
             "## Forcings",
             "### General headlines",
             self.forcing_headlines,
@@ -107,8 +129,7 @@ class SimplePage:
 class IndexActivity:
     """A MIP/activity entry on the guidance index page."""
 
-    heading: str
-    description: str
+    activity_id: str
     experiment_slugs: tuple[str, ...]
     extra_markdown: str = ""
 
@@ -121,11 +142,6 @@ class IndexGroup:
     activities: tuple[IndexActivity, ...]
 
 
-ESGVOC_ACTIVITY_TODO = (
-    "<!-- TODO: get this information from esgvoc "
-    "(add reference URLs at that point) -->"
-)
-ESGVOC_DESCRIPTION_TODO = "<!-- TODO: get this one line description from esgvoc -->"
 SETUP_GENERATION_TODO = (
     "<!-- TODO: consider whether we can generate these sentences automatically "
     "based on esgvoc -->"
@@ -134,16 +150,6 @@ EXPERIMENT_NAME_CONVENTION_TODO = (
     "<!-- TODO: decide and then consistently apply some convention about whether "
     "experiment names are always surround by backticks `` or not -->"
 )
-PARENT_EXPERIMENT_TODO = block(
-    """
-    <!--
-        TODO: use esgvoc to fill out the template
-        `<experiment-name>` branches from the `<parent-experiment-name>` simulation (part of `<parent-experiment-activity>`).
-    -->
-    """
-)
-PICLIM_PARENT_TODO = "<!-- TODO: check if there is meant to be a spinup -->"
-
 PI_CONTROL_LINK = render_link("piControl simulation", "picontrol")
 ESM_PI_CONTROL_LINK = render_link("esm-piControl simulation", "esm-picontrol")
 HISTORICAL_LINK = render_link("historical simulation", "historical")
@@ -182,58 +188,6 @@ AERCHEMMIP_UNCERTAIN_NOTE = block(
     to track progress resolving this.
     """
 )
-
-
-def make_piclim_variant_page(
-    *,
-    slug: str,
-    title: str,
-    display_name: str,
-    description: str,
-    forcing_change: str,
-    version_forcing_label: str,
-    responsible_activity: str = "AerChemMIP",
-) -> ExperimentPage:
-    """Create a piClim present-day forcing variant page."""
-    return ExperimentPage(
-        slug=slug,
-        title=title,
-        display_name=display_name,
-        responsible_activity=responsible_activity,
-        description=description,
-        experiment_setup=join_blocks(
-            join_lines(
-                (
-                    f"The {display_name} simulation uses the same forcings as "
-                    "[piClim-control](./piclim-control.md),"
-                ),
-                forcing_change,
-            ),
-            "The 2021 values should be prescribed on repeat throughout the simulation.",
-            SETUP_GENERATION_TODO,
-            PICLIM_TIME_AXIS,
-        ).strip(),
-        parent_experiment=join_blocks(
-            PICLIM_PARENT_TODO,
-            f"`{display_name}` does not branch from another simulation.",
-        ).strip(),
-        forcing_headlines=(
-            "See general headlines for the "
-            "[`piClim-control` simulation](./piclim-control.md)."
-        ),
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=join_blocks(
-            join_lines(
-                f"For the {version_forcing_label},",
-                f"the forcing version relevant for this simulation is the same as for the {HISTORICAL_LINK}.",
-            ),
-            join_lines(
-                "For all other forcings,",
-                f"the forcing versions relevant for this simulation are the same as for the {PI_CLIM_CONTROL_LINK}.",
-            ),
-        ).strip(),
-        getting_the_data=f"See instructions for the {PI_CLIM_CONTROL_LINK} and {HISTORICAL_LINK}.",
-    )
 
 
 def experiment_pages() -> tuple[ExperimentPage, ...]:
@@ -282,7 +236,6 @@ INDEX_INTRO = block(
     When these discussions are finalised, these guidance pages will be updated.
     <!-- TODO: do we have a section to cross-link to? -->
 
-    <!--- TODO: alter this page so that the MIP headings are auto-generated and inject the MIP descriptions from esgvoc. -->
     """
 )
 
@@ -308,11 +261,7 @@ INDEX_GROUPS = (
         heading="DECK experiments",
         activities=(
             IndexActivity(
-                heading="CMIP",
-                description=(
-                    "CMIP core common experiments i.e. the DECK "
-                    "(Diagnostic, Evaluation and Characterization of Klima)."
-                ),
+                activity_id="cmip",
                 experiment_slugs=(
                     "picontrol",
                     "esm-picontrol",
@@ -332,11 +281,7 @@ INDEX_GROUPS = (
         heading="Assessment Fast Track (AFT) experiments",
         activities=(
             IndexActivity(
-                heading="AerChemMIP",
-                description=(
-                    "Aerosols and chemistry model intercomparison project: "
-                    "exploration of aerosol chemistry."
-                ),
+                activity_id="aerchemmip",
                 experiment_slugs=(
                     "piclim-ch4",
                     "piclim-n2o",
@@ -348,32 +293,15 @@ INDEX_GROUPS = (
                 ),
             ),
             IndexActivity(
-                heading="CFMIP",
-                description=block(
-                    """
-                    Cloud feedback model intercomparison project.
-                    Focussed primarily on cloud feedbacks with a secondary focus on understanding of response to
-                    forcing, model biases, circulation, regional-scale precipitation, and non-linear changes.
-                    """
-                ),
+                activity_id="cfmip",
                 experiment_slugs=("abrupt-2xco2", "abrupt-0p5xco2"),
             ),
             IndexActivity(
-                heading="C4MIP",
-                description=(
-                    "Coupled climate carbon cycle model intercomparison project: "
-                    "exploration of the response of the coupled carbon-climate system."
-                ),
+                activity_id="c4mip",
                 experiment_slugs=("1pctco2-bgc", "1pctco2-rad"),
             ),
             IndexActivity(
-                heading="ScenarioMIP",
-                description=block(
-                    """
-                    Future scenario experiments.
-                    Exploration of the future climate under a (selected) range of possible boundary conditions.
-                    """
-                ),
+                activity_id="scenariomip",
                 experiment_slugs=("scen7-vl",),
                 extra_markdown=SCENARIOMIP_EXTRA,
             ),
@@ -396,15 +324,17 @@ def make_index_page(
         sections.append(f"## {group.heading}")
 
         for activity in group.activities:
+            activity_term = get_activity(activity.activity_id)
+            activity_urls = urls_from_term(activity_term)
             links = [
                 f"1. [{page_lookup[slug].display_name}](./{slug}.md)"
                 for slug in activity.experiment_slugs
             ]
             sections.append(
                 join_blocks(
-                    f"### {activity.heading}",
-                    "<!-- TODO: get this from esgvoc automatically -->",
-                    activity.description,
+                    f"### {activity_term.drs_name}",
+                    activity_term.description,
+                    render_activity_urls(activity_urls),
                     "\n".join(links),
                     activity.extra_markdown,
                 ).strip()

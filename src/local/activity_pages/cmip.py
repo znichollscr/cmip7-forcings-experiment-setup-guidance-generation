@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from local.branching import branch_from
 from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
 from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
@@ -16,7 +15,6 @@ from local.guidance import (
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
     PI_CONTROL_LINK,
-    PICLIM_PARENT_TODO,
     PICLIM_TIME_AXIS,
     SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
@@ -36,15 +34,6 @@ from local.rendering import (
 CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="picontrol",
-        title="piControl Experiment Setup and Forcings Guidance",
-        display_name="piControl",
-        responsible_activity="CMIP",
-        description=(
-            "Pre-industrial control simulation with prescribed carbon dioxide "
-            "concentrations (for prescribed carbon dioxide emissions, see "
-            "`esm-piControl`). Used to characterise natural variability and "
-            "unforced behaviour."
-        ),
         experiment_setup=join_blocks(
             "The pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied on repeat for the entirety of the simulation.",
@@ -58,12 +47,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 """
             ),
         ).strip(),
-        parent_experiment=branch_from(
-            experiment="piControl",
-            parent="piControl-spinup",
-            parent_activity="CMIP",
-            branch_instruction="Branch from `piControl-spinup` at a time of your choosing.",
-        ),
         forcing_headlines=block(
             """
             The `piControl` experiment is a fixed forcings experiment.
@@ -86,15 +69,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="esm-picontrol",
-        title="esm-piControl Experiment Setup and Forcings Guidance",
-        display_name="esm-piControl",
-        responsible_activity="CMIP",
-        description=(
-            "Pre-industrial control simulation with prescribed carbon dioxide "
-            "emissions (for prescribed carbon dioxide concentrations, see "
-            "`piControl`). Used to characterise natural variability and "
-            "unforced behaviour."
-        ),
         experiment_setup=join_blocks(
             "The emissions-driven pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied on repeat for the entirety of the simulation.",
@@ -108,14 +82,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 """
             ),
         ).strip(),
-        parent_experiment=branch_from(
-            experiment="esm-piControl",
-            parent="esm-piControl-spinup",
-            parent_activity="CMIP",
-            branch_instruction=(
-                "Branch from `esm-piControl-spinup` at a time of your choosing."
-            ),
-        ),
         forcing_headlines=block(
             """
             The `esm-piControl` experiment is a fixed forcings experiment.
@@ -138,14 +104,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="historical",
-        title="historical Experiment Setup and Forcings Guidance",
-        display_name="historical",
-        responsible_activity="CMIP",
-        description=(
-            "Simulation of the climate of the recent past (typically meaning "
-            "1850 to present-day) with prescribed carbon dioxide concentrations "
-            "(for prescribed carbon dioxide emissions, see `esm-hist`)."
-        ),
         experiment_setup=join_blocks(
             "The historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
@@ -153,12 +111,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The simulation output should start on 1850-01-01 and end on 2021-12-31.",
             "Only one ensemble member is required.",
         ).strip(),
-        parent_experiment=branch_from(
-            experiment="historical",
-            parent="piControl",
-            parent_activity="CMIP",
-            branch_instruction="Branch from `piControl` at a time of your choosing.",
-        ),
         forcing_headlines=block(
             """
             The `historical` experiment is a time-varying forcings experiment.
@@ -180,14 +132,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="esm-hist",
-        title="esm-hist Experiment Setup and Forcings Guidance",
-        display_name="esm-hist",
-        responsible_activity="CMIP",
-        description=(
-            "Simulation of the climate of the recent past (typically meaning "
-            "1850 to present-day) with prescribed carbon dioxide emissions "
-            "(for prescribed carbon dioxide concentrations, see `historical`)."
-        ),
         experiment_setup=join_blocks(
             "The emissions-driven historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
@@ -195,14 +139,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The simulation output should start on 1850-01-01 and end on 2021-12-31.",
             "Only one ensemble member is required.",
         ).strip(),
-        parent_experiment=branch_from(
-            experiment="esm-hist",
-            parent="esm-piControl",
-            parent_activity="CMIP",
-            branch_instruction=(
-                "Branch from `esm-piControl` at a time of your choosing."
-            ),
-        ),
         forcing_headlines=block(
             """
             The `esm-hist` experiment is a time-varying forcings experiment.
@@ -224,13 +160,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="1pctco2",
-        title="1pctCO2 Experiment Setup and Forcings Guidance",
-        display_name="1pctCO2",
-        responsible_activity="CMIP",
-        description=(
-            "1% per year increase in atmospheric carbon dioxide levels. "
-            "All other conditions are kept the same as piControl."
-        ),
         experiment_setup=join_blocks(
             EXPERIMENT_NAME_CONVENTION_TODO,
             f"The 1pctCO2 simulation is a simple branch from the {PI_CONTROL_LINK}.",
@@ -240,12 +169,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "Simulations should be at least 150 years in length.",
             "Only one ensemble member is required.",
         ).strip(),
-        parent_experiment=branch_from(
-            experiment="1pctCO2",
-            parent="piControl",
-            parent_activity="CMIP",
-            branch_instruction="Branch from `piControl` at a time of your choosing.",
-        ),
         forcing_headlines=(
             "The `1pctCO2` experiment is a fixed forcings experiment, "
             "except for CO<sub>2</sub> which is transient."
@@ -278,13 +201,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="abrupt-4xco2",
-        title="abrupt-4xCO2 Experiment Setup and Forcings Guidance",
-        display_name="abrupt-4xCO2",
-        responsible_activity="CMIP",
-        description=(
-            "Abrupt quadrupling of atmospheric carbon dioxide levels. "
-            "All other conditions are kept the same as piControl."
-        ),
         experiment_setup=join_blocks(
             EXPERIMENT_NAME_CONVENTION_TODO,
             f"The abrupt CO<sub>2</sub> quadrupling simulation is a simple branch from the {PI_CONTROL_LINK}.",
@@ -299,12 +215,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "Simulations should be at least 300 years in length.",
             "Only one ensemble member is required.",
         ).strip(),
-        parent_experiment=branch_from(
-            experiment="abrupt-4xCO2",
-            parent="piControl",
-            parent_activity="CMIP",
-            branch_instruction="Branch from `piControl` at a time of your choosing.",
-        ),
         forcing_headlines=(
             "The `abrupt-4xCO2` experiment is a fixed forcings experiment.\n"
             f"For further general headlines, please see the general headlines for the {PI_CONTROL_LINK}."
@@ -318,14 +228,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="piclim-control",
-        title="piClim-control Experiment Setup and Forcings Guidance",
-        display_name="piClim-control",
-        responsible_activity="CMIP",
-        description=(
-            "Baseline for effective radiative forcing (ERF) calculations. "
-            "`piControl` with prescribed sea-surface temperatures and sea-ice "
-            "concentrations."
-        ),
         experiment_setup=join_blocks(
             join_lines(
                 "The piClim-control simulation uses the same forcings as [piControl](./picontrol.md),",
@@ -353,10 +255,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 Only one ensemble member is required.
                 """
             ),
-        ).strip(),
-        parent_experiment=join_blocks(
-            PICLIM_PARENT_TODO,
-            "`piClim-control` does not branch from another simulation.",
         ).strip(),
         forcing_headlines=(
             "The `piClim-control` experiment is a fixed forcings experiment.\n"
@@ -389,15 +287,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="piclim-4xco2",
-        title="piClim-4xCO2 Experiment Setup and Forcings Guidance",
-        display_name="piClim-4xCO2",
-        responsible_activity="CMIP",
-        description=(
-            "In combination with `piClim-control`, quantifies a quadrupling of "
-            "atmospheric carbon dioxide's (4xCO2's) effective radiative forcing "
-            "(ERF). Same as `piClim-control`, except atmospheric carbon dioxide "
-            "concentrations are set to four times `piControl` levels."
-        ),
         experiment_setup=join_blocks(
             join_lines(
                 "The piClim-4xCO2 simulation uses the same forcings as [piClim-control](./piclim-control.md),",
@@ -410,10 +299,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
             SETUP_GENERATION_TODO,
             PICLIM_TIME_AXIS,
-        ).strip(),
-        parent_experiment=join_blocks(
-            PICLIM_PARENT_TODO,
-            "`piClim-4xCO2` does not branch from another simulation.",
         ).strip(),
         forcing_headlines=(
             "See general headlines for the "
@@ -428,16 +313,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="piclim-anthro",
-        title="piClim-anthro Experiment Setup and Forcings Guidance",
-        display_name="piClim-anthro",
-        responsible_activity="CMIP",
-        description=block(
-            """
-            In combination with `piClim-control`, quantifies present-day total anthropogenic effective radiative forcing (ERF).
-            Same as `piClim-control`, except all anthropogenic forcings use present-day values
-            (in CMIP defined as the last year of the `historical` simulation within the same CMIP era i.e. 2021 values for CMIP7).
-            """
-        ),
         experiment_setup=join_blocks(
             join_lines(
                 "The piClim-anthro simulation uses the same forcings as [piClim-control](./piclim-control.md),",
@@ -453,10 +328,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
             SETUP_GENERATION_TODO,
             PICLIM_TIME_AXIS,
-        ).strip(),
-        parent_experiment=join_blocks(
-            PICLIM_PARENT_TODO,
-            "`piClim-anthro` does not branch from another simulation.",
         ).strip(),
         forcing_headlines=(
             "See general headlines for the "
@@ -478,13 +349,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="amip",
-        title="amip Experiment Setup and Forcings Guidance",
-        display_name="amip",
-        responsible_activity="CMIP",
-        description=(
-            "Atmosphere-only simulation with prescribed sea surface temperatures "
-            "(SSTs) and sea-ice concentrations."
-        ),
         experiment_setup=join_blocks(
             EXPERIMENT_NAME_CONVENTION_TODO,
             "The amip simulation uses a specific set of forcings (see [forcings](#forcings)).",
@@ -493,7 +357,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "The simulation output should start on 1979-01-01 and end on 2021-12-31.",
             "Only one ensemble member is required.",
         ).strip(),
-        parent_experiment="`amip` has no parent experiment.",
         forcing_headlines="The `amip` experiment is a time-varying forcings experiment.",
         notes=join_blocks(
             f"See notes for the {PI_CONTROL_LINK}.",

@@ -43,7 +43,7 @@ def render_front_matter(title: str) -> str:
         f"""
         ---
         layout: default
-        title: {title}
+        title: {json.dumps(title)}
         ---
         """
     )
@@ -52,6 +52,49 @@ def render_front_matter(title: str) -> str:
 def render_link(label: str, slug: str) -> str:
     """Render a relative markdown link to another generated page."""
     return f"[{label}](./{slug}.md)"
+
+
+def render_external_link(label: str, url: str) -> str:
+    """Render an external markdown link."""
+    return f"[{label}]({url})"
+
+
+def render_url_list(urls: Sequence[str]) -> str:
+    """Render a compact list of external URL links."""
+    if len(urls) == 1:
+        return render_external_link("URL", urls[0])
+
+    return ", ".join(
+        render_external_link(f"URL {index}", url)
+        for index, url in enumerate(urls, start=1)
+    )
+
+
+def render_url_bullet_list(urls: Sequence[str]) -> str:
+    """Render external URL links as a markdown bullet list."""
+    return "\n".join(f"- {render_external_link(url, url)}" for url in urls)
+
+
+def render_term_reference(label: str, urls: Sequence[str]) -> str:
+    """Render a controlled-vocabulary term with links to its URLs."""
+    if not urls:
+        return label
+
+    if len(urls) == 1:
+        return render_external_link(label, urls[0])
+
+    return f"{label} ({render_url_list(urls)})"
+
+
+def render_activity_urls(urls: Sequence[str]) -> str:
+    """Render activity URLs as further-information links."""
+    if not urls:
+        return ""
+
+    return join_lines(
+        "Further information:",
+        render_url_bullet_list(urls),
+    )
 
 
 def same_as_versions(label: str, slug: str) -> str:
