@@ -85,6 +85,8 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         simulation_label="pre-industrial control spin-up simulation",
     ),
     ExperimentPage(
+        # TODO: add text about what ozone and nitrogen forcing can be used
+        # and what to do for different variants (mirroring other guidance e.g. in historical)
         slug="picontrol",
         experiment_setup=join_blocks(
             "The pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
@@ -362,7 +364,10 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "[`piClim-control` simulation](./piclim-control.md)."
         ),
         notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=same_as_versions("piClim-control simulation", "piclim-control"),
+        versions_to_use=(
+            f"{same_as_versions('piClim-control simulation', 'piclim-control')} "
+            "You have to quadruple the CO2 concentrations yourself."
+        ),
         getting_the_data=render_data_access_body(
             experiment_name="piClim-4xCO2",
             source_ids=source_ids_from_forcing_versions(
