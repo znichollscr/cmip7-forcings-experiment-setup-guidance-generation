@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from local.activities import get_activity_definition
 from local.branching import render_parent_information
-from local.experiment_pairs import render_related_experiments
+from local.experiment_descriptions import render_experiment_description
+from local.experiment_pairs import render_related_experiments, sort_experiment_slugs
 from local.rendering import (
     block,
     join_blocks,
+    render_activity_index_link,
     render_activity_urls,
     render_experiment_requirements,
     render_front_matter,
@@ -87,10 +90,13 @@ class ExperimentPage:
         return join_blocks(
             render_front_matter(self.title),
             f"# {self.title}",
-            f"Responsible activity: {responsible_activity.drs_name}",
-            render_activity_urls(urls_from_term(responsible_activity)),
             self.pre_description_note,
-            experiment.description,
+            render_experiment_description(experiment.description),
+            render_experiment_metadata_line(
+                experiment=experiment,
+                responsible_activity=responsible_activity,
+            ),
+            render_activity_urls(urls_from_term(responsible_activity)),
             render_related_experiments(self.slug, page_slugs=page_slugs),
             "## Experiment set up",
             self.experiment_setup,
@@ -112,6 +118,22 @@ class ExperimentPage:
             "### Getting the data",
             self.getting_the_data,
         )
+
+
+def render_experiment_metadata_line(*, experiment, responsible_activity) -> str:
+    """Render the activity and tier metadata line for an experiment page."""
+    if responsible_activity.id == "scenariomip":
+        tier_label = (
+            f"See {render_activity_index_link(responsible_activity)} information"
+        )
+    else:
+        tier = getattr(experiment, "tier", None)
+        tier_label = "not defined" if tier is None else str(tier)
+
+    return (
+        f"Responsible activity: {render_activity_index_link(responsible_activity)}. "
+        f"Tier: {tier_label}"
+    )
 
 
 @dataclass(frozen=True)
@@ -139,7 +161,6 @@ class IndexActivity:
 
     activity_id: str
     experiment_slugs: tuple[str, ...]
-    extra_markdown: str = ""
 
 
 @dataclass(frozen=True)
@@ -150,18 +171,6 @@ class IndexGroup:
     activities: tuple[IndexActivity, ...]
 
 
-SETUP_GENERATION_TODO = (
-    "<!-- TODO: consider whether we can generate these sentences automatically "
-    "based on esgvoc -->"
-)
-EXPERIMENT_NAME_CONVENTION_TODO = block(
-    """
-        <!--
-        TODO: decide and then consistently apply some convention about whether experiment names are always
-        surrounded by backticks `` or not.
-        -->
-        """
-)
 PI_CONTROL_LINK = render_link("piControl simulation", "picontrol")
 ESM_PI_CONTROL_LINK = render_link("esm-piControl simulation", "esm-picontrol")
 HISTORICAL_LINK = render_link("historical simulation", "historical")
@@ -185,17 +194,6 @@ PICLIM_TIME_AXIS = block(
     It is recommended that you use the same time axis as you use for your [piClim-control](./piclim-control.md) output
     to make life easy for analysts of your output
     (although this is not enforced so you are technically free to start the time axis of your outputs at whatever year you like).
-    """
-)
-
-AERCHEMMIP_UNCERTAIN_NOTE = block(
-    """
-    Note, the information on this page is likely not correct.
-    We are awaiting documentation of the forcings for the AerChemMIP CMIP7 AFT experiments.
-    Some details may be available in [Fiedler et al](https://doi.org/10.5194/egusphere-2025-5669) (preprint)
-    and information on AerChemMIP can be found via the [CMIP IPO website](https://wcrp-cmip.org/mips/aerchemmip2/).
-    Please see [issue #124](https://github.com/WCRP-CMIP/cmip7-guidance/issues/124)
-    to track progress resolving this.
     """
 )
 
@@ -244,7 +242,7 @@ INDEX_INTRO = block(
     They are updated regularly, hence should be considered the current source of guidance.
     The papers which describe the experiments in the scientific literature are the original source and key reference,
     but they may still contain errors which cannot be fixed after publication so should not be relied upon in isolation.
-    [The papers](https://gmd.copernicus.org/articles/special_issue1315.html) also provide further information about each simulation than what is provided here,
+    The papers also provide further information about each simulation than what is provided here,
     such as the motivation, history and results from previous CMIP phases.
 
     These pages specify the intended way to run each simulation.
@@ -254,23 +252,6 @@ INDEX_INTRO = block(
     When these discussions are finalised, these guidance pages will be updated.
     <!-- TODO: do we have a section to cross-link to? -->
 
-    """
-)
-
-SCENARIOMIP_EXTRA = block(
-    """
-    The priority of ScenarioMIP experiments (expressed as Tier 1 and 2) is summarized in the flowchart below, which is based on Table 1 of [Van Vuuren et al. 2026](https://gmd.copernicus.org/articles/19/2627/2026/).
-    Emissions-driven experiments, indicated in yellow, have names beginning with `esm-`.
-
-    - If your model is capable of running in emissions-driven mode, ScenarioMIP request emissions-driven scenarios, and additionally the concentration-driven experiment `scen7-m`, at Tier-1 (highest priority).
-    - If your model will run only the concentration-driven experiments, ScenarioMIP request all concentration-driven scenarios at Tier-1.
-
-    If you are running in emissions-driven mode, you are welcome to run other scenarios in concentration-driven mode, but they have not been assigned a specific tier (i.e., are lowest priority).
-
-    <figure>
-      <img src="figures/ScenarioMIP-tiers_v3.svg">
-      <figcaption>ScenarioMIP experiments, with emissions-driven experiments indicated in yellow.</figcaption>
-    </figure>
     """
 )
 
@@ -371,7 +352,6 @@ INDEX_GROUPS = (
                     "scen7-vl-ext",
                     "esm-scen7-vl-ext",
                 ),
-                extra_markdown=SCENARIOMIP_EXTRA,
             ),
             IndexActivity(
                 activity_id="damip",
@@ -401,6 +381,30 @@ EXPERIMENT_SLUGS_TO_GENERATE = tuple(
 )
 
 
+def render_activity_section(
+    activity: IndexActivity,
+    *,
+    page_lookup: Mapping[str, ExperimentPage | SimplePage],
+) -> str:
+    """Render one activity section on the index page."""
+    activity_definition = get_activity_definition(activity.activity_id)
+    activity_term = get_activity(activity_definition.activity_id)
+    activity_urls = urls_from_term(activity_term)
+    links = [
+        f"1. [{page_lookup[slug].display_name}](./{slug}.md)"
+        for slug in sort_experiment_slugs(activity.experiment_slugs)
+    ]
+
+    return join_blocks(
+        f"### {activity_term.drs_name}",
+        activity_definition.description_from(activity_term.description),
+        activity_definition.further_details,
+        render_activity_urls(activity_urls),
+        f"The following experiments are included in `{activity_term.drs_name}`:",
+        "\n".join(links),
+    ).strip()
+
+
 def make_index_page(
     pages: tuple[ExperimentPage | SimplePage, ...] | None = None,
 ) -> SimplePage:
@@ -416,21 +420,7 @@ def make_index_page(
         sections.append(f"## {group.heading}")
 
         for activity in group.activities:
-            activity_term = get_activity(activity.activity_id)
-            activity_urls = urls_from_term(activity_term)
-            links = [
-                f"1. [{page_lookup[slug].display_name}](./{slug}.md)"
-                for slug in activity.experiment_slugs
-            ]
-            sections.append(
-                join_blocks(
-                    f"### {activity_term.drs_name}",
-                    activity_term.description,
-                    render_activity_urls(activity_urls),
-                    "\n".join(links),
-                    activity.extra_markdown,
-                ).strip()
-            )
+            sections.append(render_activity_section(activity, page_lookup=page_lookup))
 
     return SimplePage(
         slug="index",

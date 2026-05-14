@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Collection, Mapping, Sequence
+from datetime import date, datetime
 from textwrap import TextWrapper, dedent
 from typing import TYPE_CHECKING, Any, Protocol
 
@@ -18,6 +19,10 @@ MARKDOWN_WRAP_WIDTH = 120
 LIST_ITEM_RE = re.compile(r"^(\s*(?:[-*+]|\d+[.])\s+)(.*)$")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^)]+\)")
 MARKDOWN_LINK_SPACE = "\x07"
+START_OF_YEAR_MONTH = 1
+START_OF_YEAR_DAY = 1
+END_OF_YEAR_MONTH = 12
+END_OF_YEAR_DAY = 31
 SENTENCE_BOUNDARY_RE = re.compile(
     r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
     r"\s+(?=[`\"'(\[]?[A-Z])"
@@ -58,7 +63,7 @@ def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
     wrapped: list[str] = []
     paragraph: list[str] = []
     index = 0
-    in_fenced_block = False
+    preserved_block_end: str | None = None
     front_matter_line_count = _front_matter_line_count(lines)
 
     def flush_paragraph() -> None:
@@ -77,15 +82,17 @@ def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
             index += 1
             continue
 
-        if stripped.startswith("```"):
-            flush_paragraph()
+        if preserved_block_end is not None:
             wrapped.append(line)
-            in_fenced_block = not in_fenced_block
+            if preserved_block_end in stripped:
+                preserved_block_end = None
             index += 1
             continue
 
-        if in_fenced_block:
+        if block_end := _preserved_block_end(stripped):
+            flush_paragraph()
             wrapped.append(line)
+            preserved_block_end = block_end
             index += 1
             continue
 
@@ -121,6 +128,17 @@ def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
     return "\n".join(wrapped) + "\n"
 
 
+def _preserved_block_end(stripped_line: str) -> str | None:
+    """Return the end marker for markdown blocks that should not be wrapped."""
+    if stripped_line.startswith("```"):
+        return "```"
+
+    if stripped_line.startswith("<!--") and "-->" not in stripped_line:
+        return "-->"
+
+    return None
+
+
 def _front_matter_line_count(lines: Sequence[str]) -> int:
     """Return the number of leading front-matter lines."""
     if not lines or lines[0].strip() != "---":
@@ -139,6 +157,7 @@ def _should_preserve_line(line: str) -> bool:
     return (
         stripped.startswith("#")
         or stripped.startswith("!!!")
+        or stripped.startswith("Responsible activity:")
         or stripped.startswith("<!--")
         or stripped.startswith("<figure")
         or stripped.startswith("</figure")
@@ -293,6 +312,11 @@ def render_external_link(label: str, url: str) -> str:
     return f"[{label}]({url})"
 
 
+def render_activity_index_link(activity: Any) -> str:
+    """Render a link to an activity section on the index page."""
+    return f"[{activity.drs_name}](./index.md#{activity.id})"
+
+
 def render_url_list(urls: Sequence[str]) -> str:
     """Render a compact list of external URL links."""
     if len(urls) == 1:
@@ -327,8 +351,10 @@ def render_activity_urls(urls: Sequence[str]) -> str:
 
     return join_blocks(
         join_lines(
-            "These pages are intended as a summary guide only.",
-            "For full details of experiments, please see the following URLs:",
+            "These pages are intended to help with implementation of these experiments. "
+            "If you notice something that is unclear, "
+            "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new). "
+            "For the full background of the experiments, please see the following URLs:",
         ),
         render_url_bullet_list(urls),
     ).strip()
@@ -371,6 +397,25 @@ def render_start_end_dates(experiment: Any) -> str:
 
 def render_minimum_simulation_length(experiment: Any) -> str:
     """Render minimum simulation length from an esgvoc experiment."""
+    start_timestamp = getattr(experiment, "start_timestamp", None)
+    end_timestamp = getattr(experiment, "end_timestamp", None)
+    if start_timestamp is not None and end_timestamp is not None:
+        start_date = _required_date_from_timestamp(
+            start_timestamp,
+            timestamp_name="start_timestamp",
+            experiment=experiment,
+        )
+        end_date = _required_date_from_timestamp(
+            end_timestamp,
+            timestamp_name="end_timestamp",
+            experiment=experiment,
+        )
+        return (
+            "Simulations should be "
+            f"{format_number(_simulation_years(start_date, end_date, experiment))} "
+            "years in length."
+        )
+
     minimum_years = getattr(experiment, "min_number_yrs_per_sim", None)
     if minimum_years is None:
         return (
@@ -398,14 +443,67 @@ def render_minimum_ensemble_size(experiment: Any) -> str:
 
 def format_timestamp(timestamp: Any) -> str:
     """Format an esgvoc timestamp as an ISO date."""
-    if timestamp is None:
+    timestamp_date = date_from_timestamp(timestamp)
+    if timestamp_date is None:
         return ""
 
-    date = getattr(timestamp, "date", None)
-    if date is not None:
-        return date().isoformat()
+    return timestamp_date.isoformat()
 
-    return str(timestamp)
+
+def date_from_timestamp(timestamp: Any) -> date | None:
+    """Return the date part of a CV timestamp."""
+    if timestamp is None:
+        return None
+
+    if isinstance(timestamp, datetime):
+        return timestamp.date()
+
+    if isinstance(timestamp, date):
+        return timestamp
+
+    date_method = getattr(timestamp, "date", None)
+    if callable(date_method):
+        return date_method()
+
+    return None
+
+
+def _required_date_from_timestamp(
+    timestamp: Any,
+    *,
+    timestamp_name: str,
+    experiment: Any,
+) -> date:
+    """Return a date from a specified timestamp, failing if unsupported."""
+    timestamp_date = date_from_timestamp(timestamp)
+    if timestamp_date is not None:
+        return timestamp_date
+
+    experiment_id = getattr(experiment, "id", experiment)
+    msg = (
+        f"Cannot calculate exact simulation years for {experiment_id!r}: "
+        f"{timestamp_name} has unsupported value {timestamp!r}."
+    )
+    raise NotImplementedError(msg)
+
+
+def _simulation_years(start_date: date, end_date: date, experiment: Any) -> int:
+    """Return exact simulation years for whole-year start/end dates."""
+    if (
+        start_date.month != START_OF_YEAR_MONTH
+        or start_date.day != START_OF_YEAR_DAY
+        or end_date.month != END_OF_YEAR_MONTH
+        or end_date.day != END_OF_YEAR_DAY
+    ):
+        experiment_id = getattr(experiment, "id", experiment)
+        msg = (
+            f"Cannot calculate exact simulation years for {experiment_id!r}: "
+            f"start date is {start_date.isoformat()} and end date is "
+            f"{end_date.isoformat()}."
+        )
+        raise NotImplementedError(msg)
+
+    return end_date.year - start_date.year + 1
 
 
 def format_number(value: float) -> str:
@@ -494,16 +592,22 @@ def render_versions_body(
     ).strip()
 
 
-DATA_ACCESS_INTRO = block(
-    """
-    The data is available on ESGF and searchable [via metagrid](https://esgf-node.ornl.gov/search?project=input4MIPs&versionType=all&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%7D),
-    although this method of finding and downloading the data can involve a lot of clicking.
-    Having said this, please also note: the aerosol optical properties based on the MACv2-SP parameterisation are not distributed via the ESGF.
-    <!-- TODO: add CI to check all URLs are live -->
-    Please see [their specific guidance section](https://input4mips-cvs.readthedocs.io/en/latest/dataset-overviews/aerosol-optical-properties-macv2-sp/#datasets-for-cmip7-phases)
-    for data access information.
-    """
-)
+DATA_ACCESS_INTRO = join_blocks(
+    block(
+        """
+        The data is available on ESGF and searchable [via metagrid](https://esgf-node.ornl.gov/search?project=input4MIPs&versionType=all&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%7D),
+        although this method of finding and downloading the data can involve a lot of clicking.
+        """
+    ),
+    (
+        "Having said this, please also note: the aerosol optical properties "
+        "based on the MACv2-SP parameterisation are not distributed via the ESGF; "
+        "please see their [specific guidance section]"
+        "(https://input4mips-cvs.readthedocs.io/en/latest/dataset-overviews/"
+        "aerosol-optical-properties-macv2-sp/#datasets-for-cmip7-phases) "
+        "for data access information."
+    ),
+).strip()
 
 
 def render_data_access_body(

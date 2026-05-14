@@ -7,10 +7,7 @@ from local.forcing_versions import (
     SCEN7_VL_FORCING_VERSIONS,
     source_ids_from_forcing_versions,
 )
-from local.guidance import (
-    SETUP_GENERATION_TODO,
-    ExperimentPage,
-)
+from local.guidance import ExperimentPage
 from local.rendering import (
     join_blocks,
     render_data_access_body,
@@ -23,7 +20,6 @@ SCENARIOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The CMIP7 very low scenario simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-            SETUP_GENERATION_TODO,
         ).strip(),
         forcing_headlines="The `scen7-vl` experiment is a time-varying forcings experiment.",
         notes=COMMON_FORCING_NOTES,

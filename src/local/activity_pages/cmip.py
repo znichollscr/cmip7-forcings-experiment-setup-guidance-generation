@@ -11,12 +11,10 @@ from local.forcing_versions import (
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
-    EXPERIMENT_NAME_CONVENTION_TODO,
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
     PI_CONTROL_LINK,
     PICLIM_TIME_AXIS,
-    SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
 )
@@ -50,7 +48,6 @@ def make_picontrol_spinup_page(
                 "(see [forcings](#forcings))."
             ),
             "These should be applied on repeat for the entirety of the simulation.",
-            SETUP_GENERATION_TODO,
             block(
                 """
                 You are free to start the time axis of your outputs at whatever year you like
@@ -61,7 +58,7 @@ def make_picontrol_spinup_page(
         forcing_headlines=block(
             f"""
             The `{experiment_name}` experiment is a fixed forcings experiment.
-            As with the control experiments, care is needed to use the correct pre-industrial
+            As with the pre-industrial control experiments, care is needed to use the correct pre-industrial
             values for stratospheric aerosol forcing, ozone and solar forcing.
             Please read the guidance pages linked under [notes](#notes)
             to ensure that you use the correct forcing values.
@@ -86,11 +83,12 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         simulation_label="pre-industrial control spin-up simulation",
     ),
     ExperimentPage(
+        # TODO: add text about what ozone and nitrogen forcing can be used
+        # and what to do for different variants (mirroring other guidance e.g. in historical)
         slug="picontrol",
         experiment_setup=join_blocks(
             "The pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied on repeat for the entirety of the simulation.",
-            SETUP_GENERATION_TODO,
             block(
                 """
                 You are free to start the time axis of your outputs at whatever year you like
@@ -128,7 +126,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The emissions-driven pre-industrial control simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied on repeat for the entirety of the simulation.",
-            SETUP_GENERATION_TODO,
             block(
                 """
                 You are free to start the time axis of your outputs at whatever year you like
@@ -161,7 +158,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-            SETUP_GENERATION_TODO,
         ).strip(),
         forcing_headlines=block(
             """
@@ -187,7 +183,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             "The emissions-driven historical simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-            SETUP_GENERATION_TODO,
         ).strip(),
         forcing_headlines=block(
             """
@@ -211,17 +206,37 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="1pctco2",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The 1pctCO2 simulation is a simple branch from the {PI_CONTROL_LINK}.",
             "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the simulation.",
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=(
             "The `1pctCO2` experiment is a fixed forcings experiment, "
             "except for CO<sub>2</sub> which is transient."
         ),
-        notes=f"See notes for the {PI_CONTROL_LINK}.",
+        notes=join_blocks(
+            f"See notes for the {PI_CONTROL_LINK}.",
+            "You have to increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.",
+            block(
+                """
+                <!---
+                    TODO: discuss with Matt/someone else the specific implementation instructions.
+                    Set concentrations in first year to be higher than piControl
+                    (because, if you don't do this and you have a linear increase,
+                    then you'd have to drop concentrations in January of the first year in order to get the average correct)
+                    TODO: check formula rendering
+                -->
+                The annual-average concentrations should increase following the formula c(y) = c_0 * 1.01 ** (y - y_0 - 1),
+                where c is the annual-average concentration in year y and y_0 is the first year of the `1pctCO2` simulation
+                (i.e. average atmospheric CO<sub>2</sub> concentrations in the first year of the `1pctCO2` simulation
+                should be higher than in `piControl`).
+                It is up to you to decide whether you apply your concentrations as a series of step changes
+                (constant over each year) or as a steady linear increase
+                (such that e.g. concentrations in December are higher than those in January)
+                that results in the correct annual average being applied.
+                """
+            ),
+        ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=render_data_access_body(
             experiment_name="1pctCO2",
@@ -229,34 +244,11 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 CMIP_FORCING_VERSIONS,
                 source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
             ),
-            extra=join_blocks(
-                "You have to increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.",
-                block(
-                    """
-                    <!---
-                        TODO: discuss with Matt/someone else the specific implementation instructions.
-                        Set concentrations in first year to be higher than piControl
-                        (because, if you don't do this and you have a linear increase,
-                        then you'd have to drop concentrations in January of the first year in order to get the average correct)
-                        TODO: check formula rendering
-                    -->
-                    The annual-average concentrations should increase following the formula c(y) = c_0 * 1.01 ** (y - y_0 - 1),
-                    where c is the annual-average concentration in year y and y_0 is the first year of the `1pctCO2` simulation
-                    (i.e. average atmospheric CO<sub>2</sub> concentrations in the first year of the `1pctCO2` simulation
-                    should be higher than in `piControl`).
-                    It is up to you to decide whether you apply your concentrations as a series of step changes
-                    (constant over each year) or as a steady linear increase
-                    (such that e.g. concentrations in December are higher than those in January)
-                    that results in the correct annual average being applied.
-                    """
-                ),
-            ).strip(),
         ),
     ),
     ExperimentPage(
         slug="abrupt-4xco2",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The abrupt CO<sub>2</sub> quadrupling simulation is a simple branch from the {PI_CONTROL_LINK}.",
             block(
                 """
@@ -264,14 +256,16 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 the concentrations used in the `piControl` simulation.
                 """
             ),
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=(
             "The `abrupt-4xCO2` experiment is a fixed forcings experiment.\n"
             f"For further general headlines, please see the general headlines for the {PI_CONTROL_LINK}."
         ),
-        notes=f"See notes for the {PI_CONTROL_LINK}.",
+        notes=join_blocks(
+            f"See notes for the {PI_CONTROL_LINK}.",
+            "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
+        ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=render_data_access_body(
             experiment_name="abrupt-4xCO2",
@@ -279,7 +273,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 CMIP_FORCING_VERSIONS,
                 source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
             ),
-            extra="You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
         ),
     ),
     ExperimentPage(
@@ -298,7 +291,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 they are not provided by a forcings provider).
                 """
             ),
-            SETUP_GENERATION_TODO,
             block(
                 """
                 The start-time of the simulation is not tied to a particular year but, rather, can be chosen arbitrarily
@@ -355,7 +347,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                     """
                 ),
             ),
-            SETUP_GENERATION_TODO,
             PICLIM_TIME_AXIS,
         ).strip(),
         forcing_headlines=(
@@ -363,7 +354,10 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "[`piClim-control` simulation](./piclim-control.md)."
         ),
         notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=same_as_versions("piClim-control simulation", "piclim-control"),
+        versions_to_use=(
+            f"{same_as_versions('piClim-control simulation', 'piclim-control')} "
+            "You have to quadruple the CO2 concentrations yourself."
+        ),
         getting_the_data=render_data_access_body(
             experiment_name="piClim-4xCO2",
             source_ids=source_ids_from_forcing_versions(
@@ -422,10 +416,8 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="amip",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             "The amip simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-            SETUP_GENERATION_TODO,
         ).strip(),
         forcing_headlines="The `amip` experiment is a time-varying forcings experiment.",
         notes=join_blocks(

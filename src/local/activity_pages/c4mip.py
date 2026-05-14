@@ -8,9 +8,7 @@ from local.forcing_versions import (
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
-    EXPERIMENT_NAME_CONVENTION_TODO,
     ONEPCTCO2_LINK,
-    SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
 )
@@ -25,7 +23,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="1pctco2-bgc",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The 1pctCO2-bgc simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
             block(
                 """
@@ -34,7 +31,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 and does not see any other changes (e.g. changes in atmospheric temperatures).
                 """
             ),
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=f"See general headlines for the {ONEPCTCO2_LINK}.",
@@ -51,7 +47,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="1pctco2-rad",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The 1pctCO2-rad simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
             block(
                 """
@@ -60,7 +55,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 and does not see any other changes (e.g. changes in atmospheric CO<sub>2</sub> concentrations).
                 """
             ),
-            SETUP_GENERATION_TODO,
             TIME_AXIS_CAN_BE_ARBITRARY,
         ).strip(),
         forcing_headlines=f"See general headlines for the {ONEPCTCO2_LINK}.",

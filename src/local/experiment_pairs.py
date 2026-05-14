@@ -19,8 +19,14 @@ class ExperimentPair:
 
     left_slug: str
     right_slug: str
-    left_to_right_text: str
-    right_to_left_text: str
+    left_to_right_text: str = (
+        "is the emissions-driven counterpart to this concentration-driven "
+        "experiment."
+    )
+    right_to_left_text: str = (
+        "is the concentration-driven counterpart to this emissions-driven "
+        "experiment."
+    )
 
     def reference_from(
         self,
@@ -47,59 +53,56 @@ class ExperimentPair:
 
         return None
 
+    def related_slug_from(self, slug: str) -> str | None:
+        """Return the other slug in the pair if ``slug`` belongs to this pair."""
+        if slug == self.left_slug:
+            return self.right_slug
+
+        if slug == self.right_slug:
+            return self.left_slug
+
+        return None
+
 
 EMISSIONS_CONCENTRATION_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
     ExperimentPair(
         left_slug="picontrol-spinup",
         right_slug="esm-picontrol-spinup",
-        left_to_right_text=(
-            "is the emissions-driven counterpart to this concentration-driven "
-            "spin-up experiment."
-        ),
-        right_to_left_text=(
-            "is the concentration-driven counterpart to this emissions-driven "
-            "spin-up experiment."
-        ),
     ),
     ExperimentPair(
         left_slug="picontrol",
         right_slug="esm-picontrol",
-        left_to_right_text=(
-            "is the emissions-driven counterpart to this concentration-driven "
-            "control experiment."
-        ),
-        right_to_left_text=(
-            "is the concentration-driven counterpart to this emissions-driven "
-            "control experiment."
-        ),
     ),
     ExperimentPair(
         left_slug="historical",
         right_slug="esm-hist",
-        left_to_right_text=(
-            "is the emissions-driven counterpart to this concentration-driven "
-            "historical experiment."
-        ),
-        right_to_left_text=(
-            "is the concentration-driven counterpart to this emissions-driven "
-            "historical experiment."
-        ),
     ),
 )
 
+AQ_AER_LEFT_TO_RIGHT_TEXT = (
+    "is the corresponding interactive-chemistry experiment for models "
+    "that include interactive chemistry."
+)
+AQ_AER_RIGHT_TO_LEFT_TEXT = (
+    "is the corresponding non-interactive-chemistry experiment for "
+    "models that do not include interactive chemistry."
+)
+
+
+def make_aq_aer_experiment_pair(*, aer_slug: str, aq_slug: str) -> ExperimentPair:
+    """Create an AQ/Aer experiment pair."""
+    return ExperimentPair(
+        left_slug=aer_slug,
+        right_slug=aq_slug,
+        left_to_right_text=AQ_AER_LEFT_TO_RIGHT_TEXT,
+        right_to_left_text=AQ_AER_RIGHT_TO_LEFT_TEXT,
+    )
+
+
 AQ_AER_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
-    ExperimentPair(
-        left_slug="hist-piaer",
-        right_slug="hist-piaq",
-        left_to_right_text=(
-            "is the corresponding interactive-chemistry experiment for models "
-            "that include interactive chemistry."
-        ),
-        right_to_left_text=(
-            "is the corresponding non-interactive-chemistry experiment for "
-            "models that do not include interactive chemistry."
-        ),
-    ),
+    make_aq_aer_experiment_pair(aer_slug="hist-piaer", aq_slug="hist-piaq"),
+    make_aq_aer_experiment_pair(aer_slug="scen7-h-aer", aq_slug="scen7-h-aq"),
+    make_aq_aer_experiment_pair(aer_slug="scen7-vl-aer", aq_slug="scen7-vl-aq"),
 )
 
 EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
@@ -118,17 +121,21 @@ def render_related_experiments(
     if experiment_pairs is None:
         experiment_pairs = _experiment_pairs_for_page_slugs(page_slugs)
 
-    references = tuple(
-        reference
+    references_by_slug = {
+        related_slug: reference
         for pair in experiment_pairs
+        if (related_slug := pair.related_slug_from(slug)) is not None
         if (reference := pair.reference_from(slug, page_slugs=page_slugs))
-    )
-    if not references:
+    }
+    if not references_by_slug:
         return ""
 
     return join_blocks(
         "## Related experiments",
-        "\n".join(f"- {reference}" for reference in references),
+        "\n".join(
+            f"- {references_by_slug[related_slug]}"
+            for related_slug in sort_experiment_slugs(references_by_slug)
+        ),
     ).strip()
 
 
@@ -169,14 +176,6 @@ def _automatic_emissions_concentration_pairs(
             ExperimentPair(
                 left_slug=concentration_slug,
                 right_slug=emissions_slug,
-                left_to_right_text=(
-                    "is the emissions-driven counterpart to this "
-                    "concentration-driven experiment."
-                ),
-                right_to_left_text=(
-                    "is the concentration-driven counterpart to this "
-                    "emissions-driven experiment."
-                ),
             )
         )
 
@@ -193,20 +192,7 @@ def _automatic_aq_aer_pairs(
         if aq_slug not in page_slugs:
             continue
 
-        pairs.append(
-            ExperimentPair(
-                left_slug=aer_slug,
-                right_slug=aq_slug,
-                left_to_right_text=(
-                    "is the corresponding AQ experiment for models that include "
-                    "interactive chemistry."
-                ),
-                right_to_left_text=(
-                    "is the corresponding Aer experiment for models that do not "
-                    "include interactive chemistry."
-                ),
-            )
-        )
+        pairs.append(make_aq_aer_experiment_pair(aer_slug=aer_slug, aq_slug=aq_slug))
 
     return tuple(pairs)
 
@@ -214,6 +200,70 @@ def _automatic_aq_aer_pairs(
 def _pair_key(pair: ExperimentPair) -> frozenset[str]:
     """Return an order-independent key for a pair."""
     return frozenset((pair.left_slug, pair.right_slug))
+
+
+def sort_experiment_slugs(slugs: Iterable[str]) -> tuple[str, ...]:
+    """Sort experiment slugs, placing paired ``esm-*`` slugs after their pair."""
+    slug_tuple = tuple(slugs)
+    paired_sort_keys = _paired_sort_keys(slug_tuple)
+    return tuple(
+        sorted(
+            slug_tuple,
+            key=lambda slug: paired_sort_keys.get(
+                slug, (slug.lower(), 0, slug.lower())
+            ),
+        )
+    )
+
+
+def _paired_sort_keys(slugs: Iterable[str]) -> dict[str, tuple[str, int, str]]:
+    """Return sort-key overrides for recognised experiment pairs."""
+    slug_set = set(slugs)
+    paired_sort_keys: dict[str, tuple[str, int, str]] = {}
+
+    for pair in EXPERIMENT_PAIRS:
+        _add_pair_sort_keys(
+            pair.left_slug,
+            pair.right_slug,
+            slug_set=slug_set,
+            paired_sort_keys=paired_sort_keys,
+        )
+
+    for emissions_slug in (slug for slug in slug_set if slug.startswith("esm-")):
+        concentration_slug = emissions_slug.removeprefix("esm-")
+        _add_pair_sort_keys(
+            concentration_slug,
+            emissions_slug,
+            slug_set=slug_set,
+            paired_sort_keys=paired_sort_keys,
+        )
+
+    for aer_slug in (slug for slug in slug_set if slug.endswith("aer")):
+        aq_slug = f"{aer_slug[:-3]}aq"
+        _add_pair_sort_keys(
+            aer_slug,
+            aq_slug,
+            slug_set=slug_set,
+            paired_sort_keys=paired_sort_keys,
+        )
+
+    return paired_sort_keys
+
+
+def _add_pair_sort_keys(
+    left_slug: str,
+    right_slug: str,
+    *,
+    slug_set: set[str],
+    paired_sort_keys: dict[str, tuple[str, int, str]],
+) -> None:
+    """Add sort-key overrides for a pair if both slugs are present."""
+    if left_slug not in slug_set or right_slug not in slug_set:
+        return
+
+    primary_key = left_slug.lower()
+    paired_sort_keys.setdefault(left_slug, (primary_key, 0, left_slug.lower()))
+    paired_sort_keys.setdefault(right_slug, (primary_key, 1, right_slug.lower()))
 
 
 def _render_reference(
