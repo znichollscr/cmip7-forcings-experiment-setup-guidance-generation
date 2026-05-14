@@ -122,8 +122,14 @@ class ExperimentPage:
 
 def render_experiment_metadata_line(*, experiment, responsible_activity) -> str:
     """Render the activity and tier metadata line for an experiment page."""
-    tier = getattr(experiment, "tier", None)
-    tier_label = "not defined" if tier is None else str(tier)
+    if responsible_activity.id == "scenariomip":
+        tier_label = (
+            f"See {render_activity_index_link(responsible_activity)} information"
+        )
+    else:
+        tier = getattr(experiment, "tier", None)
+        tier_label = "not defined" if tier is None else str(tier)
+
     return (
         f"Responsible activity: {render_activity_index_link(responsible_activity)}. "
         f"Tier: {tier_label}"
