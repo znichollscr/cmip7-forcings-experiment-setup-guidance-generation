@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
 from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
-    CMIP_FIXED_SOURCE_ID_INDEXES,
+    CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
     CMIP_FORCING_VERSIONS,
-    CMIP_TRANSIENT_SOURCE_ID_INDEXES,
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
@@ -90,7 +87,11 @@ READ_FORCING_NOTES_GUIDANCE = block(
     to ensure that you use the correct forcing values.
     """
 )
-CMIP_VERSIONS_TO_USE = render_versions_body(CMIP_FORCING_VERSIONS)
+CMIP_FIXED_VERSIONS_TO_USE = render_versions_body(
+    CMIP_FORCING_VERSIONS,
+    preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
+)
+CMIP_TRANSIENT_VERSIONS_TO_USE = render_versions_body(CMIP_FORCING_VERSIONS)
 
 
 def fixed_forcings_setup(first_sentence: str) -> str:
@@ -108,43 +109,36 @@ def transient_forcings_setup(simulation_label: str) -> str:
 
 def fixed_cmip_data_access_body(experiment_name: str) -> str:
     """Render the data-access body for fixed CMIP forcings."""
-    return cmip_data_access_body(
-        experiment_name,
-        source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+    return render_data_access_body(
+        experiment_name=experiment_name,
+        source_ids=fixed_cmip_source_ids(),
     )
 
 
 def transient_cmip_data_access_body(experiment_name: str) -> str:
     """Render the data-access body for transient CMIP forcings."""
-    return cmip_data_access_body(
-        experiment_name,
-        source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
-    )
+    return cmip_data_access_body(experiment_name)
 
 
-def cmip_data_access_body(
-    experiment_name: str,
-    *,
-    source_id_indexes: Mapping[str, int],
-) -> str:
+def cmip_data_access_body(experiment_name: str) -> str:
     """Render the data-access body for CMIP forcing versions."""
     return render_data_access_body(
         experiment_name=experiment_name,
-        source_ids=cmip_source_ids(source_id_indexes=source_id_indexes),
+        source_ids=cmip_source_ids(),
     )
 
 
 def fixed_cmip_source_ids() -> tuple[str, ...]:
     """Return source IDs for fixed CMIP forcings."""
-    return cmip_source_ids(source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES)
-
-
-def cmip_source_ids(*, source_id_indexes: Mapping[str, int]) -> tuple[str, ...]:
-    """Return source IDs for CMIP forcing versions."""
     return source_ids_from_forcing_versions(
         CMIP_FORCING_VERSIONS,
-        source_id_indexes=source_id_indexes,
+        preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
     )
+
+
+def cmip_source_ids() -> tuple[str, ...]:
+    """Return source IDs for CMIP forcing versions."""
+    return source_ids_from_forcing_versions(CMIP_FORCING_VERSIONS)
 
 
 def fixed_forcing_headlines(
@@ -204,7 +198,7 @@ def make_fixed_control_page(
             forcing_values_experiment_name=forcing_values_experiment_name,
         ),
         notes=COMMON_FORCING_NOTES,
-        versions_to_use=CMIP_VERSIONS_TO_USE,
+        versions_to_use=CMIP_FIXED_VERSIONS_TO_USE,
         getting_the_data=fixed_cmip_data_access_body(experiment_name),
     )
 
@@ -238,7 +232,7 @@ def make_historical_page(
         experiment_setup=transient_forcings_setup(simulation_label),
         forcing_headlines=historical_forcing_headlines(experiment_name),
         notes=COMMON_FORCING_NOTES,
-        versions_to_use=CMIP_VERSIONS_TO_USE,
+        versions_to_use=CMIP_TRANSIENT_VERSIONS_TO_USE,
         getting_the_data=transient_cmip_data_access_body(experiment_name),
     )
 
@@ -490,7 +484,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             source_ids=source_ids_from_forcing_versions(
                 AMIP_FORCING_VERSIONS,
                 CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
             ),
         ),
     ),

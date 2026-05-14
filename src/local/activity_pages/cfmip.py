@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from local.forcing_versions import (
-    CMIP_FIXED_SOURCE_ID_INDEXES,
+    CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
     CMIP_FORCING_VERSIONS,
     source_ids_from_forcing_versions,
 )
@@ -43,7 +43,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             experiment_name="abrupt-2xCO2",
             source_ids=source_ids_from_forcing_versions(
                 CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+                preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
             ),
         ),
     ),
@@ -69,7 +69,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             experiment_name="abrupt-0p5xCO2",
             source_ids=source_ids_from_forcing_versions(
                 CMIP_FORCING_VERSIONS,
-                source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+                preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
             ),
         ),
     ),

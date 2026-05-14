@@ -9,7 +9,11 @@ from datetime import date, datetime
 from textwrap import TextWrapper, dedent
 from typing import TYPE_CHECKING, Any, Protocol
 
-from local.forcing_versions import ForcingValue
+from local.forcing_versions import (
+    ForcingValue,
+    acceptable_forcing_values,
+    preferred_forcing_value,
+)
 
 if TYPE_CHECKING:
     from local.forcing_references import ForcingReference
@@ -535,46 +539,67 @@ def render_forcing_reference_list(
     return "\n\n".join((lines[0], "\n".join(lines[1:])))
 
 
-def render_forcing_value(value: ForcingValue) -> str:
-    """Render one forcing version value in compact JSON style."""
+def render_forcing_value(
+    forcing_id: str,
+    value: ForcingValue,
+    *,
+    preferred_source_id_indexes: Mapping[str, int] | None = None,
+) -> Any:
+    """Render one forcing version value as a JSON-serialisable object."""
     if value is None:
-        return "null"
+        return None
 
-    if isinstance(value, str):
-        return json.dumps(value)
+    rendered_value: dict[str, Any] = {
+        "preferred": preferred_forcing_value(
+            forcing_id=forcing_id,
+            value=value,
+            preferred_source_id_indexes=preferred_source_id_indexes,
+        ),
+    }
+    acceptable_values = acceptable_forcing_values(
+        forcing_id=forcing_id,
+        value=value,
+        preferred_source_id_indexes=preferred_source_id_indexes,
+    )
+    if acceptable_values:
+        rendered_value["acceptable"] = list(acceptable_values)
 
-    return f"[{', '.join(json.dumps(item) for item in value)}]"
+    return rendered_value
 
 
-def render_versions_json(forcing_versions: Mapping[str, ForcingValue]) -> str:
+def render_versions_json(
+    forcing_versions: Mapping[str, ForcingValue],
+    *,
+    preferred_source_id_indexes: Mapping[str, int] | None = None,
+) -> str:
     """Render forcing versions as a JSON code block."""
-    lines = ["```json", "{"]
-    forcing_items = tuple(forcing_versions.items())
-
-    for index, (forcing_id, value) in enumerate(forcing_items):
-        comma = "," if index < len(forcing_items) - 1 else ""
-        lines.append(
-            f"    {json.dumps(forcing_id)}: {render_forcing_value(value)}{comma}"
+    rendered_versions = {
+        forcing_id: render_forcing_value(
+            forcing_id,
+            value,
+            preferred_source_id_indexes=preferred_source_id_indexes,
         )
+        for forcing_id, value in forcing_versions.items()
+    }
 
-    lines.extend(("}", "```"))
-    return "\n".join(lines)
+    return "\n".join(("```json", json.dumps(rendered_versions, indent=4), "```"))
 
 
 def render_versions_body(
     forcing_versions: Mapping[str, ForcingValue],
     *,
     include_multiple_options_note: bool = True,
+    preferred_source_id_indexes: Mapping[str, int] | None = None,
 ) -> str:
     """Render the standard forcing versions section body."""
     multiple_options_note = ""
     if include_multiple_options_note:
         multiple_options_note = block(
             """
-            Where there is more than one source ID listed,
-            this either indicates that you may need data from multiple source IDs
-            or that multiple options are acceptable
+            Where acceptable versions are listed,
+            these are acceptable for use but are not the preferred version
             (because, e.g., fixes were made but re-running is not required).
+            The data-retrieval script below only includes preferred versions.
             Please see the guidance pages linked above for details.
             """
         )
@@ -585,10 +610,15 @@ def render_versions_body(
             The forcings relevant for this simulation are listed below.
             For each forcing, we provide the version(s), in the form of "source ID(s)",
             which should be used when running this simulation.
+            The preferred version is the version we recommend using.
+            Any acceptable versions are acceptable for use, but are not preferred.
             """
         ),
         multiple_options_note,
-        render_versions_json(forcing_versions),
+        render_versions_json(
+            forcing_versions,
+            preferred_source_id_indexes=preferred_source_id_indexes,
+        ),
     ).strip()
 
 

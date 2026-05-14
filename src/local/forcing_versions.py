@@ -26,14 +26,8 @@ CMIP_FORCING_VERSIONS = OrderedDict(
     )
 )
 
-CMIP_FIXED_SOURCE_ID_INDEXES = {
-    "nitrogen-deposition": 0,
+CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES = {
     "ozone": 0,
-}
-
-CMIP_TRANSIENT_SOURCE_ID_INDEXES = {
-    "nitrogen-deposition": 0,
-    "ozone": 1,
 }
 
 SCEN7_H_FORCING_VERSIONS = OrderedDict(
@@ -103,11 +97,10 @@ def source_ids_for_cmip_forcing_combination(
     return merge_source_ids(
         source_ids_from_forcing_versions(
             select_forcing_versions(CMIP_FORCING_VERSIONS, fixed_forcing_ids),
-            source_id_indexes=CMIP_FIXED_SOURCE_ID_INDEXES,
+            preferred_source_id_indexes=CMIP_FIXED_PREFERRED_SOURCE_ID_INDEXES,
         ),
         source_ids_from_forcing_versions(
             select_forcing_versions(CMIP_FORCING_VERSIONS, transient_forcing_ids),
-            source_id_indexes=CMIP_TRANSIENT_SOURCE_ID_INDEXES,
         ),
     )
 
@@ -140,26 +133,20 @@ def merge_source_ids(*source_id_collections: Sequence[str]) -> tuple[str, ...]:
 
 def source_ids_from_forcing_versions(
     *forcing_versions: Mapping[str, ForcingValue],
-    source_id_indexes: Mapping[str, int] | None = None,
+    preferred_source_id_indexes: Mapping[str, int] | None = None,
 ) -> tuple[str, ...]:
     """Derive ESGF-downloadable source IDs from forcing-version mappings."""
-    source_id_indexes = source_id_indexes or {}
+    preferred_source_id_indexes = preferred_source_id_indexes or {}
     source_ids: list[str] = []
     seen: set[str] = set()
 
     for forcing_version in forcing_versions:
         for forcing_id, value in forcing_version.items():
-            if value is None:
-                continue
-
-            if isinstance(value, str):
-                selected_source_ids = (
-                    () if value in NON_DOWNLOADABLE_FORCING_VALUES else (value,)
-                )
-            elif forcing_id in source_id_indexes:
-                selected_source_ids = (value[source_id_indexes[forcing_id]],)
-            else:
-                selected_source_ids = tuple(value)
+            selected_source_ids = preferred_source_ids(
+                forcing_id=forcing_id,
+                value=value,
+                preferred_source_id_indexes=preferred_source_id_indexes,
+            )
 
             for source_id in selected_source_ids:
                 if source_id in seen:
@@ -169,3 +156,63 @@ def source_ids_from_forcing_versions(
                 seen.add(source_id)
 
     return tuple(source_ids)
+
+
+def preferred_source_ids(
+    *,
+    forcing_id: str,
+    value: ForcingValue,
+    preferred_source_id_indexes: Mapping[str, int] | None = None,
+) -> tuple[str, ...]:
+    """Return the preferred downloadable source ID for one forcing value."""
+    preferred_value = preferred_forcing_value(
+        forcing_id=forcing_id,
+        value=value,
+        preferred_source_id_indexes=preferred_source_id_indexes,
+    )
+    if preferred_value is None or preferred_value in NON_DOWNLOADABLE_FORCING_VALUES:
+        return ()
+
+    return (preferred_value,)
+
+
+def preferred_forcing_value(
+    *,
+    forcing_id: str,
+    value: ForcingValue,
+    preferred_source_id_indexes: Mapping[str, int] | None = None,
+) -> str | None:
+    """Return the preferred value for one forcing.
+
+    For now, the final listed version is treated as preferred.
+    """
+    if value is None or isinstance(value, str):
+        return value
+
+    if not value:
+        msg = f"No forcing versions are defined for {forcing_id!r}."
+        raise ValueError(msg)
+
+    preferred_source_id_indexes = preferred_source_id_indexes or {}
+    if forcing_id in preferred_source_id_indexes:
+        return value[preferred_source_id_indexes[forcing_id]]
+
+    return value[-1]
+
+
+def acceptable_forcing_values(
+    *,
+    forcing_id: str,
+    value: ForcingValue,
+    preferred_source_id_indexes: Mapping[str, int] | None = None,
+) -> tuple[str, ...]:
+    """Return acceptable non-preferred values for one forcing."""
+    if value is None or isinstance(value, str):
+        return ()
+
+    preferred_value = preferred_forcing_value(
+        forcing_id=forcing_id,
+        value=value,
+        preferred_source_id_indexes=preferred_source_id_indexes,
+    )
+    return tuple(item for item in value if item != preferred_value)
