@@ -325,11 +325,13 @@ def render_activity_urls(urls: Sequence[str]) -> str:
     if not urls:
         return ""
 
-    return join_lines(
-        "These pages are intended as a summary guide only. ",
-        "For full details of experiments, please see the following URLs:",
+    return join_blocks(
+        join_lines(
+            "These pages are intended as a summary guide only.",
+            "For full details of experiments, please see the following URLs:",
+        ),
         render_url_bullet_list(urls),
-    )
+    ).strip()
 
 
 def render_experiment_requirements(experiment: Any) -> str:
