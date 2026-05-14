@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Collection, Mapping, Sequence
+from datetime import date, datetime
 from textwrap import TextWrapper, dedent
 from typing import TYPE_CHECKING, Any, Protocol
 
@@ -18,6 +19,10 @@ MARKDOWN_WRAP_WIDTH = 120
 LIST_ITEM_RE = re.compile(r"^(\s*(?:[-*+]|\d+[.])\s+)(.*)$")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^)]+\)")
 MARKDOWN_LINK_SPACE = "\x07"
+START_OF_YEAR_MONTH = 1
+START_OF_YEAR_DAY = 1
+END_OF_YEAR_MONTH = 12
+END_OF_YEAR_DAY = 31
 SENTENCE_BOUNDARY_RE = re.compile(
     r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
     r"\s+(?=[`\"'(\[]?[A-Z])"
@@ -392,6 +397,25 @@ def render_start_end_dates(experiment: Any) -> str:
 
 def render_minimum_simulation_length(experiment: Any) -> str:
     """Render minimum simulation length from an esgvoc experiment."""
+    start_timestamp = getattr(experiment, "start_timestamp", None)
+    end_timestamp = getattr(experiment, "end_timestamp", None)
+    if start_timestamp is not None and end_timestamp is not None:
+        start_date = _required_date_from_timestamp(
+            start_timestamp,
+            timestamp_name="start_timestamp",
+            experiment=experiment,
+        )
+        end_date = _required_date_from_timestamp(
+            end_timestamp,
+            timestamp_name="end_timestamp",
+            experiment=experiment,
+        )
+        return (
+            "Simulations should be "
+            f"{format_number(_simulation_years(start_date, end_date, experiment))} "
+            "years in length."
+        )
+
     minimum_years = getattr(experiment, "min_number_yrs_per_sim", None)
     if minimum_years is None:
         return (
@@ -419,14 +443,67 @@ def render_minimum_ensemble_size(experiment: Any) -> str:
 
 def format_timestamp(timestamp: Any) -> str:
     """Format an esgvoc timestamp as an ISO date."""
-    if timestamp is None:
+    timestamp_date = date_from_timestamp(timestamp)
+    if timestamp_date is None:
         return ""
 
-    date = getattr(timestamp, "date", None)
-    if date is not None:
-        return date().isoformat()
+    return timestamp_date.isoformat()
 
-    return str(timestamp)
+
+def date_from_timestamp(timestamp: Any) -> date | None:
+    """Return the date part of a CV timestamp."""
+    if timestamp is None:
+        return None
+
+    if isinstance(timestamp, datetime):
+        return timestamp.date()
+
+    if isinstance(timestamp, date):
+        return timestamp
+
+    date_method = getattr(timestamp, "date", None)
+    if callable(date_method):
+        return date_method()
+
+    return None
+
+
+def _required_date_from_timestamp(
+    timestamp: Any,
+    *,
+    timestamp_name: str,
+    experiment: Any,
+) -> date:
+    """Return a date from a specified timestamp, failing if unsupported."""
+    timestamp_date = date_from_timestamp(timestamp)
+    if timestamp_date is not None:
+        return timestamp_date
+
+    experiment_id = getattr(experiment, "id", experiment)
+    msg = (
+        f"Cannot calculate exact simulation years for {experiment_id!r}: "
+        f"{timestamp_name} has unsupported value {timestamp!r}."
+    )
+    raise NotImplementedError(msg)
+
+
+def _simulation_years(start_date: date, end_date: date, experiment: Any) -> int:
+    """Return exact simulation years for whole-year start/end dates."""
+    if (
+        start_date.month != START_OF_YEAR_MONTH
+        or start_date.day != START_OF_YEAR_DAY
+        or end_date.month != END_OF_YEAR_MONTH
+        or end_date.day != END_OF_YEAR_DAY
+    ):
+        experiment_id = getattr(experiment, "id", experiment)
+        msg = (
+            f"Cannot calculate exact simulation years for {experiment_id!r}: "
+            f"start date is {start_date.isoformat()} and end date is "
+            f"{end_date.isoformat()}."
+        )
+        raise NotImplementedError(msg)
+
+    return end_date.year - start_date.year + 1
 
 
 def format_number(value: float) -> str:
