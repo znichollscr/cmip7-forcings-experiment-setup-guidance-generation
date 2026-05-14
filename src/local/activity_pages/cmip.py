@@ -11,7 +11,6 @@ from local.forcing_versions import (
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
-    EXPERIMENT_NAME_CONVENTION_TODO,
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
     PI_CONTROL_LINK,
@@ -211,7 +210,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="1pctco2",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The 1pctCO2 simulation is a simple branch from the {PI_CONTROL_LINK}.",
             "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the simulation.",
             SETUP_GENERATION_TODO,
@@ -256,7 +254,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="abrupt-4xco2",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The abrupt CO<sub>2</sub> quadrupling simulation is a simple branch from the {PI_CONTROL_LINK}.",
             block(
                 """
@@ -424,7 +421,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="amip",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             "The amip simulation uses a specific set of forcings (see [forcings](#forcings)).",
             "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
             SETUP_GENERATION_TODO,

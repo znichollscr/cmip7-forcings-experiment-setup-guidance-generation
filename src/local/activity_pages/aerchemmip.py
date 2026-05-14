@@ -8,7 +8,6 @@ from local.forcing_versions import (
 )
 from local.guidance import (
     AERCHEMMIP_UNCERTAIN_NOTE,
-    EXPERIMENT_NAME_CONVENTION_TODO,
     HISTORICAL_LINK,
     PI_CONTROL_LINK,
     SETUP_GENERATION_TODO,
@@ -77,7 +76,6 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             # TODO: remove this
             "<!-- TODO: check this with someone who knows what they're reading -->",
-            EXPERIMENT_NAME_CONVENTION_TODO,
             # TODO: Get this from esgvoc instead
             block(
                 """
@@ -126,7 +124,6 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup=join_blocks(
             # TODO: remove this
             "<!-- TODO: check this with someone who knows what they're reading -->",
-            EXPERIMENT_NAME_CONVENTION_TODO,
             # TODO: Get this from esgvoc instead
             block(
                 """

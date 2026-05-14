@@ -9,7 +9,6 @@ from local.forcing_versions import (
 )
 from local.guidance import (
     ABRUPT_4XCO2_LINK,
-    EXPERIMENT_NAME_CONVENTION_TODO,
     PI_CONTROL_LINK,
     SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
@@ -26,7 +25,6 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="abrupt-2xco2",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The abrupt CO<sub>2</sub> doubling simulation is a simple branch from the {PI_CONTROL_LINK}.",
             block(
                 """
@@ -54,7 +52,6 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="abrupt-0p5xco2",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The abrupt CO<sub>2</sub> halving simulation is a simple branch from the {PI_CONTROL_LINK}.",
             block(
                 """

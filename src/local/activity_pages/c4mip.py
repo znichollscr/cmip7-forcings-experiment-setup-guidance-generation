@@ -8,7 +8,6 @@ from local.forcing_versions import (
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
-    EXPERIMENT_NAME_CONVENTION_TODO,
     ONEPCTCO2_LINK,
     SETUP_GENERATION_TODO,
     TIME_AXIS_CAN_BE_ARBITRARY,
@@ -25,7 +24,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="1pctco2-bgc",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The 1pctCO2-bgc simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
             block(
                 """
@@ -51,7 +49,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         slug="1pctco2-rad",
         experiment_setup=join_blocks(
-            EXPERIMENT_NAME_CONVENTION_TODO,
             f"The 1pctCO2-rad simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
             block(
                 """
