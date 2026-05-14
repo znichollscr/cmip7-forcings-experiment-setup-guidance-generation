@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 from local.forcing_versions import (
     ForcingValue,
     acceptable_forcing_values,
-    preferred_forcing_value,
+    recommended_forcing_value,
 )
 
 if TYPE_CHECKING:
@@ -543,11 +543,11 @@ def render_forcing_value(
     value: ForcingValue,
 ) -> Any:
     """Render one forcing version value as a JSON-serialisable object."""
-    if value.preferred is None and not value.acceptable:
+    if value.recommended is None and not value.acceptable:
         return None
 
     rendered_value: dict[str, Any] = {
-        "preferred": preferred_forcing_value(value=value),
+        "recommended": recommended_forcing_value(value=value),
     }
     acceptable_values = acceptable_forcing_values(value=value)
     if acceptable_values:
@@ -579,9 +579,9 @@ def render_versions_body(
         multiple_options_note = block(
             """
             Where acceptable versions are listed,
-            these are acceptable for use but are not the preferred version
+            these are acceptable for use but are not the recommended version
             (because, e.g., fixes were made but re-running is not required).
-            The data-retrieval script below only includes preferred versions.
+            The data-retrieval script below only includes recommended versions.
             Please see the guidance pages linked above for details.
             """
         )
@@ -592,8 +592,8 @@ def render_versions_body(
             The forcings relevant for this simulation are listed below.
             For each forcing, we provide the version(s), in the form of "source ID(s)",
             which should be used when running this simulation.
-            The preferred version is the version we recommend using.
-            Any acceptable versions are acceptable for use, but are not preferred.
+            The recommended version is the version we recommend using.
+            Any acceptable versions are acceptable for use, but are not recommended.
             """
         ),
         multiple_options_note,

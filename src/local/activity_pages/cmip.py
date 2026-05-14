@@ -5,8 +5,8 @@ from __future__ import annotations
 from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
 from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
-    CMIP_FIXED_FORCING_VERSIONS,
-    CMIP_FORCING_VERSIONS,
+    HISTORICAL_FORCING_VERSIONS,
+    PI_CONTROL_FORCING_VERSIONS,
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
@@ -31,7 +31,7 @@ from local.rendering import (
     same_as_versions,
 )
 
-FIXED_FORCINGS_REPEAT_SETUP = join_blocks(
+PI_CONTROL_FORCINGS_REPEAT_SETUP = join_blocks(
     "These should be applied on repeat for the entirety of the simulation.",
     block(
         """
@@ -40,7 +40,7 @@ FIXED_FORCINGS_REPEAT_SETUP = join_blocks(
         """
     ),
 ).strip()
-TRANSIENT_FORCINGS_SETUP_TAIL = "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation."
+HISTORICAL_FORCINGS_SETUP_TAIL = "These should be applied as time-changing forcings over the length of the simulation."
 PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE = block(
     """
     As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
@@ -87,60 +87,55 @@ READ_FORCING_NOTES_GUIDANCE = block(
     to ensure that you use the correct forcing values.
     """
 )
-CMIP_FIXED_VERSIONS_TO_USE = render_versions_body(CMIP_FIXED_FORCING_VERSIONS)
-CMIP_TRANSIENT_VERSIONS_TO_USE = render_versions_body(CMIP_FORCING_VERSIONS)
+PI_CONTROL_VERSIONS_TO_USE = render_versions_body(PI_CONTROL_FORCING_VERSIONS)
+HISTORICAL_VERSIONS_TO_USE = render_versions_body(HISTORICAL_FORCING_VERSIONS)
 
 
-def fixed_forcings_setup(first_sentence: str) -> str:
-    """Render setup guidance for a fixed-forcings CMIP experiment."""
-    return join_blocks(first_sentence, FIXED_FORCINGS_REPEAT_SETUP).strip()
+def picontrol_forcings_setup(first_sentence: str) -> str:
+    """Render setup guidance for a piControl-forcings CMIP experiment."""
+    return join_blocks(first_sentence, PI_CONTROL_FORCINGS_REPEAT_SETUP).strip()
 
 
-def transient_forcings_setup(simulation_label: str) -> str:
-    """Render setup guidance for a transient-forcings CMIP experiment."""
+def historical_forcings_setup(simulation_label: str) -> str:
+    """Render setup guidance for a historical-forcings CMIP experiment."""
     return join_blocks(
         f"The {simulation_label} uses a specific set of forcings (see [forcings](#forcings)).",
-        TRANSIENT_FORCINGS_SETUP_TAIL,
+        HISTORICAL_FORCINGS_SETUP_TAIL,
     ).strip()
 
 
-def fixed_cmip_data_access_body(experiment_name: str) -> str:
-    """Render the data-access body for fixed CMIP forcings."""
+def picontrol_cmip_data_access_body(experiment_name: str) -> str:
+    """Render the data-access body for piControl CMIP forcings."""
     return render_data_access_body(
         experiment_name=experiment_name,
-        source_ids=fixed_cmip_source_ids(),
+        source_ids=picontrol_cmip_source_ids(),
     )
 
 
-def transient_cmip_data_access_body(experiment_name: str) -> str:
-    """Render the data-access body for transient CMIP forcings."""
-    return cmip_data_access_body(experiment_name)
-
-
-def cmip_data_access_body(experiment_name: str) -> str:
-    """Render the data-access body for CMIP forcing versions."""
+def historical_cmip_data_access_body(experiment_name: str) -> str:
+    """Render the data-access body for historical CMIP forcings."""
     return render_data_access_body(
         experiment_name=experiment_name,
-        source_ids=cmip_source_ids(),
+        source_ids=historical_cmip_source_ids(),
     )
 
 
-def fixed_cmip_source_ids() -> tuple[str, ...]:
-    """Return source IDs for fixed CMIP forcings."""
-    return source_ids_from_forcing_versions(CMIP_FIXED_FORCING_VERSIONS)
+def picontrol_cmip_source_ids() -> tuple[str, ...]:
+    """Return source IDs for piControl CMIP forcings."""
+    return source_ids_from_forcing_versions(PI_CONTROL_FORCING_VERSIONS)
 
 
-def cmip_source_ids() -> tuple[str, ...]:
-    """Return source IDs for CMIP forcing versions."""
-    return source_ids_from_forcing_versions(CMIP_FORCING_VERSIONS)
+def historical_cmip_source_ids() -> tuple[str, ...]:
+    """Return source IDs for historical CMIP forcings."""
+    return source_ids_from_forcing_versions(HISTORICAL_FORCING_VERSIONS)
 
 
-def fixed_forcing_headlines(
+def picontrol_forcing_headlines(
     experiment_name: str,
     *,
     forcing_values_experiment_name: str | None = None,
 ) -> str:
-    """Render shared fixed-forcings headlines."""
+    """Render shared piControl-forcings headlines."""
     forcing_values_experiment_name = forcing_values_experiment_name or experiment_name
     return join_blocks(
         block(
@@ -173,7 +168,7 @@ def historical_forcing_headlines(experiment_name: str) -> str:
     ).strip()
 
 
-def make_fixed_control_page(
+def make_picontrol_forcing_page(
     *,
     slug: str,
     experiment_name: str,
@@ -181,19 +176,19 @@ def make_fixed_control_page(
     setup_forcing_description: str,
     forcing_values_experiment_name: str | None = None,
 ) -> ExperimentPage:
-    """Create a fixed pre-industrial control page."""
+    """Create a piControl-forcing page."""
     return ExperimentPage(
         slug=slug,
-        experiment_setup=fixed_forcings_setup(
+        experiment_setup=picontrol_forcings_setup(
             f"The {simulation_label} uses {setup_forcing_description} (see [forcings](#forcings))."
         ),
-        forcing_headlines=fixed_forcing_headlines(
+        forcing_headlines=picontrol_forcing_headlines(
             experiment_name,
             forcing_values_experiment_name=forcing_values_experiment_name,
         ),
         notes=COMMON_FORCING_NOTES,
-        versions_to_use=CMIP_FIXED_VERSIONS_TO_USE,
-        getting_the_data=fixed_cmip_data_access_body(experiment_name),
+        versions_to_use=PI_CONTROL_VERSIONS_TO_USE,
+        getting_the_data=picontrol_cmip_data_access_body(experiment_name),
     )
 
 
@@ -205,11 +200,11 @@ def make_picontrol_spinup_page(
     forcing_values_experiment_name: str,
 ) -> ExperimentPage:
     """Create a piControl spin-up page."""
-    return make_fixed_control_page(
+    return make_picontrol_forcing_page(
         slug=slug,
         experiment_name=experiment_name,
         simulation_label=simulation_label,
-        setup_forcing_description="fixed pre-industrial forcings",
+        setup_forcing_description="piControl forcings",
         forcing_values_experiment_name=forcing_values_experiment_name,
     )
 
@@ -223,11 +218,11 @@ def make_historical_page(
     """Create a historical page."""
     return ExperimentPage(
         slug=slug,
-        experiment_setup=transient_forcings_setup(simulation_label),
+        experiment_setup=historical_forcings_setup(simulation_label),
         forcing_headlines=historical_forcing_headlines(experiment_name),
         notes=COMMON_FORCING_NOTES,
-        versions_to_use=CMIP_TRANSIENT_VERSIONS_TO_USE,
-        getting_the_data=transient_cmip_data_access_body(experiment_name),
+        versions_to_use=HISTORICAL_VERSIONS_TO_USE,
+        getting_the_data=historical_cmip_data_access_body(experiment_name),
     )
 
 
@@ -238,7 +233,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         simulation_label="pre-industrial control spin-up simulation",
         forcing_values_experiment_name="piControl",
     ),
-    make_fixed_control_page(
+    make_picontrol_forcing_page(
         slug="picontrol",
         experiment_name="piControl",
         simulation_label="pre-industrial control simulation",
@@ -250,7 +245,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         simulation_label="emissions-driven pre-industrial control spin-up simulation",
         forcing_values_experiment_name="esm-piControl",
     ),
-    make_fixed_control_page(
+    make_picontrol_forcing_page(
         slug="esm-picontrol",
         experiment_name="esm-piControl",
         simulation_label="emissions-driven pre-industrial control simulation",
@@ -301,7 +296,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=fixed_cmip_data_access_body("1pctCO2"),
+        getting_the_data=picontrol_cmip_data_access_body("1pctCO2"),
     ),
     ExperimentPage(
         slug="abrupt-4xco2",
@@ -324,7 +319,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
         ).strip(),
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=fixed_cmip_data_access_body("abrupt-4xCO2"),
+        getting_the_data=picontrol_cmip_data_access_body("abrupt-4xCO2"),
     ),
     ExperimentPage(
         slug="piclim-control",
@@ -373,7 +368,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ).strip(),
         getting_the_data=render_data_access_body(
             experiment_name="piClim-control",
-            source_ids=fixed_cmip_source_ids(),
+            source_ids=picontrol_cmip_source_ids(),
             extra=PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
         ),
     ),
@@ -402,7 +397,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         getting_the_data=render_data_access_body(
             experiment_name="piClim-4xCO2",
-            source_ids=fixed_cmip_source_ids(),
+            source_ids=picontrol_cmip_source_ids(),
             extra=join_blocks(
                 "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
                 PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
@@ -448,7 +443,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     ExperimentPage(
         slug="amip",
-        experiment_setup=transient_forcings_setup("amip simulation"),
+        experiment_setup=historical_forcings_setup("amip simulation"),
         forcing_headlines="The `amip` experiment is a time-varying forcings experiment.",
         notes=join_blocks(
             f"See notes for the {PI_CONTROL_LINK}.",
@@ -477,7 +472,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             experiment_name="amip",
             source_ids=source_ids_from_forcing_versions(
                 AMIP_FORCING_VERSIONS,
-                CMIP_FORCING_VERSIONS,
+                HISTORICAL_FORCING_VERSIONS,
             ),
         ),
     ),
