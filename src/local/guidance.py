@@ -287,10 +287,10 @@ INDEX_GROUPS = (
                     "piclim-so2",
                     "hist-piaer",
                     "hist-piaq",
-                    "esm-scen7-h-aer",
-                    "esm-scen7-h-aq",
-                    "esm-scen7-vl-aer",
-                    "esm-scen7-vl-aq",
+                    # "esm-scen7-h-aer",
+                    # "esm-scen7-h-aq",
+                    # "esm-scen7-vl-aer",
+                    # "esm-scen7-vl-aq",
                     "scen7-h-aer",
                     "scen7-h-aq",
                     "scen7-vl-aer",
@@ -302,8 +302,8 @@ INDEX_GROUPS = (
                 experiment_slugs=(
                     "abrupt-2xco2",
                     "abrupt-0p5xco2",
-                    "amip-p4k",
-                    "amip-piforcing",
+                    # "amip-p4k",
+                    # "amip-piforcing",
                 ),
             ),
             IndexActivity(
@@ -311,9 +311,9 @@ INDEX_GROUPS = (
                 experiment_slugs=(
                     "1pctco2-bgc",
                     "1pctco2-rad",
-                    "esm-flat10",
-                    "esm-flat10-cdr",
-                    "esm-flat10-zec",
+                    # "esm-flat10",
+                    # "esm-flat10-cdr",
+                    # "esm-flat10-zec",
                 ),
             ),
             IndexActivity(
@@ -349,22 +349,22 @@ INDEX_GROUPS = (
                     "esm-scen7-vl-ext",
                 ),
             ),
-            IndexActivity(
-                activity_id="damip",
-                experiment_slugs=("hist-aer", "hist-ghg", "hist-nat"),
-            ),
-            IndexActivity(
-                activity_id="geomip",
-                experiment_slugs=("g7-1p5k-sai",),
-            ),
-            IndexActivity(
-                activity_id="pmip",
-                experiment_slugs=("abrupt-127k",),
-            ),
-            IndexActivity(
-                activity_id="rfmip",
-                experiment_slugs=("piclim-aer", "piclim-histaer", "piclim-histall"),
-            ),
+            # IndexActivity(
+            #     activity_id="damip",
+            #     experiment_slugs=("hist-aer", "hist-ghg", "hist-nat"),
+            # ),
+            # IndexActivity(
+            #     activity_id="geomip",
+            #     experiment_slugs=("g7-1p5k-sai",),
+            # ),
+            # IndexActivity(
+            #     activity_id="pmip",
+            #     experiment_slugs=("abrupt-127k",),
+            # ),
+            # IndexActivity(
+            #     activity_id="rfmip",
+            #     experiment_slugs=("piclim-aer", "piclim-histaer", "piclim-histall"),
+            # ),
         ),
     ),
 )

@@ -9,7 +9,11 @@ from datetime import date, datetime
 from textwrap import TextWrapper, dedent
 from typing import TYPE_CHECKING, Any, Protocol
 
-from local.forcing_versions import ForcingValue
+from local.forcing_versions import (
+    ForcingValue,
+    acceptable_forcing_values,
+    recommended_forcing_values,
+)
 
 if TYPE_CHECKING:
     from local.forcing_references import ForcingReference
@@ -535,59 +539,61 @@ def render_forcing_reference_list(
     return "\n\n".join((lines[0], "\n".join(lines[1:])))
 
 
-def render_forcing_value(value: ForcingValue) -> str:
-    """Render one forcing version value in compact JSON style."""
-    if value is None:
-        return "null"
+def render_forcing_value(
+    value: ForcingValue,
+) -> Any:
+    """Render one forcing version value as a JSON-serialisable object."""
+    recommended_values = recommended_forcing_values(value=value)
+    if not recommended_values and not value.acceptable:
+        return None
 
-    if isinstance(value, str):
-        return json.dumps(value)
+    rendered_value: dict[str, Any] = {
+        "recommended": render_version_values(recommended_values),
+    }
+    acceptable_values = acceptable_forcing_values(value=value)
+    if acceptable_values:
+        rendered_value["acceptable"] = list(acceptable_values)
 
-    return f"[{', '.join(json.dumps(item) for item in value)}]"
-
-
-def render_versions_json(forcing_versions: Mapping[str, ForcingValue]) -> str:
-    """Render forcing versions as a JSON code block."""
-    lines = ["```json", "{"]
-    forcing_items = tuple(forcing_versions.items())
-
-    for index, (forcing_id, value) in enumerate(forcing_items):
-        comma = "," if index < len(forcing_items) - 1 else ""
-        lines.append(
-            f"    {json.dumps(forcing_id)}: {render_forcing_value(value)}{comma}"
-        )
-
-    lines.extend(("}", "```"))
-    return "\n".join(lines)
+    return rendered_value
 
 
-def render_versions_body(
+def render_version_values(values: Sequence[str]) -> str | list[str] | None:
+    """Render one or more version source IDs compactly."""
+    if not values:
+        return None
+
+    if len(values) == 1:
+        return values[0]
+
+    return list(values)
+
+
+def render_versions_json(
     forcing_versions: Mapping[str, ForcingValue],
-    *,
-    include_multiple_options_note: bool = True,
 ) -> str:
-    """Render the standard forcing versions section body."""
-    multiple_options_note = ""
-    if include_multiple_options_note:
-        multiple_options_note = block(
-            """
-            Where there is more than one source ID listed,
-            this either indicates that you may need data from multiple source IDs
-            or that multiple options are acceptable
-            (because, e.g., fixes were made but re-running is not required).
-            Please see the guidance pages linked above for details.
-            """
-        )
+    """Render forcing versions as a JSON code block."""
+    rendered_versions = {
+        forcing_id: render_forcing_value(value)
+        for forcing_id, value in forcing_versions.items()
+    }
 
+    return "\n".join(("```json", json.dumps(rendered_versions, indent=4), "```"))
+
+
+def render_versions_body(forcing_versions: Mapping[str, ForcingValue]) -> str:
+    """Render the standard forcing versions section body."""
     return join_blocks(
         block(
             """
             The forcings relevant for this simulation are listed below.
             For each forcing, we provide the version(s), in the form of "source ID(s)",
             which should be used when running this simulation.
+            The recommended version(s) are the version(s) we recommend using.
+            Any acceptable versions can be used (you are not obliged to re-run simulations that used them).
+            Please see the guidance pages linked above for details
+            and note that the data-retrieval script below only includes recommended versions.
             """
         ),
-        multiple_options_note,
         render_versions_json(forcing_versions),
     ).strip()
 

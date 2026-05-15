@@ -7,8 +7,8 @@ from dataclasses import dataclass
 
 from local.experiment_dates import historical_end_year
 from local.forcing_versions import (
-    cmip_forcing_ids_except,
-    source_ids_for_cmip_forcing_combination,
+    historical_forcing_ids_except,
+    source_ids_for_picontrol_historical_forcing_combination,
 )
 from local.guidance import (
     HISTORICAL_LINK,
@@ -124,12 +124,12 @@ def source_ids_for_piclim_historical_forcing_variant(
     historical_forcing_ids = tuple(
         forcing.forcing_id for forcing in historical_forcings
     )
-    return source_ids_for_cmip_forcing_combination(
-        fixed_forcing_ids=cmip_forcing_ids_except(
+    return source_ids_for_picontrol_historical_forcing_combination(
+        picontrol_forcing_ids=historical_forcing_ids_except(
             *historical_forcing_ids,
             "aerosol-optical-properties",
         ),
-        transient_forcing_ids=historical_forcing_ids,
+        historical_forcing_ids=historical_forcing_ids,
     )
 
 

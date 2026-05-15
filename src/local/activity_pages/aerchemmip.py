@@ -8,15 +8,15 @@ from dataclasses import dataclass
 from local.experiment_dates import historical_end_year
 from local.forcing_references import COMMON_FORCING_NOTES
 from local.forcing_versions import (
-    CMIP_FORCING_VERSIONS,
+    HISTORICAL_FORCING_VERSIONS,
     SCEN7_H_FORCING_VERSIONS,
     SCEN7_VL_FORCING_VERSIONS,
     ForcingValue,
-    cmip_forcing_ids_except,
     forcing_ids_except,
+    historical_forcing_ids_except,
     merge_source_ids,
     select_forcing_versions,
-    source_ids_for_cmip_forcing_combination,
+    source_ids_for_picontrol_historical_forcing_combination,
     source_ids_from_forcing_versions,
 )
 from local.guidance import (
@@ -232,9 +232,9 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ).strip(),
         getting_the_data=render_data_access_body(
             experiment_name="hist-piAer",
-            source_ids=source_ids_for_cmip_forcing_combination(
-                fixed_forcing_ids=("anthropogenic-emissions",),
-                transient_forcing_ids=cmip_forcing_ids_except(
+            source_ids=source_ids_for_picontrol_historical_forcing_combination(
+                picontrol_forcing_ids=("anthropogenic-emissions",),
+                historical_forcing_ids=historical_forcing_ids_except(
                     "anthropogenic-emissions",
                     "aerosol-optical-properties",
                 ),
@@ -278,9 +278,9 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ).strip(),
         getting_the_data=render_data_access_body(
             experiment_name="hist-piAQ",
-            source_ids=source_ids_for_cmip_forcing_combination(
-                fixed_forcing_ids=("anthropogenic-emissions",),
-                transient_forcing_ids=cmip_forcing_ids_except(
+            source_ids=source_ids_for_picontrol_historical_forcing_combination(
+                picontrol_forcing_ids=("anthropogenic-emissions",),
+                historical_forcing_ids=historical_forcing_ids_except(
                     "anthropogenic-emissions",
                     "aerosol-optical-properties",
                 ),
@@ -293,7 +293,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             base_scenario_name="scen7-h",
             aerchem_setup_source=historical_end_year_setup_source(),
             aerchem_versions_source=historical_end_year_versions_source(),
-            aerchem_forcing_versions=CMIP_FORCING_VERSIONS,
+            aerchem_forcing_versions=HISTORICAL_FORCING_VERSIONS,
             base_forcing_versions=SCEN7_H_FORCING_VERSIONS,
             include_interactive_chemistry=False,
         )
@@ -304,7 +304,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             base_scenario_name="scen7-h",
             aerchem_setup_source=historical_end_year_setup_source(),
             aerchem_versions_source=historical_end_year_versions_source(),
-            aerchem_forcing_versions=CMIP_FORCING_VERSIONS,
+            aerchem_forcing_versions=HISTORICAL_FORCING_VERSIONS,
             base_forcing_versions=SCEN7_H_FORCING_VERSIONS,
             include_interactive_chemistry=True,
         )

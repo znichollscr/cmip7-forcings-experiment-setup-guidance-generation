@@ -37,10 +37,7 @@ def make_scenariomip_page(
             f"The `{experiment_name}` experiment is a time-varying forcings experiment."
         ),
         notes=COMMON_FORCING_NOTES,
-        versions_to_use=render_versions_body(
-            forcing_versions,
-            include_multiple_options_note=False,
-        ),
+        versions_to_use=render_versions_body(forcing_versions),
         getting_the_data=render_data_access_body(
             experiment_name=experiment_name,
             source_ids=source_ids_from_forcing_versions(forcing_versions),
