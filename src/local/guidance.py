@@ -205,6 +205,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
     from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
     from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES
+    from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES
     from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
 
     detailed_pages = (
@@ -213,6 +214,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
         *CFMIP_EXPERIMENT_PAGES,
         *C4MIP_EXPERIMENT_PAGES,
         *DAMIP_EXPERIMENT_PAGES,
+        *RFMIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
     )
     detailed_pages_by_slug = _pages_by_slug(detailed_pages)
@@ -363,10 +365,14 @@ INDEX_GROUPS = (
             #     activity_id="pmip",
             #     experiment_slugs=("abrupt-127k",),
             # ),
-            # IndexActivity(
-            #     activity_id="rfmip",
-            #     experiment_slugs=("piclim-aer", "piclim-histaer", "piclim-histall"),
-            # ),
+            IndexActivity(
+                activity_id="rfmip",
+                experiment_slugs=(
+                    "piclim-aer",
+                    # "piclim-histaer",
+                    # "piclim-histall",
+                ),
+            ),
         ),
     ),
 )
