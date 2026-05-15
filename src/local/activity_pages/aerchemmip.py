@@ -9,6 +9,7 @@ from local.experiment_dates import historical_end_year
 from local.forcing_references import COMMON_FORCING_NOTES
 from local.forcing_versions import (
     HISTORICAL_FORCING_VERSIONS,
+    SCEN7_FORCING_VERSIONS_BY_SLUG,
     SCEN7_H_FORCING_VERSIONS,
     SCEN7_VL_FORCING_VERSIONS,
     ForcingValue,
@@ -311,6 +312,28 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_scen7_aerchem_page(
         Scen7AerChemPageSpec(
+            slug="esm-scen7-h-aer",
+            base_scenario_name="esm-scen7-h",
+            aerchem_setup_source=historical_end_year_setup_source(),
+            aerchem_versions_source=historical_end_year_versions_source(),
+            aerchem_forcing_versions=HISTORICAL_FORCING_VERSIONS,
+            base_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-h"],
+            include_interactive_chemistry=False,
+        )
+    ),
+    make_scen7_aerchem_page(
+        Scen7AerChemPageSpec(
+            slug="esm-scen7-h-aq",
+            base_scenario_name="esm-scen7-h",
+            aerchem_setup_source=historical_end_year_setup_source(),
+            aerchem_versions_source=historical_end_year_versions_source(),
+            aerchem_forcing_versions=HISTORICAL_FORCING_VERSIONS,
+            base_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-h"],
+            include_interactive_chemistry=True,
+        )
+    ),
+    make_scen7_aerchem_page(
+        Scen7AerChemPageSpec(
             slug="scen7-vl-aer",
             base_scenario_name="scen7-vl",
             aerchem_setup_source="evolve as in the `scen7-h` simulation",
@@ -328,6 +351,28 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             aerchem_versions_source="the `scen7-h` simulation",
             aerchem_forcing_versions=SCEN7_H_FORCING_VERSIONS,
             base_forcing_versions=SCEN7_VL_FORCING_VERSIONS,
+            include_interactive_chemistry=True,
+        )
+    ),
+    make_scen7_aerchem_page(
+        Scen7AerChemPageSpec(
+            slug="esm-scen7-vl-aer",
+            base_scenario_name="esm-scen7-vl",
+            aerchem_setup_source="evolve as in the `esm-scen7-h` simulation",
+            aerchem_versions_source="the `esm-scen7-h` simulation",
+            aerchem_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-h"],
+            base_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-vl"],
+            include_interactive_chemistry=False,
+        )
+    ),
+    make_scen7_aerchem_page(
+        Scen7AerChemPageSpec(
+            slug="esm-scen7-vl-aq",
+            base_scenario_name="esm-scen7-vl",
+            aerchem_setup_source="evolve as in the `esm-scen7-h` simulation",
+            aerchem_versions_source="the `esm-scen7-h` simulation",
+            aerchem_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-h"],
+            base_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-vl"],
             include_interactive_chemistry=True,
         )
     ),
