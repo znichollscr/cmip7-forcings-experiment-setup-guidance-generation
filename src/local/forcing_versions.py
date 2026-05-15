@@ -144,32 +144,32 @@ SCEN7_TEMPLATE_SUFFIX = "vl"
 SCEN7_FORCING_VERSION_SLUGS = (
     "scen7-h",
     "esm-scen7-h",
-    "scen7-h-ext",
-    "esm-scen7-h-ext",
-    "scen7-hl",
-    "esm-scen7-hl",
-    "scen7-hl-ext",
-    "esm-scen7-hl-ext",
-    "scen7-l",
-    "esm-scen7-l",
-    "scen7-l-ext",
-    "esm-scen7-l-ext",
-    "scen7-ln",
-    "esm-scen7-ln",
-    "scen7-ln-ext",
-    "esm-scen7-ln-ext",
-    "scen7-m",
-    "esm-scen7-m",
-    "scen7-m-ext",
-    "esm-scen7-m-ext",
-    "scen7-ml",
-    "esm-scen7-ml",
-    "scen7-ml-ext",
-    "esm-scen7-ml-ext",
+    # "scen7-h-ext",
+    # "esm-scen7-h-ext",
+    # "scen7-hl",
+    # "esm-scen7-hl",
+    # "scen7-hl-ext",
+    # "esm-scen7-hl-ext",
+    # "scen7-l",
+    # "esm-scen7-l",
+    # "scen7-l-ext",
+    # "esm-scen7-l-ext",
+    # "scen7-ln",
+    # "esm-scen7-ln",
+    # "scen7-ln-ext",
+    # "esm-scen7-ln-ext",
+    # "scen7-m",
+    # "esm-scen7-m",
+    # "scen7-m-ext",
+    # "esm-scen7-m-ext",
+    # "scen7-ml",
+    # "esm-scen7-ml",
+    # "scen7-ml-ext",
+    # "esm-scen7-ml-ext",
     "scen7-vl",
     "esm-scen7-vl",
-    "scen7-vl-ext",
-    "esm-scen7-vl-ext",
+    # "scen7-vl-ext",
+    # "esm-scen7-vl-ext",
 )
 
 
@@ -245,8 +245,13 @@ def _scen7_forcing_versions_for_slug(slug: str) -> Mapping[str, ForcingValue]:
     return _scen7_forcing_versions_for_suffix(_scen7_suffix_from_slug(slug))
 
 
+def scen7_forcing_versions_for_slug(slug: str) -> Mapping[str, ForcingValue]:
+    """Return ScenarioMIP forcing versions for an experiment slug."""
+    return _scen7_forcing_versions_for_slug(slug)
+
+
 SCEN7_FORCING_VERSIONS_BY_SLUG = OrderedDict(
-    (slug, _scen7_forcing_versions_for_slug(slug))
+    (slug, scen7_forcing_versions_for_slug(slug))
     for slug in SCEN7_FORCING_VERSION_SLUGS
 )
 SCEN7_H_FORCING_VERSIONS = SCEN7_FORCING_VERSIONS_BY_SLUG["scen7-h"]

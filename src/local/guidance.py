@@ -204,6 +204,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
     from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
     from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
+    from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES
     from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
 
     detailed_pages = (
@@ -211,6 +212,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
         *AERCHEMMIP_EXPERIMENT_PAGES,
         *CFMIP_EXPERIMENT_PAGES,
         *C4MIP_EXPERIMENT_PAGES,
+        *DAMIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
     )
     detailed_pages_by_slug = _pages_by_slug(detailed_pages)
@@ -321,38 +323,38 @@ INDEX_GROUPS = (
                 experiment_slugs=(
                     "scen7-h",
                     "esm-scen7-h",
-                    "scen7-h-ext",
-                    "esm-scen7-h-ext",
-                    "scen7-hl",
-                    "esm-scen7-hl",
-                    "scen7-hl-ext",
-                    "esm-scen7-hl-ext",
-                    "scen7-l",
-                    "esm-scen7-l",
-                    "scen7-l-ext",
-                    "esm-scen7-l-ext",
-                    "scen7-ln",
-                    "esm-scen7-ln",
-                    "scen7-ln-ext",
-                    "esm-scen7-ln-ext",
-                    "scen7-m",
-                    "esm-scen7-m",
-                    "scen7-m-ext",
-                    "esm-scen7-m-ext",
-                    "scen7-ml",
-                    "esm-scen7-ml",
-                    "scen7-ml-ext",
-                    "esm-scen7-ml-ext",
+                    # "scen7-h-ext",
+                    # "esm-scen7-h-ext",
+                    # "scen7-hl",
+                    # "esm-scen7-hl",
+                    # "scen7-hl-ext",
+                    # "esm-scen7-hl-ext",
+                    # "scen7-l",
+                    # "esm-scen7-l",
+                    # "scen7-l-ext",
+                    # "esm-scen7-l-ext",
+                    # "scen7-ln",
+                    # "esm-scen7-ln",
+                    # "scen7-ln-ext",
+                    # "esm-scen7-ln-ext",
+                    # "scen7-m",
+                    # "esm-scen7-m",
+                    # "scen7-m-ext",
+                    # "esm-scen7-m-ext",
+                    # "scen7-ml",
+                    # "esm-scen7-ml",
+                    # "scen7-ml-ext",
+                    # "esm-scen7-ml-ext",
                     "scen7-vl",
                     "esm-scen7-vl",
-                    "scen7-vl-ext",
-                    "esm-scen7-vl-ext",
+                    # "scen7-vl-ext",
+                    # "esm-scen7-vl-ext",
                 ),
             ),
-            # IndexActivity(
-            #     activity_id="damip",
-            #     experiment_slugs=("hist-aer", "hist-ghg", "hist-nat"),
-            # ),
+            IndexActivity(
+                activity_id="damip",
+                experiment_slugs=("hist-aer", "hist-ghg", "hist-nat"),
+            ),
             # IndexActivity(
             #     activity_id="geomip",
             #     experiment_slugs=("g7-1p5k-sai",),
