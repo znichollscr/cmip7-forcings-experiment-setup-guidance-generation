@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 from local.forcing_versions import (
     ForcingValue,
     acceptable_forcing_values,
-    recommended_forcing_value,
+    recommended_forcing_values,
 )
 
 if TYPE_CHECKING:
@@ -543,17 +543,29 @@ def render_forcing_value(
     value: ForcingValue,
 ) -> Any:
     """Render one forcing version value as a JSON-serialisable object."""
-    if value.recommended is None and not value.acceptable:
+    recommended_values = recommended_forcing_values(value=value)
+    if not recommended_values and not value.acceptable:
         return None
 
     rendered_value: dict[str, Any] = {
-        "recommended": recommended_forcing_value(value=value),
+        "recommended": render_version_values(recommended_values),
     }
     acceptable_values = acceptable_forcing_values(value=value)
     if acceptable_values:
         rendered_value["acceptable"] = list(acceptable_values)
 
     return rendered_value
+
+
+def render_version_values(values: Sequence[str]) -> str | list[str] | None:
+    """Render one or more version source IDs compactly."""
+    if not values:
+        return None
+
+    if len(values) == 1:
+        return values[0]
+
+    return list(values)
 
 
 def render_versions_json(
@@ -568,35 +580,20 @@ def render_versions_json(
     return "\n".join(("```json", json.dumps(rendered_versions, indent=4), "```"))
 
 
-def render_versions_body(
-    forcing_versions: Mapping[str, ForcingValue],
-    *,
-    include_multiple_options_note: bool = True,
-) -> str:
+def render_versions_body(forcing_versions: Mapping[str, ForcingValue]) -> str:
     """Render the standard forcing versions section body."""
-    multiple_options_note = ""
-    if include_multiple_options_note:
-        multiple_options_note = block(
-            """
-            Where acceptable versions are listed,
-            these are acceptable for use but are not the recommended version
-            (because, e.g., fixes were made but re-running is not required).
-            The data-retrieval script below only includes recommended versions.
-            Please see the guidance pages linked above for details.
-            """
-        )
-
     return join_blocks(
         block(
             """
             The forcings relevant for this simulation are listed below.
             For each forcing, we provide the version(s), in the form of "source ID(s)",
             which should be used when running this simulation.
-            The recommended version is the version we recommend using.
-            Any acceptable versions are acceptable for use, but are not recommended.
+            The recommended version(s) are the version(s) we recommend using.
+            Any acceptable versions can be used (you are not obliged to re-run simulations that used them).
+            Please see the guidance pages linked above for details
+            and note that the data-retrieval script below only includes recommended versions.
             """
         ),
-        multiple_options_note,
         render_versions_json(forcing_versions),
     ).strip()
 

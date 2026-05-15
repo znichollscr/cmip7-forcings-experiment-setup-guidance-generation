@@ -19,14 +19,11 @@ SCENARIOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         slug="scen7-vl",
         experiment_setup=join_blocks(
             "The CMIP7 very low scenario simulation uses a specific set of forcings (see [forcings](#forcings)).",
-            "These should be applied as time-changing forcings over the length of the simulation.",
+            "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
         ).strip(),
         forcing_headlines="The `scen7-vl` experiment is a time-varying forcings experiment.",
         notes=COMMON_FORCING_NOTES,
-        versions_to_use=render_versions_body(
-            SCEN7_VL_FORCING_VERSIONS,
-            include_multiple_options_note=False,
-        ),
+        versions_to_use=render_versions_body(SCEN7_VL_FORCING_VERSIONS),
         getting_the_data=render_data_access_body(
             experiment_name="scen7-vl",
             source_ids=source_ids_from_forcing_versions(SCEN7_VL_FORCING_VERSIONS),

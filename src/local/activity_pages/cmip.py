@@ -40,7 +40,7 @@ PI_CONTROL_FORCINGS_REPEAT_SETUP = join_blocks(
         """
     ),
 ).strip()
-HISTORICAL_FORCINGS_SETUP_TAIL = "These should be applied as time-changing forcings over the length of the simulation."
+HISTORICAL_FORCINGS_SETUP_TAIL = "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation."
 PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE = block(
     """
     As noted above, the prescribed sea-surface temperatures and sea-ice concentrations

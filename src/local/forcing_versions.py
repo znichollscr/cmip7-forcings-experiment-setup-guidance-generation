@@ -6,12 +6,14 @@ from collections import OrderedDict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
+ForcingSourceIds = str | Sequence[str] | None
+
 
 @dataclass(frozen=True)
 class ForcingVersions:
     """The versions to use for one forcing."""
 
-    recommended: str | None
+    recommended: ForcingSourceIds
     acceptable: tuple[str, ...] = ()
 
 
@@ -41,8 +43,10 @@ HISTORICAL_FORCING_VERSIONS = OrderedDict(
         (
             "anthropogenic-emissions",
             ForcingVersions(
-                recommended="CEDS-CMIP-2025-04-18-supplemental",
-                acceptable=("CEDS-CMIP-2025-04-18",),
+                recommended=(
+                    "CEDS-CMIP-2025-04-18",
+                    "CEDS-CMIP-2025-04-18-supplemental",
+                ),
             ),
         ),
         (
@@ -87,19 +91,19 @@ HISTORICAL_FORCING_VERSIONS = OrderedDict(
 PI_CONTROL_FORCING_VERSIONS = override_forcing_versions(
     forcing_versions=HISTORICAL_FORCING_VERSIONS,
     overrides={
-        "ozone": ForcingVersions(
-            recommended="FZJ-CMIP-ozone-1-2",
-            acceptable=("FZJ-CMIP-ozone-2-0",),
-        ),
+        "ozone": ForcingVersions(recommended="FZJ-CMIP-ozone-1-2"),
     },
 )
 
 SCEN7_H_FORCING_VERSIONS = OrderedDict(
     (
-        ("anthropogenic-emissions", ForcingVersions(recommended="IIASA-IAMC-h-1-0-0")),
+        (
+            "anthropogenic-emissions",
+            ForcingVersions(recommended=("IIASA-IAMC-h-1-0-0", "IIASA-IAMC-1-0-0")),
+        ),
         (
             "biomass-burning-emissions",
-            ForcingVersions(recommended="IIASA-IAMC-h-1-0-0"),
+            ForcingVersions(recommended=("IIASA-IAMC-h-1-0-0", "IIASA-IAMC-1-0-0")),
         ),
         (
             "land-use",
@@ -126,10 +130,13 @@ SCEN7_H_FORCING_VERSIONS = OrderedDict(
 
 SCEN7_VL_FORCING_VERSIONS = OrderedDict(
     (
-        ("anthropogenic-emissions", ForcingVersions(recommended="IIASA-IAMC-vl-1-0-0")),
+        (
+            "anthropogenic-emissions",
+            ForcingVersions(recommended=("IIASA-IAMC-vl-1-0-0", "IIASA-IAMC-1-0-0")),
+        ),
         (
             "biomass-burning-emissions",
-            ForcingVersions(recommended="IIASA-IAMC-vl-1-0-0"),
+            ForcingVersions(recommended=("IIASA-IAMC-vl-1-0-0", "IIASA-IAMC-1-0-0")),
         ),
         (
             "land-use",
@@ -257,23 +264,26 @@ def recommended_source_ids(
     *,
     value: ForcingValue,
 ) -> tuple[str, ...]:
-    """Return the recommended downloadable source ID for one forcing value."""
-    recommended_value = recommended_forcing_value(value=value)
-    if (
-        recommended_value is None
-        or recommended_value in NON_DOWNLOADABLE_FORCING_VALUES
-    ):
-        return ()
-
-    return (recommended_value,)
+    """Return recommended downloadable source IDs for one forcing value."""
+    return tuple(
+        source_id
+        for source_id in recommended_forcing_values(value=value)
+        if source_id not in NON_DOWNLOADABLE_FORCING_VALUES
+    )
 
 
-def recommended_forcing_value(
+def recommended_forcing_values(
     *,
     value: ForcingValue,
-) -> str | None:
-    """Return the recommended value for one forcing."""
-    return value.recommended
+) -> tuple[str, ...]:
+    """Return the recommended values for one forcing."""
+    if value.recommended is None:
+        return ()
+
+    if isinstance(value.recommended, str):
+        return (value.recommended,)
+
+    return tuple(value.recommended)
 
 
 def acceptable_forcing_values(
