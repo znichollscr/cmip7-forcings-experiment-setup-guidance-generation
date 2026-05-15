@@ -162,7 +162,7 @@ SCEN7_FORCING_VERSION_SLUGS = (
     # "esm-scen7-m",
     # "scen7-m-ext",
     # "esm-scen7-m-ext",
-    # "scen7-ml",
+    "scen7-ml",
     # "esm-scen7-ml",
     # "scen7-ml-ext",
     # "esm-scen7-ml-ext",
