@@ -652,6 +652,10 @@ def render_esgpull_script(
 
         EXPERIMENT_NAME="{experiment_name}"
 
+        ## You may need to run the below if you haven't already done it once with esgpull
+        # esgpull self install
+        ## You may also need to run this step to get the data to download
+        # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
         esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{source_id_query}
         esgpull update --tag ${{EXPERIMENT_NAME}} --yes
         esgpull download --tag ${{EXPERIMENT_NAME}}
