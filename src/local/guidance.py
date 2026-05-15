@@ -65,6 +65,7 @@ class ExperimentPage:
     getting_the_data: str
     pre_description_note: str = ""
     parent_experiment_extra: str = ""
+    include_parent_information: bool = True
 
     @property
     def experiment(self):
@@ -102,11 +103,17 @@ class ExperimentPage:
             self.experiment_setup,
             "### Timing, length and ensemble size",
             render_experiment_requirements(experiment),
-            "### Parent experiment",
-            render_parent_information(
-                experiment,
-                page_slugs=page_slugs,
-                extra=self.parent_experiment_extra,
+            (
+                join_blocks(
+                    "### Parent experiment",
+                    render_parent_information(
+                        experiment,
+                        page_slugs=page_slugs,
+                        extra=self.parent_experiment_extra,
+                    ),
+                )
+                if self.include_parent_information
+                else ""
             ),
             "## Forcings",
             "### General headlines",
@@ -306,8 +313,8 @@ INDEX_GROUPS = (
                 experiment_slugs=(
                     "abrupt-2xco2",
                     "abrupt-0p5xco2",
-                    # "amip-p4k",
-                    # "amip-piforcing",
+                    "amip-p4k",
+                    "amip-piforcing",
                 ),
             ),
             IndexActivity(

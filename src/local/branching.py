@@ -64,7 +64,11 @@ def render_parent_information(
             experiment=experiment,
             parent_experiment=parent_experiment,
         ),
-        _render_parent_mip_era(parent_mip_era),
+        (
+            _render_parent_mip_era(parent_mip_era)
+            if parent_experiment is not None
+            else ""
+        ),
         extra,
     ).strip()
 
