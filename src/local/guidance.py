@@ -369,8 +369,8 @@ INDEX_GROUPS = (
                 activity_id="rfmip",
                 experiment_slugs=(
                     "piclim-aer",
-                    # "piclim-histaer",
-                    # "piclim-histall",
+                    "piclim-histaer",
+                    "piclim-histall",
                 ),
             ),
         ),
