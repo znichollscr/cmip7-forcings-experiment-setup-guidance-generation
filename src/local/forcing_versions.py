@@ -95,38 +95,6 @@ PI_CONTROL_FORCING_VERSIONS = override_forcing_versions(
     },
 )
 
-SCEN7_VL_FORCING_VERSIONS = OrderedDict(
-    (
-        (
-            "anthropogenic-emissions",
-            ForcingVersions(recommended=("IIASA-IAMC-vl-1-0-0", "IIASA-IAMC-1-0-0")),
-        ),
-        (
-            "biomass-burning-emissions",
-            ForcingVersions(recommended=("IIASA-IAMC-vl-1-0-0", "IIASA-IAMC-1-0-0")),
-        ),
-        (
-            "land-use",
-            ForcingVersions(
-                recommended="UofMD-landState-vl-3-1-1",
-                acceptable=("UofMD-landState-vl-3-1",),
-            ),
-        ),
-        ("greenhouse-gas-concentrations", ForcingVersions(recommended="CR-vl-1-0-0")),
-        (
-            "stratospheric-aerosol-forcing",
-            ForcingVersions(recommended="UOEXETER-ScenarioMIP-2-2-2"),
-        ),
-        ("ozone", ForcingVersions(recommended="FZJ-CMIP-ozone-h-1-0")),
-        (
-            "nitrogen-deposition",
-            ForcingVersions(recommended="FZJ-CMIP-nitrogen-h-1-0"),
-        ),
-        ("solar", ForcingVersions(recommended="SOLARIS-HEPPA-ScenarioMIP-4-6")),
-        ("aerosol-optical-properties", ForcingVersions(recommended=None)),
-        ("population-density", ForcingVersions(recommended="PIK-vl-1-0-0")),
-    )
-)
 
 AMIP_FORCING_VERSIONS = OrderedDict(
     (
@@ -137,50 +105,175 @@ AMIP_FORCING_VERSIONS = OrderedDict(
     )
 )
 
-NON_DOWNLOADABLE_FORCING_VALUES = {"not-available-yet"}
+NOT_AVAILABLE_YET = "not-available-yet"
+NON_DOWNLOADABLE_FORCING_VALUES = {NOT_AVAILABLE_YET}
 SCEN7_EXPERIMENT_PREFIX = "scen7-"
 SCEN7_ESM_EXPERIMENT_PREFIX = f"esm-{SCEN7_EXPERIMENT_PREFIX}"
 SCEN7_TEMPLATE_SUFFIX = "vl"
 SCEN7_FORCING_VERSION_SLUGS = (
     "scen7-h",
     "esm-scen7-h",
-    # "scen7-h-ext",
-    # "esm-scen7-h-ext",
-    # "scen7-hl",
-    # "esm-scen7-hl",
-    # "scen7-hl-ext",
-    # "esm-scen7-hl-ext",
-    # "scen7-l",
-    # "esm-scen7-l",
-    # "scen7-l-ext",
-    # "esm-scen7-l-ext",
-    # "scen7-ln",
-    # "esm-scen7-ln",
-    # "scen7-ln-ext",
-    # "esm-scen7-ln-ext",
-    # "scen7-m",
-    # "esm-scen7-m",
-    # "scen7-m-ext",
-    # "esm-scen7-m-ext",
+    "scen7-h-ext",
+    "esm-scen7-h-ext",
+    "scen7-hl",
+    "esm-scen7-hl",
+    "scen7-hl-ext",
+    "esm-scen7-hl-ext",
+    "scen7-l",
+    "esm-scen7-l",
+    "scen7-l-ext",
+    "esm-scen7-l-ext",
+    "scen7-ln",
+    "esm-scen7-ln",
+    "scen7-ln-ext",
+    "esm-scen7-ln-ext",
+    "scen7-m",
+    "esm-scen7-m",
+    "scen7-m-ext",
+    "esm-scen7-m-ext",
     "scen7-ml",
-    # "esm-scen7-ml",
-    # "scen7-ml-ext",
-    # "esm-scen7-ml-ext",
+    "esm-scen7-ml",
+    "scen7-ml-ext",
+    "esm-scen7-ml-ext",
     "scen7-vl",
     "esm-scen7-vl",
-    # "scen7-vl-ext",
-    # "esm-scen7-vl-ext",
+    "scen7-vl-ext",
+    "esm-scen7-vl-ext",
 )
 
 
-def _scen7_forcing_versions_for_suffix(suffix: str) -> Mapping[str, ForcingValue]:
-    """Return ScenarioMIP forcing versions by replacing the template suffix."""
+def get_iam_based_emissions_scenario_forcings(
+    scenario_short_name: str,
+) -> ForcingVersions:
+    """
+    Get the IAM-based emissions forcings for a given scenario
+    """
+    if scenario_short_name.endswith("ext"):
+        return ForcingVersions(recommended=NOT_AVAILABLE_YET)
+
+    common = "IIASA-IAMC-1-1-1"
+    scenario_specific = f"IIASA-IAMC-{scenario_short_name}-1-1-1"
+
+    res = ForcingVersions(recommended=(scenario_specific, common))
+
+    return res
+
+
+def get_land_use_scenario_forcings(scenario_short_name: str) -> ForcingVersions:
+    """
+    Get the land-use forcings for a given scenario
+    """
+    if scenario_short_name.endswith("ext") or scenario_short_name not in {"vl", "h"}:
+        return ForcingVersions(recommended=NOT_AVAILABLE_YET)
+
+    scenario_specific = f"UofMD-landState-{scenario_short_name}-3-1-1"
+    scenario_specific_alternate = scenario_specific.replace("3-1-1", "3-1")
+
+    res = ForcingVersions(
+        recommended=(scenario_specific), acceptable=(scenario_specific_alternate,)
+    )
+
+    return res
+
+
+def get_ghg_concentrations_scenario_forcings(
+    scenario_short_name: str,
+) -> ForcingVersions:
+    """
+    Get the greenhouse-gas concentrations forcings for a given scenario
+    """
+    scenario_specific = f"CR-{scenario_short_name}-1-1-0"
+    if scenario_short_name in {"vl", "h"}:
+        acceptable = (scenario_specific.replace("1-1-0", "1-0-0"),)
+    else:
+        acceptable = ()
+
+    res = ForcingVersions(recommended=(scenario_specific), acceptable=acceptable)
+
+    return res
+
+
+def get_ozone_scenario_forcings(scenario_short_name: str) -> ForcingVersions:
+    """
+    Get the ozone forcings for a given scenario
+    """
+    if scenario_short_name.endswith("ext") or scenario_short_name not in {"vl", "h"}:
+        return ForcingVersions(recommended=NOT_AVAILABLE_YET)
+
+    # TODO: add guidance that says just use constant from end of scenario
+    # for all extension versions.
+    # I guess that means the recommended version is just the same
+    # as the scenario version, and we have specific guidance in the notes section.
+
+    scenario_specific = f"FZJ-CMIP-ozone-{scenario_short_name}-1-0"
+
+    res = ForcingVersions(recommended=(scenario_specific))
+
+    return res
+
+
+def get_nitrogen_deposition_scenario_forcings(
+    scenario_short_name: str,
+) -> ForcingVersions:
+    """
+    Get the nitrogen deposition forcings for a given scenario
+    """
+    if scenario_short_name.endswith("ext") or scenario_short_name not in {"vl", "h"}:
+        return ForcingVersions(recommended=NOT_AVAILABLE_YET)
+
+    # TODO: add guidance that says just use constant from end of scenario
+    # for all extension versions.
+    # I guess that means the recommended version is just the same
+    # as the scenario version, and we have specific guidance in the notes section.
+
+    scenario_specific = f"FZJ-CMIP-nitrogen-{scenario_short_name}-1-0"
+
+    res = ForcingVersions(recommended=(scenario_specific))
+
+    return res
+
+
+def get_population_density_scenario_forcings(
+    scenario_short_name: str,
+) -> ForcingVersions:
+    """
+    Get the population density forcings for a given scenario
+    """
+    scenario_specific = f"PIK-{scenario_short_name}-1-0-0"
+
+    res = ForcingVersions(recommended=(scenario_specific))
+
+    return res
+
+
+GET_SCEN7_FORCINGS_BY_FORCING_TYPE = {
+    "anthropogenic-emissions": get_iam_based_emissions_scenario_forcings,
+    "biomass-burning-emissions": get_iam_based_emissions_scenario_forcings,
+    "land-use": get_land_use_scenario_forcings,
+    "greenhouse-gas-concentrations": get_ghg_concentrations_scenario_forcings,
+    "stratospheric-aerosol-forcing": lambda x: ForcingVersions(
+        recommended="UOEXETER-ScenarioMIP-2-2-2"
+    ),
+    "ozone": get_ozone_scenario_forcings,
+    "nitrogen-deposition": get_nitrogen_deposition_scenario_forcings,
+    "solar": lambda x: ForcingVersions(recommended="SOLARIS-HEPPA-ScenarioMIP-4-6"),
+    "aerosol-optical-properties": lambda x: ForcingVersions(
+        recommended=None  # Separate distribution
+    ),
+    "population-density": get_population_density_scenario_forcings,
+}
+
+
+def get_scen7_forcing_versions(
+    scenario_short_name: str,
+) -> Mapping[str, ForcingValue]:
+    """Return ScenarioMIP forcing versions for a given scenario (by short name)."""
     return OrderedDict(
         (
             forcing_id,
-            _replace_scen7_forcing_value_suffix(value, suffix=suffix),
+            GET_SCEN7_FORCINGS_BY_FORCING_TYPE[forcing_id](scenario_short_name),
         )
-        for forcing_id, value in SCEN7_VL_FORCING_VERSIONS.items()
+        for forcing_id in HISTORICAL_FORCING_VERSIONS.keys()
     )
 
 
@@ -242,7 +335,7 @@ def _replace_scen7_source_id_suffix(source_id: str, *, suffix: str) -> str:
 
 def _scen7_forcing_versions_for_slug(slug: str) -> Mapping[str, ForcingValue]:
     """Return ScenarioMIP forcing versions for an experiment slug."""
-    return _scen7_forcing_versions_for_suffix(_scen7_suffix_from_slug(slug))
+    return get_scen7_forcing_versions(_scen7_suffix_from_slug(slug))
 
 
 def scen7_forcing_versions_for_slug(slug: str) -> Mapping[str, ForcingValue]:
@@ -254,6 +347,7 @@ SCEN7_FORCING_VERSIONS_BY_SLUG = OrderedDict(
     (slug, scen7_forcing_versions_for_slug(slug))
     for slug in SCEN7_FORCING_VERSION_SLUGS
 )
+SCEN7_VL_FORCING_VERSIONS = SCEN7_FORCING_VERSIONS_BY_SLUG["scen7-vl"]
 SCEN7_H_FORCING_VERSIONS = SCEN7_FORCING_VERSIONS_BY_SLUG["scen7-h"]
 
 
