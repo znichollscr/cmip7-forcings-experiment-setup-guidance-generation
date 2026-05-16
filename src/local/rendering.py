@@ -350,6 +350,7 @@ def render_term_reference(label: str, urls: Sequence[str]) -> str:
 
 def render_activity_urls(urls: Sequence[str]) -> str:
     """Render activity URLs as further-information links."""
+    # TODO: alter so first sentence below is always included
     if not urls:
         return ""
 
@@ -366,6 +367,7 @@ def render_activity_urls(urls: Sequence[str]) -> str:
 
 def render_experiment_requirements(experiment: Any) -> str:
     """Render experiment timing, length, and ensemble requirements."""
+    # TODO: switch to dot points or something so faster to parse/easier to see the standardisation
     return join_blocks(
         render_start_end_dates(experiment),
         render_minimum_simulation_length(experiment),

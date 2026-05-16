@@ -119,6 +119,8 @@ def render_related_experiments(
 ) -> str:
     """Render related-experiment cross-references for a page."""
     if experiment_pairs is None:
+        # TODO: put experiment_pairs on ExperimentPage somehow
+        # rather than hiding them here (class method?)
         experiment_pairs = _experiment_pairs_for_page_slugs(page_slugs)
 
     references_by_slug = {

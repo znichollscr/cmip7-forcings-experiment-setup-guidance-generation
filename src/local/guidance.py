@@ -91,8 +91,11 @@ class ExperimentPage:
         return join_blocks(
             render_front_matter(self.title),
             f"# {self.title}",
+            # TODO: remove this and just use a function for altering the esgvoc description
             self.pre_description_note,
+            # TODO: make this an ExperimentPage parameter
             render_experiment_description(experiment.description),
+            # TODO: make this an ExperimentPage parameter
             render_experiment_metadata_line(
                 experiment=experiment,
                 responsible_activity=responsible_activity,
@@ -100,8 +103,13 @@ class ExperimentPage:
             render_activity_urls(urls_from_term(responsible_activity)),
             render_related_experiments(self.slug, page_slugs=page_slugs),
             "## Experiment set up",
+            # TODO: check that some overall general, consistent description bit
+            # is consistently here
             self.experiment_setup,
             "### Timing, length and ensemble size",
+            # TODO: add branching and parent experiment info in here.
+            # "Branching, timing, simulation length and ensemble size"
+            # TODO: then add an extra section for further set up notes
             render_experiment_requirements(experiment),
             (
                 join_blocks(
@@ -112,17 +120,29 @@ class ExperimentPage:
                         extra=self.parent_experiment_extra,
                     ),
                 )
+                # TODO: alter, should put "No parent experiment" or similar
+                # if there is no parent experiment rather than just skipping this block
                 if self.include_parent_information
                 else ""
             ),
             "## Forcings",
             "### General headlines",
+            # TODO: check what is consistently here
             self.forcing_headlines,
             "### Notes",
+            # TODO: check whether the content here is consistently
+            # about details of implementation, leaving general headlines above
+            # for information about whether the experiments are fixed, transient
+            # or a mix.
             self.notes,
             "### Versions to use",
+            # TODO: somehow make this more standard:
+            # each page should either render JSON
+            # or point to other pages
+            # (but ideally not a blend of these two)
             self.versions_to_use,
             "### Getting the data",
+            # TODO: add sections to this to help make clear what comes from what
             self.getting_the_data,
         )
 
@@ -134,6 +154,7 @@ def render_experiment_metadata_line(*, experiment, responsible_activity) -> str:
             f"See {render_activity_index_link(responsible_activity)} information"
         )
     else:
+        # TODO: switch to ValueError
         tier = getattr(experiment, "tier", None)
         tier_label = "not defined" if tier is None else str(tier)
 
