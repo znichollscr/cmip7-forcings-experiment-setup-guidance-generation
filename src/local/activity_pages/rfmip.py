@@ -14,7 +14,7 @@ from local.forcing_versions import (
     select_forcing_versions,
     source_ids_from_forcing_versions,
 )
-from local.guidance import HISTORICAL_LINK, PI_CLIM_CONTROL_LINK, ExperimentPage
+from local.guidance import HISTORICAL_LINK, PI_CLIM_CONTROL_LINK, ExperimentPageOld
 from local.piclim_variants import (
     HistoricalForcing,
     make_piclim_historical_forcing_variant_page,
@@ -52,7 +52,7 @@ class HistoricalTransientForcingPageSpec:
 
 def make_historical_transient_forcing_page(
     spec: HistoricalTransientForcingPageSpec,
-) -> ExperimentPage:
+) -> ExperimentPageOld:
     """Create an RFMIP page using historical forcings with scenario extensions."""
     experiment_name = get_experiment(spec.slug).drs_name
     extension_scenario_links = rfmip_extension_scenario_links()
@@ -76,7 +76,7 @@ def make_historical_transient_forcing_page(
         other_forcings_versions = ""
         source_ids = source_ids_for_all_historical_transient_forcing_page()
 
-    return ExperimentPage(
+    return ExperimentPageOld(
         slug=spec.slug,
         experiment_setup=join_blocks(
             PICLIM_CONTROL_PRESCRIBED_BOUNDARY_CONDITIONS,
@@ -150,7 +150,9 @@ def source_ids_for_partial_historical_transient_forcing_page(
         source_ids_from_forcing_versions(
             select_forcing_versions(
                 PI_CONTROL_FORCING_VERSIONS,
-                forcing_ids_except(PI_CONTROL_FORCING_VERSIONS, *historical_forcing_ids),
+                forcing_ids_except(
+                    PI_CONTROL_FORCING_VERSIONS, *historical_forcing_ids
+                ),
             ),
         ),
         source_ids_from_historical_and_extension_forcings(historical_forcing_ids),
@@ -183,7 +185,8 @@ def source_ids_from_historical_and_extension_forcings(
         ),
     )
 
-RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
+
+RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     make_piclim_historical_forcing_variant_page(
         slug="piclim-aer",
         historical_forcings=(

@@ -54,7 +54,7 @@ class CheckResult:
 
 
 @dataclass(frozen=True)
-class ExperimentPage:
+class ExperimentPageOld:
     """A full experiment setup and forcings guidance page."""
 
     slug: str
@@ -226,7 +226,7 @@ PICLIM_TIME_AXIS = block(
 )
 
 
-def experiment_pages() -> tuple[ExperimentPage, ...]:
+def experiment_pages() -> tuple[ExperimentPageOld, ...]:
     """Return generated experiment pages grouped by responsible activity."""
     from local.activity_pages.aerchemmip import AERCHEMMIP_EXPERIMENT_PAGES
     from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
@@ -255,7 +255,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     return tuple(detailed_pages_by_slug[slug] for slug in EXPERIMENT_SLUGS_TO_GENERATE)
 
 
-def content_pages() -> tuple[ExperimentPage | SimplePage, ...]:
+def content_pages() -> tuple[ExperimentPageOld | SimplePage, ...]:
     """Return all generated content pages except the index page."""
     return experiment_pages()
 
@@ -420,7 +420,7 @@ EXPERIMENT_SLUGS_TO_GENERATE = tuple(
 def render_activity_section(
     activity: IndexActivity,
     *,
-    page_lookup: Mapping[str, ExperimentPage | SimplePage],
+    page_lookup: Mapping[str, ExperimentPageOld | SimplePage],
 ) -> str:
     """Render one activity section on the index page."""
     activity_definition = get_activity_definition(activity.activity_id)
@@ -442,7 +442,7 @@ def render_activity_section(
 
 
 def make_index_page(
-    pages: tuple[ExperimentPage | SimplePage, ...] | None = None,
+    pages: tuple[ExperimentPageOld | SimplePage, ...] | None = None,
 ) -> SimplePage:
     """Create the generated index page."""
     if pages is None:
@@ -467,9 +467,11 @@ def make_index_page(
     )
 
 
-def _pages_by_slug(pages: tuple[ExperimentPage, ...]) -> dict[str, ExperimentPage]:
+def _pages_by_slug(
+    pages: tuple[ExperimentPageOld, ...],
+) -> dict[str, ExperimentPageOld]:
     """Return pages keyed by slug, failing on duplicates."""
-    pages_by_slug: dict[str, ExperimentPage] = {}
+    pages_by_slug: dict[str, ExperimentPageOld] = {}
     duplicate_slugs: list[str] = []
     for page in pages:
         if page.slug in pages_by_slug:
@@ -484,7 +486,7 @@ def _pages_by_slug(pages: tuple[ExperimentPage, ...]) -> dict[str, ExperimentPag
 
 
 def _validate_experiment_slugs_to_generate(
-    detailed_pages_by_slug: dict[str, ExperimentPage],
+    detailed_pages_by_slug: dict[str, ExperimentPageOld],
 ) -> None:
     """Validate the hard-coded experiment page inventory."""
     duplicate_slugs = _duplicate_slugs(EXPERIMENT_SLUGS_TO_GENERATE)
@@ -535,7 +537,7 @@ def _duplicate_slugs(slugs: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def _validate_index_page_slugs(
-    page_lookup: dict[str, ExperimentPage | SimplePage],
+    page_lookup: dict[str, ExperimentPageOld | SimplePage],
 ) -> None:
     """Validate that all index entries have generated pages."""
     missing_slugs = tuple(
@@ -546,7 +548,7 @@ def _validate_index_page_slugs(
         raise ValueError(msg)
 
 
-def all_pages() -> tuple[SimplePage | ExperimentPage, ...]:
+def all_pages() -> tuple[SimplePage | ExperimentPageOld, ...]:
     """Return all generated pages in write order."""
     pages = content_pages()
     return (make_index_page(pages), *pages)

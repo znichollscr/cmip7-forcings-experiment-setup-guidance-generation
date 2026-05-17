@@ -14,7 +14,7 @@ from local.guidance import (
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
     PICLIM_TIME_AXIS,
-    ExperimentPage,
+    ExperimentPageOld,
 )
 from local.rendering import (
     join_blocks,
@@ -38,13 +38,13 @@ def make_piclim_historical_forcing_variant_page(
     historical_forcings: Sequence[HistoricalForcing],
     extra_setup: str = "",
     extra_getting_the_data: str = "",
-) -> ExperimentPage:
+) -> ExperimentPageOld:
     """Create a piClim variant whose specified forcings come from historical."""
     if not historical_forcings:
         msg = "At least one historical forcing must be specified."
         raise ValueError(msg)
 
-    return ExperimentPage(
+    return ExperimentPageOld(
         slug=slug,
         experiment_setup=join_blocks(
             (

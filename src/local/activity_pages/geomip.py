@@ -6,15 +6,15 @@ from local.forcing_versions import (
     SCEN7_FORCING_VERSIONS_BY_SLUG,
     source_ids_from_forcing_versions,
 )
-from local.guidance import ExperimentPage
+from local.guidance import ExperimentPageOld
 from local.rendering import block, join_blocks, render_data_access_body, render_link
 from local.vocab import get_experiment
 
 SCEN7_M_LINK = render_link("scen7-ml simulation", "scen7-ml")
 
 
-GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
-    ExperimentPage(
+GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
+    ExperimentPageOld(
         slug="g7-1p5k-sai",
         experiment_setup=join_blocks(
             f"The `{get_experiment('g7-1p5k-sai').drs_name}` simulation is a branch from the {SCEN7_M_LINK}.",

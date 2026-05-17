@@ -16,7 +16,7 @@ from local.guidance import (
     HISTORICAL_LINK,
     PI_CONTROL_LINK,
     TIME_AXIS_CAN_BE_ARBITRARY,
-    ExperimentPage,
+    ExperimentPageOld,
 )
 from local.rendering import (
     block,
@@ -80,12 +80,12 @@ def make_amip_variant_page(
     headline_text: str,
     source_forcing_versions: Mapping[str, object],
     extra_note: str = "",
-) -> ExperimentPage:
+) -> ExperimentPageOld:
     """Create an AMIP variant page."""
     experiment_name = get_experiment(slug).drs_name
     source_link = _amip_source_link(source_forcing_versions)
 
-    return ExperimentPage(
+    return ExperimentPageOld(
         slug=slug,
         experiment_setup=join_blocks(
             f"The {experiment_name} simulation is a variant of the {AMIP_LINK}.",
@@ -108,7 +108,7 @@ def make_amip_variant_page(
     )
 
 
-CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
+CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     make_amip_variant_page(
         slug="amip-p4k",
         setup_text=(
@@ -134,7 +134,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         source_forcing_versions=PI_CONTROL_FORCING_VERSIONS,
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="abrupt-2xco2",
         experiment_setup=join_blocks(
             f"The abrupt CO<sub>2</sub> doubling simulation is a simple branch from the {PI_CONTROL_LINK}.",
@@ -157,7 +157,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             source_ids=source_ids_from_forcing_versions(PI_CONTROL_FORCING_VERSIONS),
         ),
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="abrupt-0p5xco2",
         experiment_setup=join_blocks(
             f"The abrupt CO<sub>2</sub> halving simulation is a simple branch from the {PI_CONTROL_LINK}.",

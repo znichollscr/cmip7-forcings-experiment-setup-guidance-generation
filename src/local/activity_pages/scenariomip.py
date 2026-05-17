@@ -10,7 +10,7 @@ from local.forcing_versions import (
     ForcingValue,
     source_ids_from_forcing_versions,
 )
-from local.guidance import ExperimentPage
+from local.guidance import ExperimentPageOld
 from local.rendering import (
     join_blocks,
     render_data_access_body,
@@ -23,11 +23,11 @@ def make_scenariomip_page(
     slug: str,
     *,
     forcing_versions: Mapping[str, ForcingValue],
-) -> ExperimentPage:
+) -> ExperimentPageOld:
     """Create a ScenarioMIP experiment page."""
     experiment_name = get_experiment(slug).drs_name
 
-    return ExperimentPage(
+    return ExperimentPageOld(
         slug=slug,
         experiment_setup=join_blocks(
             f"The `{experiment_name}` simulation uses a specific set of forcings (see [forcings](#forcings)).",
@@ -45,7 +45,7 @@ def make_scenariomip_page(
     )
 
 
-SCENARIOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = tuple(
+SCENARIOMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = tuple(
     make_scenariomip_page(slug, forcing_versions=forcing_versions)
     for slug, forcing_versions in SCEN7_FORCING_VERSIONS_BY_SLUG.items()
 )

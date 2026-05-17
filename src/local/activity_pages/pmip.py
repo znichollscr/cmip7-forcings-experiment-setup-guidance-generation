@@ -7,7 +7,7 @@ from local.activity_pages.cmip import (
 )
 from local.guidance import (
     PI_CONTROL_LINK,
-    ExperimentPage,
+    ExperimentPageOld,
 )
 from local.rendering import (
     block,
@@ -16,7 +16,7 @@ from local.rendering import (
 from local.vocab import get_experiment
 
 PMIP_EXPERIMENT_PAGES = (
-    ExperimentPage(
+    ExperimentPageOld(
         slug="abrupt-127k",
         experiment_setup=join_blocks(
             f"The `{get_experiment('abrupt-127k').drs_name}` simulation is a branch from the {PI_CONTROL_LINK}. ",

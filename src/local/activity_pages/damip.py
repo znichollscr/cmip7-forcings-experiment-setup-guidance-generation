@@ -15,7 +15,7 @@ from local.forcing_versions import (
     select_forcing_versions,
     source_ids_from_forcing_versions,
 )
-from local.guidance import HISTORICAL_LINK, PI_CONTROL_LINK, ExperimentPage
+from local.guidance import HISTORICAL_LINK, PI_CONTROL_LINK, ExperimentPageOld
 from local.rendering import (
     join_blocks,
     join_lines,
@@ -36,12 +36,12 @@ class HistoricalForcingPageSpec:
     historical_forcing_label: str
 
 
-def make_historical_forcing_page(spec: HistoricalForcingPageSpec) -> ExperimentPage:
+def make_historical_forcing_page(spec: HistoricalForcingPageSpec) -> ExperimentPageOld:
     """Create a DAMIP page using selected historical forcings."""
     experiment_name = get_experiment(spec.slug).drs_name
     extension_scenario_link = damip_extension_scenario_link()
 
-    return ExperimentPage(
+    return ExperimentPageOld(
         slug=spec.slug,
         experiment_setup=join_blocks(
             f"The `{experiment_name}` simulation is a branch from the {PI_CONTROL_LINK}.",
@@ -104,7 +104,9 @@ def source_ids_for_historical_forcing_page(
         source_ids_from_forcing_versions(
             select_forcing_versions(
                 PI_CONTROL_FORCING_VERSIONS,
-                forcing_ids_except(PI_CONTROL_FORCING_VERSIONS, *historical_forcing_ids),
+                forcing_ids_except(
+                    PI_CONTROL_FORCING_VERSIONS, *historical_forcing_ids
+                ),
             ),
         ),
         source_ids_from_forcing_versions(
@@ -122,7 +124,7 @@ def source_ids_for_historical_forcing_page(
     )
 
 
-DAMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
+DAMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     make_historical_forcing_page(
         HistoricalForcingPageSpec(
             slug="hist-aer",
@@ -149,9 +151,7 @@ DAMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 "solar",
                 "stratospheric-aerosol-forcing",
             ),
-            historical_forcing_label=(
-                "natural forcings (solar and volcanic forcings)"
-            ),
+            historical_forcing_label=("natural forcings (solar and volcanic forcings)"),
         )
     ),
 )

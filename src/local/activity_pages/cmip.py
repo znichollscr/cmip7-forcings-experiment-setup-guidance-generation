@@ -15,7 +15,7 @@ from local.guidance import (
     PI_CONTROL_LINK,
     PICLIM_TIME_AXIS,
     TIME_AXIS_CAN_BE_ARBITRARY,
-    ExperimentPage,
+    ExperimentPageOld,
 )
 from local.piclim_variants import (
     HistoricalForcing,
@@ -175,9 +175,9 @@ def make_picontrol_forcing_page(
     simulation_label: str,
     setup_forcing_description: str,
     forcing_values_experiment_name: str | None = None,
-) -> ExperimentPage:
+) -> ExperimentPageOld:
     """Create a piControl-forcing page."""
-    return ExperimentPage(
+    return ExperimentPageOld(
         slug=slug,
         experiment_setup=picontrol_forcings_setup(
             f"The {simulation_label} uses {setup_forcing_description} (see [forcings](#forcings))."
@@ -198,7 +198,7 @@ def make_picontrol_spinup_page(
     experiment_name: str,
     simulation_label: str,
     forcing_values_experiment_name: str,
-) -> ExperimentPage:
+) -> ExperimentPageOld:
     """Create a piControl spin-up page."""
     return make_picontrol_forcing_page(
         slug=slug,
@@ -214,9 +214,9 @@ def make_historical_page(
     slug: str,
     experiment_name: str,
     simulation_label: str,
-) -> ExperimentPage:
+) -> ExperimentPageOld:
     """Create a historical page."""
-    return ExperimentPage(
+    return ExperimentPageOld(
         slug=slug,
         experiment_setup=historical_forcings_setup(simulation_label),
         forcing_headlines=historical_forcing_headlines(experiment_name),
@@ -226,7 +226,7 @@ def make_historical_page(
     )
 
 
-CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
+CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     make_picontrol_spinup_page(
         slug="picontrol-spinup",
         experiment_name="piControl-spinup",
@@ -261,7 +261,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_name="esm-hist",
         simulation_label="emissions-driven historical simulation",
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="1pctco2",
         experiment_setup=join_blocks(
             f"The 1pctCO2 simulation is a simple branch from the {PI_CONTROL_LINK}.",
@@ -298,7 +298,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=picontrol_cmip_data_access_body("1pctCO2"),
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="abrupt-4xco2",
         experiment_setup=join_blocks(
             f"The abrupt CO<sub>2</sub> quadrupling simulation is a simple branch from the {PI_CONTROL_LINK}.",
@@ -321,7 +321,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         versions_to_use=same_as_versions("piControl simulation", "picontrol"),
         getting_the_data=picontrol_cmip_data_access_body("abrupt-4xCO2"),
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="piclim-control",
         experiment_setup=join_blocks(
             join_lines(
@@ -372,7 +372,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             extra=PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
         ),
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="piclim-4xco2",
         experiment_setup=join_blocks(
             join_lines(
@@ -441,7 +441,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "[piClim-control](./piclim-control.md)."
         ),
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="amip",
         experiment_setup=historical_forcings_setup("amip simulation"),
         forcing_headlines="The `amip` experiment is a time-varying forcings experiment.",

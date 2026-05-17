@@ -23,7 +23,7 @@ from local.forcing_versions import (
 from local.guidance import (
     HISTORICAL_LINK,
     PI_CONTROL_LINK,
-    ExperimentPage,
+    ExperimentPageOld,
 )
 from local.piclim_variants import (
     HistoricalForcing,
@@ -101,7 +101,7 @@ def source_ids_for_scen7_aerchem_variant(
     )
 
 
-def make_scen7_aerchem_page(spec: Scen7AerChemPageSpec) -> ExperimentPage:
+def make_scen7_aerchem_page(spec: Scen7AerChemPageSpec) -> ExperimentPageOld:
     """Create an AerChemMIP scenario-variant page."""
     experiment_name = get_experiment(spec.slug).drs_name
     forcing_label = (
@@ -115,7 +115,7 @@ def make_scen7_aerchem_page(spec: Scen7AerChemPageSpec) -> ExperimentPage:
         else "do not include interactive chemistry"
     )
 
-    return ExperimentPage(
+    return ExperimentPageOld(
         slug=spec.slug,
         experiment_setup=join_blocks(
             f"The `{experiment_name}` simulation is a variant of the `{spec.base_scenario_name}` simulation.",
@@ -150,7 +150,7 @@ def make_scen7_aerchem_page(spec: Scen7AerChemPageSpec) -> ExperimentPage:
     )
 
 
-AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
+AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     make_piclim_historical_forcing_variant_page(
         slug="piclim-ch4",
         historical_forcings=(
@@ -196,7 +196,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="hist-piaer",
         experiment_setup=join_blocks(
             # TODO: remove this
@@ -242,7 +242,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
     ),
-    ExperimentPage(
+    ExperimentPageOld(
         slug="hist-piaq",
         experiment_setup=join_blocks(
             # TODO: remove this
