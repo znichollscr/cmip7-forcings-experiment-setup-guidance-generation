@@ -245,6 +245,40 @@ class ExperimentPage:
             activity_and_tier_info,
             render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
             experiment_pair_info,
+            ### New plan
+            # "## Experiment set up",
+            # Headline notes e.g. references to other experiments e.g. "same as piclim-control except"
+            # "### Parent experiment",
+            # Auto-generated content
+            # "### Branching",
+            # Auto-generated content
+            # Other notes about branching
+            # "### Start and end times",
+            # Usually quite standard and simple.
+            # Sometimes need lines like,
+            # "You can choose start and end dates, but to keep life for analysts easy,
+            # recommend to keep continuous time axis from branch point/
+            # line up with equivalent section from parent experiment/
+            # line up with time axis of other experiment" etc.
+            # "### Number simulation years",
+            # Either known, undefined or minimum number
+            # (need to be smarter about handling when start time, end time and min number of years are all defined)
+            # "### Minimum ensemble size",
+            # Auto-generate
+            # "## Forcings",
+            # "### General headlines",
+            # Transient vs. fixed vs. both info
+            # See what else generally appears here
+            # "### Data",
+            # # TODO: somehow make this more standard.
+            # # This bit should focus on what data to use exactly,
+            # # where to get it, how to identify version, where to get more information
+            # # if you need to make modifications yourself etc.
+            # # Split into data that comes from input4MIPs (with specific versions)
+            # # and data that doesn't to make things easier.
+            ### End new plan
+            #
+            #
             # "## Experiment set up",
             # # TODO: check that some overall general, consistent description bit
             # # is consistently here
