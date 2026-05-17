@@ -365,6 +365,29 @@ def render_activity_urls(urls: Sequence[str]) -> str:
     ).strip()
 
 
+def render_activity_urls_v2(urls: Sequence[str]) -> str:
+    """Render activity URLs as further-information links."""
+    # TODO: alter so first sentence below is always included
+    blocks = [
+        join_lines(
+            "This page is intended to help with implementation. "
+            "If you notice something that is unclear, "
+            "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new)."
+        )
+    ]
+    if urls:
+        blocks.extend(
+            [
+                "For the full background of the experiment, please see the following URLs:",
+                render_url_bullet_list(urls),
+            ]
+        )
+
+    res = join_blocks(*blocks).strip()
+
+    return res
+
+
 def render_experiment_requirements(experiment: Any) -> str:
     """Render experiment timing, length, and ensemble requirements."""
     # TODO: switch to dot points or something so faster to parse/easier to see the standardisation
@@ -668,8 +691,18 @@ def render_esgpull_script(
 
 def render_pages(pages: Sequence[RenderablePage]) -> dict[str, str]:
     """Render guidance pages keyed by output filename."""
+    from local.guidance import ExperimentPageOld
+
     page_slugs = frozenset(page.slug for page in pages)
-    return {
-        f"{page.slug}.md": wrap_markdown(page.render(page_slugs=page_slugs))
-        for page in pages
-    }
+
+    res = {}
+    for page in pages:
+        if isinstance(page, ExperimentPageOld):
+            # TODO: delete when we remove ExperimentPageOld
+            raw = page.render(page_slugs=page_slugs)
+        else:
+            raw = page.render()
+
+        res[f"{page.slug}.md"] = wrap_markdown(raw)
+
+    return res

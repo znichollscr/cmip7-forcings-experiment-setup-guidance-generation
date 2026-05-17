@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection, Mapping
+from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -13,8 +13,10 @@ from local.experiment_pairs import render_related_experiments, sort_experiment_s
 from local.rendering import (
     block,
     join_blocks,
+    join_lines,
     render_activity_index_link,
     render_activity_urls,
+    render_activity_urls_v2,
     render_experiment_requirements,
     render_front_matter,
     render_link,
@@ -22,6 +24,9 @@ from local.rendering import (
 from local.rendering import (
     render_pages as render_page_map,
 )
+
+# TODO: rename vocab to esgvoc
+# TODO: import the module then use namespaced access instead
 from local.vocab import (
     get_activity,
     get_experiment,
@@ -147,6 +152,117 @@ class ExperimentPageOld:
         )
 
 
+@dataclass(frozen=True)
+class ExperimentPage:
+    """
+    Experiment setup and forcings guidance page
+    """
+
+    id_esgvoc: str
+    """
+    ID used by esgvoc, typically just the lowercase version of the experiment's DRS name
+    """
+
+    render_description: Callable[[str], str] | None = None
+    """
+    Function to use to render the description
+
+    Receives the esgvoc description as input.
+
+    If `None`, the esgvoc description is used in the page directly.
+    """
+
+    # TODO: remove when we remove ExperimentPageOld
+    # (can replace with drs_name everywhere)
+    @property
+    def display_name(self):
+        """Temporary mapping to drs_name"""
+        return self.experiment_esgvoc.drs_name
+
+    # TODO: add type hints to return type
+    @property
+    def experiment_esgvoc(self):
+        """Return this page's esgvoc experiment term."""
+        return get_experiment(self.id_esgvoc)
+
+    # TODO: remove when we remove ExperimentPageOld
+    # (can replace with id_esgvoc everywhere)
+    @property
+    def slug(self):
+        """Temporary mapping to id_esgvoc"""
+        return self.id_esgvoc
+
+    def render(self) -> str:
+        """Render the page as markdown."""
+        experiment_esgvoc = self.experiment_esgvoc
+        responsible_activity_esgvoc = get_responsible_activity(experiment_esgvoc)
+        responsible_activity = get_activity_definition(responsible_activity_esgvoc.id)
+        # page_slugs = page_slugs or frozenset()
+
+        title = f"Experiment Setup and Forcings Guidance: {self.display_name}"
+        description = (
+            self.render_description()
+            if self.render_description is not None
+            else experiment_esgvoc.description
+        )
+
+        activity_and_tier_info = join_lines(
+            f"- Responsible activity: {render_activity_index_link(responsible_activity_esgvoc)}",
+            f"- Tier: {responsible_activity.get_tier(self.id_esgvoc)}",
+        )
+
+        return join_blocks(
+            render_front_matter(title),
+            f"# {title}",
+            description,
+            activity_and_tier_info,
+            render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
+            # render_related_experiments(self.slug, page_slugs=page_slugs),
+            # "## Experiment set up",
+            # # TODO: check that some overall general, consistent description bit
+            # # is consistently here
+            # self.experiment_setup,
+            # "### Timing, length and ensemble size",
+            # # TODO: add branching and parent experiment info in here.
+            # # "Branching, timing, simulation length and ensemble size"
+            # # TODO: then add an extra section for further set up notes
+            # render_experiment_requirements(experiment),
+            # (
+            #     join_blocks(
+            #         "### Parent experiment",
+            #         render_parent_information(
+            #             experiment,
+            #             page_slugs=page_slugs,
+            #             extra=self.parent_experiment_extra,
+            #         ),
+            #     )
+            #     # TODO: alter, should put "No parent experiment" or similar
+            #     # if there is no parent experiment rather than just skipping this block
+            #     if self.include_parent_information
+            #     else ""
+            # ),
+            # "## Forcings",
+            # "### General headlines",
+            # # TODO: check what is consistently here
+            # self.forcing_headlines,
+            # "### Notes",
+            # # TODO: check whether the content here is consistently
+            # # about details of implementation, leaving general headlines above
+            # # for information about whether the experiments are fixed, transient
+            # # or a mix.
+            # self.notes,
+            # "### Versions to use",
+            # # TODO: somehow make this more standard:
+            # # each page should either render JSON
+            # # or point to other pages
+            # # (but ideally not a blend of these two)
+            # self.versions_to_use,
+            # "### Getting the data",
+            # # TODO: add sections to this to help make clear what comes from what
+            # self.getting_the_data,
+        )
+
+
 def render_experiment_metadata_line(*, experiment, responsible_activity) -> str:
     """Render the activity and tier metadata line for an experiment page."""
     if responsible_activity.id == "scenariomip":
@@ -249,7 +365,7 @@ def experiment_pages() -> tuple[ExperimentPageOld, ...]:
         *RFMIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
     )
-    detailed_pages_by_slug = _pages_by_slug(detailed_pages)
+    detailed_pages_by_slug = pages_by_id_esgvoc(detailed_pages)
     _validate_experiment_slugs_to_generate(detailed_pages_by_slug)
 
     return tuple(detailed_pages_by_slug[slug] for slug in EXPERIMENT_SLUGS_TO_GENERATE)
@@ -467,22 +583,24 @@ def make_index_page(
     )
 
 
-def _pages_by_slug(
+def pages_by_id_esgvoc(
     pages: tuple[ExperimentPageOld, ...],
 ) -> dict[str, ExperimentPageOld]:
-    """Return pages keyed by slug, failing on duplicates."""
-    pages_by_slug: dict[str, ExperimentPageOld] = {}
+    """Return pages keyed by esgvoc id, failing on duplicates."""
+    pages_by_id_esgvoc: dict[str, ExperimentPageOld] = {}
     duplicate_slugs: list[str] = []
     for page in pages:
-        if page.slug in pages_by_slug:
-            duplicate_slugs.append(page.slug)
-        pages_by_slug[page.slug] = page
+        id_esgvoc = page.slug
+        if id_esgvoc in pages_by_id_esgvoc:
+            duplicate_slugs.append(id_esgvoc)
+
+        pages_by_id_esgvoc[id_esgvoc] = page
 
     if duplicate_slugs:
         msg = f"Duplicate detailed experiment page slugs: {', '.join(duplicate_slugs)}."
         raise ValueError(msg)
 
-    return pages_by_slug
+    return pages_by_id_esgvoc
 
 
 def _validate_experiment_slugs_to_generate(
