@@ -9,7 +9,12 @@ from pathlib import Path
 from local.activities import get_activity_definition
 from local.branching import render_parent_information
 from local.experiment_descriptions import render_experiment_description
-from local.experiment_pairs import render_related_experiments, sort_experiment_slugs
+from local.experiment_pairs import (
+    get_experiment_pairs,
+    render_experiment_pair_info,
+    render_related_experiments,
+    sort_experiment_slugs,
+)
 from local.rendering import (
     block,
     join_blocks,
@@ -179,6 +184,16 @@ class ExperimentPage:
         """Temporary mapping to drs_name"""
         return self.experiment_esgvoc.drs_name
 
+    @property
+    def drs_name(self):
+        """
+        DRS (directory reference syntax) name
+
+        More commonly just called the 'experiment name'
+        and thought of as the 'display name'.
+        """
+        return self.experiment_esgvoc.drs_name
+
     # TODO: add type hints to return type
     @property
     def experiment_esgvoc(self):
@@ -201,7 +216,7 @@ class ExperimentPage:
 
         title = f"Experiment Setup and Forcings Guidance: {self.display_name}"
         description = (
-            self.render_description()
+            self.render_description(experiment_esgvoc.description)
             if self.render_description is not None
             else experiment_esgvoc.description
         )
@@ -211,13 +226,25 @@ class ExperimentPage:
             f"- Tier: {responsible_activity.get_tier(self.id_esgvoc)}",
         )
 
+        # These have to be defined in their own module.
+        # This is a bit like a database lookup.
+        experiment_pairs = get_experiment_pairs(self.id_esgvoc)
+        experiment_pair_info = (
+            render_experiment_pair_info(
+                experiment_pairs,
+                target_id_esgvoc=self.id_esgvoc,
+            )
+            if experiment_pairs
+            else ""
+        )
+
         return join_blocks(
             render_front_matter(title),
             f"# {title}",
             description,
             activity_and_tier_info,
             render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
-            # render_related_experiments(self.slug, page_slugs=page_slugs),
+            experiment_pair_info,
             # "## Experiment set up",
             # # TODO: check that some overall general, consistent description bit
             # # is consistently here

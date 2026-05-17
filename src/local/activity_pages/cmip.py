@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from functools import partial
+
 from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
 from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
@@ -15,6 +17,7 @@ from local.guidance import (
     PI_CONTROL_LINK,
     PICLIM_TIME_AXIS,
     TIME_AXIS_CAN_BE_ARBITRARY,
+    ExperimentPage,
     ExperimentPageOld,
 )
 from local.piclim_variants import (
@@ -226,6 +229,21 @@ def make_historical_page(
     )
 
 
+def get_historical_description(
+    esgvoc_description: str, emms_driven: bool = False
+) -> str:
+    """Get historical description"""
+    base = "Simulation of the climate of the recent past (1850 onwards)"
+
+    if emms_driven:
+        res = f"{base} with prescribed carbon dioxide emissions."
+
+    else:
+        res = f"{base} with prescribed carbon dioxide concentrations."
+
+    return res
+
+
 CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     make_picontrol_spinup_page(
         slug="picontrol-spinup",
@@ -251,15 +269,23 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         simulation_label="emissions-driven pre-industrial control simulation",
         setup_forcing_description="a specific set of forcings",
     ),
-    make_historical_page(
-        slug="historical",
-        experiment_name="historical",
-        simulation_label="historical simulation",
+    # make_historical_page(
+    #     slug="historical",
+    #     experiment_name="historical",
+    #     simulation_label="historical simulation",
+    # ),
+    # make_historical_page(
+    #     slug="esm-hist",
+    #     experiment_name="esm-hist",
+    #     simulation_label="emissions-driven historical simulation",
+    # ),
+    ExperimentPage(
+        id_esgvoc="historical",
+        render_description=get_historical_description,
     ),
-    make_historical_page(
-        slug="esm-hist",
-        experiment_name="esm-hist",
-        simulation_label="emissions-driven historical simulation",
+    ExperimentPage(
+        id_esgvoc="esm-hist",
+        render_description=partial(get_historical_description, emms_driven=True),
     ),
     ExperimentPageOld(
         slug="1pctco2",

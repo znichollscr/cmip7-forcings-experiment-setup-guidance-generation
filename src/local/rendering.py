@@ -348,6 +348,7 @@ def render_term_reference(label: str, urls: Sequence[str]) -> str:
     return f"{label} ({render_url_list(urls)})"
 
 
+# TODO: delete when everything is transitioned
 def render_activity_urls(urls: Sequence[str]) -> str:
     """Render activity URLs as further-information links."""
     # TODO: alter so first sentence below is always included
@@ -367,7 +368,6 @@ def render_activity_urls(urls: Sequence[str]) -> str:
 
 def render_activity_urls_v2(urls: Sequence[str]) -> str:
     """Render activity URLs as further-information links."""
-    # TODO: alter so first sentence below is always included
     blocks = [
         join_lines(
             "This page is intended to help with implementation. "
