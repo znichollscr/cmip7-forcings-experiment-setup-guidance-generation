@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Collection
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from local.rendering import (
     join_blocks,
@@ -12,6 +12,9 @@ from local.rendering import (
     render_term_reference,
 )
 from local.vocab import get_activity, get_experiment
+
+if TYPE_CHECKING:
+    from local.guidance import ExperimentPage
 
 
 class MissingParentExperimentPageError(ValueError):
@@ -71,6 +74,63 @@ def render_parent_information(
         ),
         extra,
     ).strip()
+
+
+def render_parent_and_branching_information(experiment: ExperimentPage) -> str:
+    """Render parent-experiment information"""
+    parent_experiment_esgvoc = experiment.experiment_esgvoc.parent_experiment
+    if parent_experiment_esgvoc is None:
+        msg = (
+            f"{experiment.experiment_esgvoc.drs_name} doesn't have a parent experiment"
+        )
+        raise AssertionError(msg)
+
+    if isinstance(parent_experiment_esgvoc, str):
+        parent_experiment_esgvoc = get_experiment(parent_experiment_esgvoc)
+
+    parent_activity_esgvoc = experiment.experiment_esgvoc.parent_activity
+    if parent_activity_esgvoc is None:
+        msg = f"{experiment.experiment_esgvoc.drs_name} doesn't have a parent activity"
+        raise AssertionError(msg)
+
+    if isinstance(parent_activity_esgvoc, str):
+        parent_activity_esgvoc = get_activity(parent_activity_esgvoc)
+
+    parent_mip_era = experiment.experiment_esgvoc.parent_mip_era
+    if parent_mip_era is None:
+        msg = f"{experiment.experiment_esgvoc.drs_name} doesn't have a parent mip_era"
+        raise AssertionError(msg)
+
+    if isinstance(parent_mip_era, str):
+        raise TypeError(f"{type(parent_mip_era)=}")
+
+    # TODO: push check that parent page exists into higher-up layers
+    parent_experiment_link = render_link(
+        parent_experiment_esgvoc.drs_name, parent_experiment_esgvoc.id
+    )
+    parent_activity_link = render_activity_index_link(parent_activity_esgvoc)
+
+    parent_information = (
+        f"The `{experiment.drs_name}` experiment branches from the "
+        f"{parent_experiment_link} experiment (part of {parent_activity_link}). "
+        "The parent experiment's MIP era is "
+        f"{render_term_reference(parent_mip_era.drs_name, (parent_mip_era.url,))}."
+    )
+
+    # Options for branching information:
+    # 1. branch at time of choosing
+    # 1. branch at time of choosing, but ideally line up with other experiment
+    # 1. branch at time of choosing, suggest [this approach]
+    # 1. branch at end of parent experiment
+    # 1. branch at specific time in parent experiment
+    # 1. no parent experiment therefore no branching
+    # 1. fully custom override
+
+    res = join_blocks(
+        parent_information,
+    )
+
+    return res
 
 
 def _render_parent_experiment_link(

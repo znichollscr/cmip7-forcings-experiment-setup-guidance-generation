@@ -7,7 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from local.activities import get_activity_definition
-from local.branching import render_parent_information
+from local.branching import (
+    render_parent_and_branching_information,
+    render_parent_information,
+)
 from local.experiment_descriptions import render_experiment_description
 from local.experiment_pairs import (
     get_experiment_pairs,
@@ -167,6 +170,14 @@ class ExperimentPage:
     """
     ID used by esgvoc, typically just the lowercase version of the experiment's DRS name
     """
+    experiment_setup_notes: str = ""
+    """
+    Experiment setup notes
+
+    These appear immediately after the "Experiment setup" header.
+    They should be used for headline descriptions
+    that don't appear elsewhere.
+    """
 
     render_description: Callable[[str], str] | None = None
     """
@@ -238,6 +249,12 @@ class ExperimentPage:
             else ""
         )
 
+        parent_experiment_and_branching_info = (
+            render_parent_and_branching_information(self)
+            if self.experiment_esgvoc.parent_experiment is not None
+            else f"{self.drs_name} does not have a parent experiment."
+        )
+
         return join_blocks(
             render_front_matter(title),
             f"# {title}",
@@ -245,14 +262,12 @@ class ExperimentPage:
             activity_and_tier_info,
             render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
             experiment_pair_info,
+            "## Experiment set up",
+            # Headline notes that don't belong elsewhere
+            self.experiment_setup_notes,
+            "### Parent experiment and branching",
+            parent_experiment_and_branching_info,
             ### New plan
-            # "## Experiment set up",
-            # Headline notes e.g. references to other experiments e.g. "same as piclim-control except"
-            # "### Parent experiment",
-            # Auto-generated content
-            # "### Branching",
-            # Auto-generated content
-            # Other notes about branching
             # "### Start and end times",
             # Usually quite standard and simple.
             # Sometimes need lines like,

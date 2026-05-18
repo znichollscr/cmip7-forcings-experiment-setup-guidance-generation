@@ -306,6 +306,7 @@ def render_front_matter(title: str) -> str:
     )
 
 
+# TODO: rename
 def render_link(label: str, slug: str) -> str:
     """Render a relative markdown link to another generated page."""
     return f"[{label}](./{slug}.md)"

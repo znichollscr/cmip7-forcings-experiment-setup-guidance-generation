@@ -245,12 +245,16 @@ def get_historical_description(
 
 
 CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
-    make_picontrol_spinup_page(
-        slug="picontrol-spinup",
-        experiment_name="piControl-spinup",
-        simulation_label="pre-industrial control spin-up simulation",
-        forcing_values_experiment_name="piControl",
+    ExperimentPage(
+        id_esgvoc="picontrol-spinup",
+        # render_description=get_historical_description,
     ),
+    # make_picontrol_spinup_page(
+    #     slug="picontrol-spinup",
+    #     experiment_name="piControl-spinup",
+    #     simulation_label="pre-industrial control spin-up simulation",
+    #     forcing_values_experiment_name="piControl",
+    # ),
     make_picontrol_forcing_page(
         slug="picontrol",
         experiment_name="piControl",
