@@ -81,6 +81,36 @@ class BranchFromParentAtTime:
         return res
 
 
+@dataclass(frozen=True)
+class BranchFromParentEnd:
+    """
+    Branching from the end of the parent experiment with an optional increment
+    """
+
+    increment: dt.timedelta = dt.timedelta(days=0)
+    """
+    Increment from the end of the parent time experiment to add
+    """
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the branch information as a string"""
+        parent_experiment_esgvoc = experiment.parent_experiment_esgvoc
+        if parent_experiment_esgvoc is None:
+            msg = f"No parent experiment for {experiment.id_esgvoc}"
+            raise AssertionError(msg)
+
+        parent_experiment_link = render_link(
+            parent_experiment_esgvoc.drs_name, parent_experiment_esgvoc.id
+        )
+
+        branch_time = parent_experiment_esgvoc.end_timestamp + self.increment
+
+        formatted_time = branch_time.date().isoformat()
+        res = f"Branch from {parent_experiment_link} at {formatted_time}."
+
+        return res
+
+
 def render_parent_information(
     experiment: Any,
     *,

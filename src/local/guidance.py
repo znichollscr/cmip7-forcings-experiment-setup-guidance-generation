@@ -19,6 +19,7 @@ from local.experiment_pairs import (
     render_related_experiments,
     sort_experiment_slugs,
 )
+from local.output_time_axis import EsgvocDrivenOutputTimeAxisInformation
 from local.rendering import (
     block,
     join_blocks,
@@ -168,6 +169,13 @@ class RenderableBranchInformation(Protocol):
         """Render the branch information as a string"""
 
 
+class RenderableOutputTimeAxisInformation(Protocol):
+    """Output time axis information that can be rendered"""
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the output time axis information as a string"""
+
+
 @dataclass(frozen=True)
 class ExperimentPage:
     """
@@ -191,6 +199,13 @@ class ExperimentPage:
     These appear immediately after the "Experiment setup" header.
     They should be used for headline descriptions
     that don't appear elsewhere.
+    """
+
+    output_time_axis_info: str | RenderableOutputTimeAxisInformation | None = (
+        EsgvocDrivenOutputTimeAxisInformation()  # noqa: RUF009 # TODO: be smarter about this
+    )
+    """
+    Output time axis information
     """
 
     render_description: Callable[[str], str] | None = None
@@ -296,17 +311,15 @@ class ExperimentPage:
             self.experiment_setup_notes,
             "### Parent experiment and branching",
             parent_experiment_and_branching_info,
-            ### New plan
-            # "### Start and end times",
+            "### Output time axis",
             # Usually quite standard and simple.
             # Sometimes need lines like,
             # "You can choose start and end dates, but to keep life for analysts easy,
             # recommend to keep continuous time axis from branch point/
             # line up with equivalent section from parent experiment/
             # line up with time axis of other experiment" etc.
-            # "### Number simulation years",
-            # Either known, undefined or minimum number
-            # (need to be smarter about handling when start time, end time and min number of years are all defined)
+            self.render_output_time_axis_info(),
+            ### New plan
             # "### Minimum ensemble size",
             # Auto-generate
             # "## Forcings",
@@ -383,6 +396,18 @@ class ExperimentPage:
             branch_information = self.branch_information.render(self)
 
         return branch_information
+
+    def render_output_time_axis_info(self) -> str:
+        """
+        Render the output time axis information
+        """
+        if isinstance(self.output_time_axis_info, str):
+            output_time_axis_info = self.output_time_axis_info
+
+        else:
+            output_time_axis_info = self.output_time_axis_info.render(self)
+
+        return output_time_axis_info
 
 
 def render_experiment_metadata_line(*, experiment, responsible_activity) -> str:

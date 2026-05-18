@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from local.branching import BranchFromParentEnd
 from local.forcing_references import COMMON_FORCING_NOTES
 from local.forcing_versions import (
     SCEN7_FORCING_VERSIONS_BY_SLUG,
     ForcingValue,
     source_ids_from_forcing_versions,
 )
-from local.guidance import ExperimentPageOld
+from local.guidance import ExperimentPage, ExperimentPageOld
 from local.rendering import (
     join_blocks,
     render_data_access_body,
@@ -25,6 +26,12 @@ def make_scenariomip_page(
     forcing_versions: Mapping[str, ForcingValue],
 ) -> ExperimentPageOld:
     """Create a ScenarioMIP experiment page."""
+    if slug == "scen7-vl-ext":
+        return ExperimentPage(
+            id_esgvoc=slug,
+            branch_information=BranchFromParentEnd(),
+        )
+
     experiment_name = get_experiment(slug).drs_name
 
     return ExperimentPageOld(

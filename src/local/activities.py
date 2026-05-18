@@ -112,6 +112,10 @@ RFMIP = Activity(
     activity_id="rfmip",
     description_modifier=lambda description: description,
 )
+SCENARIOMIP_TIER_TEXT = (
+    f"See {render_activity_index_link(local.vocab.get_activity('scenariomip'))} "
+    "information"
+)
 SCENARIOMIP = Activity(
     activity_id="scenariomip",
     description_modifier=lambda description: description.split(
@@ -119,7 +123,7 @@ SCENARIOMIP = Activity(
         maxsplit=1,
     )[0].rstrip(),
     further_details=SCENARIOMIP_FURTHER_DETAILS,
-    get_tier=lambda _: f"See {render_activity_index_link('scenariomip')} information",
+    get_tier=lambda _: SCENARIOMIP_TIER_TEXT,
 )
 
 ACTIVITY_DEFINITIONS: tuple[Activity, ...] = (
