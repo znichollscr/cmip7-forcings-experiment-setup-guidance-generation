@@ -315,18 +315,33 @@ class ExperimentPage:
             self.render_output_time_axis_info(),
             "### Minimum ensemble size",
             self.render_minimum_ensemble_size_info(),
+            "## Forcings",
+            join_lines(
+                "The following information will help you identify the forcings to use. "
+                "However, we can't define every single detail "
+                "because there can be lots of subjective steps between the raw forcings data "
+                "and model inputs (e.g. interpolation, re-aggregation, supplementation with other information). "
+                "If further guidance would be helpful, "
+                "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new)."
+            ),
+            # To impelemnt the below, we need to carry around forcing versions
+            # and then whether they are transient or fixed or both for each forcing type,
+            # with notes about individual variables where they're easy.
+            # This should allow us to write the general headlines
+            # and data retrieval parts with sufficient detail
+            # and conssitency between sections.
             ### New plan
-            # "## Forcings",
             # "### General headlines",
             # Transient vs. fixed vs. both info
             # See what else generally appears here
             # "### Data",
-            # # TODO: somehow make this more standard.
             # # This bit should focus on what data to use exactly,
             # # where to get it, how to identify version, where to get more information
             # # if you need to make modifications yourself etc.
-            # # Split into data that comes from input4MIPs (with specific versions)
-            # # and data that doesn't to make things easier.
+            # # As much as possible, refer to other experiment pages to avoid overwhelming people
+            # # (both in text but also the download script).
+            # # Split this part into data that comes from input4MIPs (with specific versions)
+            # # and data that doesn't to make things easier for managing and communicating.
             ### End new plan
             #
             #
