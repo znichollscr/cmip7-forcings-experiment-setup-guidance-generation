@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
 from local.activities import get_activity_definition
 from local.branching import (
@@ -160,6 +161,13 @@ class ExperimentPageOld:
         )
 
 
+class RenderableBranchInformation(Protocol):
+    """Branch information that can be rendered"""
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the branch information as a string"""
+
+
 @dataclass(frozen=True)
 class ExperimentPage:
     """
@@ -170,6 +178,12 @@ class ExperimentPage:
     """
     ID used by esgvoc, typically just the lowercase version of the experiment's DRS name
     """
+
+    branch_information: str | RenderableBranchInformation | None = None
+    """
+    Branch information
+    """
+
     experiment_setup_notes: str = ""
     """
     Experiment setup notes
@@ -210,6 +224,21 @@ class ExperimentPage:
     def experiment_esgvoc(self):
         """Return this page's esgvoc experiment term."""
         return get_experiment(self.id_esgvoc)
+
+    # TODO: add type hints to return type
+    @property
+    def parent_experiment_esgvoc(self):  # EsgvocExperiment | None
+        """Return this page's esgvoc parent experiment term."""
+        parent_experiment_esgvoc_raw = self.experiment_esgvoc.parent_experiment
+        if parent_experiment_esgvoc_raw is None:
+            return None
+
+        if isinstance(parent_experiment_esgvoc_raw, str):
+            parent_experiment_esgvoc = get_experiment(parent_experiment_esgvoc_raw)
+        else:
+            parent_experiment_esgvoc = parent_experiment_esgvoc_raw
+
+        return parent_experiment_esgvoc
 
     # TODO: remove when we remove ExperimentPageOld
     # (can replace with id_esgvoc everywhere)
@@ -337,6 +366,23 @@ class ExperimentPage:
             # # TODO: add sections to this to help make clear what comes from what
             # self.getting_the_data,
         )
+
+    def render_branch_information(self) -> str:
+        """
+        Render the branch information
+        """
+        if self.branch_information is None:
+            # breakpoint()
+            msg = f"{type(self.branch_information)=} ({self.id_esgvoc=})"
+            raise TypeError(msg)
+
+        if isinstance(self.branch_information, str):
+            branch_information = self.branch_information
+
+        else:
+            branch_information = self.branch_information.render(self)
+
+        return branch_information
 
 
 def render_experiment_metadata_line(*, experiment, responsible_activity) -> str:

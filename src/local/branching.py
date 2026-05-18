@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Collection
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from local.rendering import (
@@ -27,6 +29,56 @@ class UnexpectedPiClimControlBranchParentError(ValueError):
 
 PICLIM_CONTROL_BRANCH_INFORMATION = "Same as `piClim-control`"
 PICLIM_CONTROL_PARENT_EXPERIMENT_ID = "picontrol"
+
+
+@dataclass(frozen=True)
+class BranchFromParentAtAnyTime:
+    """
+    Branching from the parent experiment at any time
+    """
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the branch information as a string"""
+        parent_experiment_esgvoc = experiment.parent_experiment_esgvoc
+        if parent_experiment_esgvoc is None:
+            msg = f"No parent experiment for {experiment.id_esgvoc}"
+            raise AssertionError(msg)
+
+        parent_experiment_link = render_link(
+            parent_experiment_esgvoc.drs_name, parent_experiment_esgvoc.id
+        )
+
+        res = f"Branch from {parent_experiment_link} at a time of your choosing."
+
+        return res
+
+
+@dataclass(frozen=True)
+class BranchFromParentAtTime:
+    """
+    Branching from the parent experiment at a specific time
+    """
+
+    branch_time: dt.datetime
+    """
+    Branch time
+    """
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the branch information as a string"""
+        parent_experiment_esgvoc = experiment.parent_experiment_esgvoc
+        if parent_experiment_esgvoc is None:
+            msg = f"No parent experiment for {experiment.id_esgvoc}"
+            raise AssertionError(msg)
+
+        parent_experiment_link = render_link(
+            parent_experiment_esgvoc.drs_name, parent_experiment_esgvoc.id
+        )
+
+        formatted_time = self.branch_time.date().isoformat()
+        res = f"Branch from {parent_experiment_link} at {formatted_time}."
+
+        return res
 
 
 def render_parent_information(
@@ -117,17 +169,21 @@ def render_parent_and_branching_information(experiment: ExperimentPage) -> str:
         f"{render_term_reference(parent_mip_era.drs_name, (parent_mip_era.url,))}."
     )
 
+    branch_information = experiment.render_branch_information()
+
     # Options for branching information:
     # 1. branch at time of choosing
     # 1. branch at time of choosing, but ideally line up with other experiment
     # 1. branch at time of choosing, suggest [this approach]
     # 1. branch at end of parent experiment
+    # 1. branch at end of parent experiment plus one day
     # 1. branch at specific time in parent experiment
     # 1. no parent experiment therefore no branching
     # 1. fully custom override
 
     res = join_blocks(
         parent_information,
+        branch_information,
     )
 
     return res

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import datetime as dt
+
+from local.branching import BranchFromParentAtTime
 from local.guidance import ExperimentPage
 from local.rendering import render_link
 
@@ -11,6 +14,7 @@ SCEN7_M_LINK = render_link("scen7-ml simulation", "scen7-ml")
 GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         id_esgvoc="g7-1p5k-sai",
+        branch_information=BranchFromParentAtTime(dt.datetime(2035, 1, 1)),
     ),
     # ExperimentPageOld(
     #     slug="g7-1p5k-sai",

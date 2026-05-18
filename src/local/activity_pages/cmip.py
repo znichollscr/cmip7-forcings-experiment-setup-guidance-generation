@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from functools import partial
 
+from local.branching import BranchFromParentAtAnyTime
 from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
 from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
@@ -286,10 +287,12 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     ExperimentPage(
         id_esgvoc="historical",
         render_description=get_historical_description,
+        branch_information=BranchFromParentAtAnyTime(),
     ),
     ExperimentPage(
         id_esgvoc="esm-hist",
         render_description=partial(get_historical_description, emms_driven=True),
+        branch_information=BranchFromParentAtAnyTime(),
     ),
     ExperimentPageOld(
         slug="1pctco2",
