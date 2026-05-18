@@ -30,6 +30,7 @@ def make_scenariomip_page(
         return ExperimentPage(
             id_esgvoc=slug,
             branch_information=BranchFromParentEnd(),
+            # mip_co_chair_review=PendingCoChairReview(url="url"),
         )
 
     experiment_name = get_experiment(slug).drs_name

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Collection, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
@@ -19,6 +19,7 @@ from local.experiment_pairs import (
     render_related_experiments,
     sort_experiment_slugs,
 )
+from local.mip_co_chair_review import NoCoChairReview
 from local.output_time_axis import EsgvocDrivenOutputTimeAxisInformation
 from local.rendering import (
     block,
@@ -169,6 +170,13 @@ class RenderableBranchInformation(Protocol):
         """Render the branch information as a string"""
 
 
+class RenderableMIPCoChairReviewInformation(Protocol):
+    """MIP co-chair information that can be rendered"""
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the MIP co-chair information as a string"""
+
+
 class RenderableOutputTimeAxisInformation(Protocol):
     """Output time axis information that can be rendered"""
 
@@ -201,8 +209,15 @@ class ExperimentPage:
     that don't appear elsewhere.
     """
 
-    output_time_axis_info: str | RenderableOutputTimeAxisInformation | None = (
-        EsgvocDrivenOutputTimeAxisInformation()  # noqa: RUF009 # TODO: be smarter about this
+    mip_co_chair_review: RenderableMIPCoChairReviewInformation | None = field(
+        default_factory=NoCoChairReview
+    )
+    """
+    MIP co-chair review information
+    """
+
+    output_time_axis_info: str | RenderableOutputTimeAxisInformation | None = field(
+        default_factory=EsgvocDrivenOutputTimeAxisInformation
     )
     """
     Output time axis information
@@ -276,9 +291,10 @@ class ExperimentPage:
             else experiment_esgvoc.description
         )
 
-        activity_and_tier_info = join_lines(
+        activity_info = join_lines(
             f"- Responsible activity: {render_activity_index_link(responsible_activity_esgvoc)}",
             f"- Tier: {responsible_activity.get_tier(self.id_esgvoc)}",
+            f"- MIP co-chair review: {self.mip_co_chair_review.render(self)}",
         )
 
         # These have to be defined in their own module.
@@ -303,7 +319,7 @@ class ExperimentPage:
             render_front_matter(title),
             f"# {title}",
             description,
-            activity_and_tier_info,
+            activity_info,
             render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
             experiment_pair_info,
             "## Experiment set up",
