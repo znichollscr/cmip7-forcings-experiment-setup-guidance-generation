@@ -312,16 +312,10 @@ class ExperimentPage:
             "### Parent experiment and branching",
             parent_experiment_and_branching_info,
             "### Output time axis",
-            # Usually quite standard and simple.
-            # Sometimes need lines like,
-            # "You can choose start and end dates, but to keep life for analysts easy,
-            # recommend to keep continuous time axis from branch point/
-            # line up with equivalent section from parent experiment/
-            # line up with time axis of other experiment" etc.
             self.render_output_time_axis_info(),
+            "### Minimum ensemble size",
+            self.render_minimum_ensemble_size_info(),
             ### New plan
-            # "### Minimum ensemble size",
-            # Auto-generate
             # "## Forcings",
             # "### General headlines",
             # Transient vs. fixed vs. both info
@@ -396,6 +390,22 @@ class ExperimentPage:
             branch_information = self.branch_information.render(self)
 
         return branch_information
+
+    def render_minimum_ensemble_size_info(self) -> str:
+        """
+        Render the minimum ensemble size information
+        """
+        min_ensemble_size = self.experiment_esgvoc.min_ensemble_size
+        if not isinstance(min_ensemble_size, int):
+            raise TypeError(min_ensemble_size)
+
+        if min_ensemble_size == 1:
+            res = "Only one ensemble member is required."
+
+        else:
+            res = f"At least {min_ensemble_size} ensemble members are required."
+
+        return res
 
     def render_output_time_axis_info(self) -> str:
         """

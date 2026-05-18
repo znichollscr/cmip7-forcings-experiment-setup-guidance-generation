@@ -26,7 +26,7 @@ def make_scenariomip_page(
     forcing_versions: Mapping[str, ForcingValue],
 ) -> ExperimentPageOld:
     """Create a ScenarioMIP experiment page."""
-    if slug == "scen7-vl-ext":
+    if slug.startswith("scen7-vl"):
         return ExperimentPage(
             id_esgvoc=slug,
             branch_information=BranchFromParentEnd(),
