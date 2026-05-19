@@ -707,3 +707,19 @@ def render_pages(pages: Sequence[RenderablePage]) -> dict[str, str]:
         res[f"{page.slug}.md"] = wrap_markdown(raw)
 
     return res
+
+
+def render_list_human_like(*parts: str) -> str:
+    """
+    Render a list like a human i.e. using 'and' between the last two elements.
+    """
+    if len(parts) < 1:
+        msg = "Need some parts"
+        raise ValueError(msg)
+
+    if len(parts) == 1:
+        return parts[0]
+
+    res = f"{', '.join(parts[:-1])} and {parts[-1]}"
+
+    return res

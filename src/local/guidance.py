@@ -31,6 +31,7 @@ from local.rendering import (
     render_experiment_requirements,
     render_front_matter,
     render_link,
+    render_list_human_like,
 )
 from local.rendering import (
     render_pages as render_page_map,
@@ -195,6 +196,18 @@ class ExperimentPage:
     ID used by esgvoc, typically just the lowercase version of the experiment's DRS name
     """
 
+    # Need to support here:
+    # - specifying the forcings
+    # - saying "Same as other experiment"
+    # - saying "Same as other experiment with your own modifications"
+    # - saying "Combination of forcings from other experiments, plus potential specific extra"
+    #   (e.g. AMIP)
+    # - combinations of the above ?
+    forcings: ForcingInfo
+    """
+    Forcing information for use in this experiment
+    """
+
     branch_information: str | RenderableBranchInformation | None = None
     """
     Branch information
@@ -332,20 +345,23 @@ class ExperimentPage:
             "### Minimum ensemble size",
             self.render_minimum_ensemble_size_info(),
             "## Forcings",
-            join_lines(
-                "The following information will help you identify the forcings to use. "
-                "However, we can't define every single detail "
-                "because there can be lots of subjective steps between the raw forcings data "
-                "and model inputs (e.g. interpolation, re-aggregation, supplementation with other information). "
-                "If further guidance would be helpful, "
-                "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new)."
-            ),
+            self.render_forcing_info(header_level_min=3),
+            # - whether transient, fixed or mix
+            # Getting the data
+            # Here we make a distinction between data distributed via ESGF's input4MIPs project
+            # and data distributed via other channels.
+            # input4MIPs
+            # - data type (human-readable name), source ID, further guidance notes URL, other notes
+            # - repeat data type and source ID as JSON for easier parsing/re-use if people want
+            # getting input4MIPs data
+            # Other data
+            # - data type (human-readable name), further guidance notes URL, other notes
             # To impelemnt the below, we need to carry around forcing versions
             # and then whether they are transient or fixed or both for each forcing type,
             # with notes about individual variables where they're easy.
             # This should allow us to write the general headlines
             # and data retrieval parts with sufficient detail
-            # and conssitency between sections.
+            # and consistency between sections.
             ### New plan
             # "### General headlines",
             # Transient vs. fixed vs. both info
@@ -421,6 +437,51 @@ class ExperimentPage:
             branch_information = self.branch_information.render(self)
 
         return branch_information
+
+    def render_forcing_info(self, header_level_min: int) -> str:
+        """
+        Render the forcing information
+        """
+        # fixed_or_transient_or_mix = (
+        #     f"The {self.drs_name} experiment is a {}".
+        # )
+        res = join_blocks(
+            join_lines(
+                "The following information will help you identify the forcings to use. "
+                "However, we can't define every single detail "
+                "because there can be lots of subjective steps between the raw forcings data "
+                "and model inputs (e.g. interpolation, re-aggregation, supplementation with other information). "
+                "If further guidance would be helpful, "
+                "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new)."
+            ),
+            f"{'#' * header_level_min} General headlines",
+            self.render_forcing_fixed_or_transient_or_mix_info(),
+        )
+
+        return res
+
+    def render_forcing_fixed_or_transient_or_mix_info(self) -> str:
+        """
+        Render information about whether forcings for a given experiment are fixed, transient or both
+        """
+        if all(v.fixed for v in self.forcings):
+            res = f"The {self.drs_name} is a fixed forcings experiment."
+        elif all(not v.fixed for v in self.forcings):
+            res = f"The {self.drs_name} is a transient forcings experiment."
+        else:
+            fixed_forcings_names = render_list_human_like(
+                *(v.label for v in self.forcings if v.fixed)
+            )
+            transient_forcings_names = render_list_human_like(
+                *(v.label for v in self.forcings if not v.fixed)
+            )
+            res = join_lines(
+                f"The {self.drs_name} uses a mix of fixed and transient forcings.",
+                f"The fixed forcings are: {fixed_forcings_names}."
+                f"The transient forcings are: {transient_forcings_names}.",
+            )
+
+        return res
 
     def render_minimum_ensemble_size_info(self) -> str:
         """
