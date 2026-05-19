@@ -12,6 +12,7 @@ from local.forcing_versions import (
     PI_CONTROL_FORCING_VERSIONS,
     source_ids_from_forcing_versions,
 )
+from local.forcings import HISTORICAL_FORCINGS_SPECIFICATION, ForcingSpecification
 from local.guidance import (
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
@@ -248,6 +249,11 @@ def get_historical_description(
 CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     ExperimentPage(
         id_esgvoc="picontrol-spinup",
+        forcings=ForcingSpecification(
+            # other_experiment_based_forcings=to_other_experiment_based_forcings(
+            #     PI_CONTROL_FORCINGS_SPECIFICATION,
+            # )
+        ),
         # render_description=get_historical_description,
     ),
     # make_picontrol_spinup_page(
@@ -288,11 +294,13 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         id_esgvoc="historical",
         render_description=get_historical_description,
         branch_information=BranchFromParentAtAnyTime(),
+        forcings=HISTORICAL_FORCINGS_SPECIFICATION,
     ),
     ExperimentPage(
         id_esgvoc="esm-hist",
         render_description=partial(get_historical_description, emms_driven=True),
         branch_information=BranchFromParentAtAnyTime(),
+        forcings=ForcingSpecification(),
     ),
     ExperimentPageOld(
         slug="1pctco2",

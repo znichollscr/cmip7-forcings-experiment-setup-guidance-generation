@@ -19,6 +19,11 @@ from local.experiment_pairs import (
     render_related_experiments,
     sort_experiment_slugs,
 )
+from local.forcings import (
+    ESGFBasedForcingSpecification,
+    ForcingSpecification,
+    NonESGFBasedForcingSpecification,
+)
 from local.mip_co_chair_review import NoCoChairReview
 from local.output_time_axis import EsgvocDrivenOutputTimeAxisInformation
 from local.rendering import (
@@ -196,16 +201,9 @@ class ExperimentPage:
     ID used by esgvoc, typically just the lowercase version of the experiment's DRS name
     """
 
-    # Need to support here:
-    # - specifying the forcings
-    # - saying "Same as other experiment"
-    # - saying "Same as other experiment with your own modifications"
-    # - saying "Combination of forcings from other experiments, plus potential specific extra"
-    #   (e.g. AMIP)
-    # - combinations of the above ?
-    forcings: ForcingInfo
+    forcings: ForcingSpecification
     """
-    Forcing information for use in this experiment
+    Forcing specification for use in this experiment
     """
 
     branch_information: str | RenderableBranchInformation | None = None
@@ -346,35 +344,6 @@ class ExperimentPage:
             self.render_minimum_ensemble_size_info(),
             "## Forcings",
             self.render_forcing_info(header_level_min=3),
-            # - whether transient, fixed or mix
-            # Getting the data
-            # Here we make a distinction between data distributed via ESGF's input4MIPs project
-            # and data distributed via other channels.
-            # input4MIPs
-            # - data type (human-readable name), source ID, further guidance notes URL, other notes
-            # - repeat data type and source ID as JSON for easier parsing/re-use if people want
-            # getting input4MIPs data
-            # Other data
-            # - data type (human-readable name), further guidance notes URL, other notes
-            # To impelemnt the below, we need to carry around forcing versions
-            # and then whether they are transient or fixed or both for each forcing type,
-            # with notes about individual variables where they're easy.
-            # This should allow us to write the general headlines
-            # and data retrieval parts with sufficient detail
-            # and consistency between sections.
-            ### New plan
-            # "### General headlines",
-            # Transient vs. fixed vs. both info
-            # See what else generally appears here
-            # "### Data",
-            # # This bit should focus on what data to use exactly,
-            # # where to get it, how to identify version, where to get more information
-            # # if you need to make modifications yourself etc.
-            # # As much as possible, refer to other experiment pages to avoid overwhelming people
-            # # (both in text but also the download script).
-            # # Split this part into data that comes from input4MIPs (with specific versions)
-            # # and data that doesn't to make things easier for managing and communicating.
-            ### End new plan
             #
             #
             # "## Experiment set up",
@@ -442,9 +411,13 @@ class ExperimentPage:
         """
         Render the forcing information
         """
-        # fixed_or_transient_or_mix = (
-        #     f"The {self.drs_name} experiment is a {}".
-        # )
+        # Getting the data
+        # input4MIPs
+        # - data type (human-readable name), source ID, further guidance notes URL, other notes
+        # - repeat data type and source ID as JSON for easier parsing/re-use if people want
+        # getting input4MIPs data
+        # Other data
+        # - data type (human-readable name), further guidance notes URL, other notes
         res = join_blocks(
             join_lines(
                 "The following information will help you identify the forcings to use. "
@@ -456,6 +429,40 @@ class ExperimentPage:
             ),
             f"{'#' * header_level_min} General headlines",
             self.render_forcing_fixed_or_transient_or_mix_info(),
+            f"{'#' * header_level_min} Data",
+            join_lines(
+                "Here we make a distinction between data available via ESGF's input4MIPs project "
+                "and data distributed via other channels."
+            ),
+            f"{'#' * (header_level_min + 1)} Data available via input4MIPs",
+            # Text about what the different source IDs (recommended vs. acceptable) mean
+            join_blocks(
+                *(
+                    join_lines(
+                        f"- {v.label}",
+                        f"    - recommended source IDs: {', '.join(v.recommended_versions)}",
+                        f"    - acceptable source IDs: {', '.join(v.acceptable_versions)}"
+                        if v.acceptable_versions
+                        else "",
+                        # notes
+                        # Links to input4MIPs CVs
+                    )
+                    for v in self.forcings.specific_forcings
+                    if isinstance(v, ESGFBasedForcingSpecification)
+                )
+            ),
+            # Download script
+            f"{'#' * (header_level_min + 1)} Data not available via input4MIPs",
+            join_blocks(
+                *(
+                    join_lines(
+                        f"- {v.label}",
+                        # notes
+                    )
+                    for v in self.forcings.specific_forcings
+                    if isinstance(v, NonESGFBasedForcingSpecification)
+                )
+            ),
         )
 
         return res
@@ -464,19 +471,21 @@ class ExperimentPage:
         """
         Render information about whether forcings for a given experiment are fixed, transient or both
         """
-        if all(v.fixed for v in self.forcings):
-            res = f"The {self.drs_name} is a fixed forcings experiment."
-        elif all(not v.fixed for v in self.forcings):
-            res = f"The {self.drs_name} is a transient forcings experiment."
+        if all(v.fixed for v in self.forcings.all_forcings):
+            res = f"The {self.drs_name} experiment is a fixed forcings experiment."
+
+        elif all(not v.fixed for v in self.forcings.all_forcings):
+            res = f"The {self.drs_name} experiment is a transient forcings experiment."
+
         else:
             fixed_forcings_names = render_list_human_like(
-                *(v.label for v in self.forcings if v.fixed)
+                *(v.label for v in self.forcings.all_forcings if v.fixed)
             )
             transient_forcings_names = render_list_human_like(
-                *(v.label for v in self.forcings if not v.fixed)
+                *(v.label for v in self.forcings.all_forcings if not v.fixed)
             )
             res = join_lines(
-                f"The {self.drs_name} uses a mix of fixed and transient forcings.",
+                f"The {self.drs_name} experiment uses a mix of fixed and transient forcings.",
                 f"The fixed forcings are: {fixed_forcings_names}."
                 f"The transient forcings are: {transient_forcings_names}.",
             )
@@ -592,7 +601,7 @@ PICLIM_TIME_AXIS = block(
 
 
 def experiment_pages() -> tuple[ExperimentPageOld, ...]:
-    """Return generated experiment pages grouped by responsible activity."""
+    """Return generated experiment pages."""
     from local.activity_pages.aerchemmip import AERCHEMMIP_EXPERIMENT_PAGES
     from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
     from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
