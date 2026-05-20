@@ -555,7 +555,7 @@ class ExperimentPage:
 
         else:
             data_availablity_specific_input4mips_based = join_lines(
-                "No ESGF-based data is described specifically on this page. ",
+                "No input4MIPs-based data is described specifically on this page. ",
                 f"Please see the other {internal_data_link} sub-sections for details of the forcings data to use for this experiment.",
             )
 
@@ -577,7 +577,7 @@ class ExperimentPage:
 
         else:
             data_availability_specific_not_input4mips_based = join_lines(
-                "No input4MIPs-based data is described specifically on this page. ",
+                "No data that is not input4MIPs-based is described specifically on this page. ",
                 f"Please see the other {internal_data_link} sub-sections for details of the forcings data to use for this experiment.",
             )
 

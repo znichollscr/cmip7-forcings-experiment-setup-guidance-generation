@@ -263,37 +263,36 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                 for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
             )
         ),
-        # render_description=get_historical_description,
-    ),
-    # make_picontrol_spinup_page(
-    #     slug="picontrol-spinup",
-    #     experiment_name="piControl-spinup",
-    #     simulation_label="pre-industrial control spin-up simulation",
-    #     forcing_values_experiment_name="piControl",
-    # ),
-    # make_picontrol_forcing_page(
-    #     slug="picontrol",
-    #     experiment_name="piControl",
-    #     simulation_label="pre-industrial control simulation",
-    #     setup_forcing_description="a specific set of forcings",
-    # ),
-    make_picontrol_spinup_page(
-        slug="esm-picontrol-spinup",
-        experiment_name="esm-piControl-spinup",
-        simulation_label="emissions-driven pre-industrial control spin-up simulation",
-        forcing_values_experiment_name="esm-piControl",
-    ),
-    make_picontrol_forcing_page(
-        slug="esm-picontrol",
-        experiment_name="esm-piControl",
-        simulation_label="emissions-driven pre-industrial control simulation",
-        setup_forcing_description="a specific set of forcings",
     ),
     ExperimentPage(
         id_esgvoc="picontrol",
-        # render_description=get_historical_description,
         branch_information=BranchFromParentAtAnyTime(),
         forcings=PICONTROL_FORCINGS_SPECIFICATION,
+    ),
+    ExperimentPage(
+        id_esgvoc="esm-picontrol-spinup",
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=tuple(
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug=v.forcing_slug,
+                    experiment_esgvoc_id="picontrol",
+                )
+                for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+            )
+        ),
+    ),
+    ExperimentPage(
+        id_esgvoc="esm-picontrol",
+        branch_information=BranchFromParentAtAnyTime(),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=tuple(
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug=v.forcing_slug,
+                    experiment_esgvoc_id="picontrol",
+                )
+                for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+            )
+        ),
     ),
     ExperimentPage(
         id_esgvoc="historical",
