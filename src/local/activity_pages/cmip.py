@@ -6,12 +6,6 @@ from functools import partial
 from textwrap import indent
 
 from local.branching import BranchAtSameTimeAsOtherExperiment, BranchFromParentAtAnyTime
-from local.forcing_references import COMMON_FORCING_NOTES
-from local.forcing_versions import (
-    HISTORICAL_FORCING_VERSIONS,
-    PI_CONTROL_FORCING_VERSIONS,
-    source_ids_from_forcing_versions,
-)
 from local.forcings import (
     HISTORICAL_FORCINGS_SPECIFICATION,
     HISTORICAL_FORCINGS_SPECIFICATION_AMIP_SSTS,
@@ -23,75 +17,16 @@ from local.forcings import (
 from local.guidance import (
     PI_CONTROL_LINK,
     ExperimentPage,
-    ExperimentPageOld,
 )
 from local.output_time_axis import PiClimOutputTimeAxisInformation
 from local.rendering import (
     block,
     join_blocks,
     only_keep_first_sentence,
-    render_data_access_body,
     render_link,
-    render_versions_body,
 )
 from local.vocab import get_experiment
 
-PI_CONTROL_FORCINGS_REPEAT_SETUP = join_blocks(
-    "These should be applied on repeat for the entirety of the simulation.",
-    block(
-        """
-        You are free to start the time axis of your outputs at whatever year you like
-        (e.g. starting at year 1, or 1850, or year 500).
-        """
-    ),
-).strip()
-HISTORICAL_FORCINGS_SETUP_TAIL = "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation."
-PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE = block(
-    """
-    As noted above, the prescribed sea-surface temperatures and sea-ice concentrations
-    must come from model output from one of your own simulations,
-    they are not provided by a forcings provider.
-    """
-)
-PI_CONTROL_OZONE_FORCING_NOTE = block(
-    """
-    Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-1-2`,
-    no `piControl` data is included in `FZJ-CMIP-ozone-2-0`
-    (which only updates `historical` values).
-    """
-)
-HISTORICAL_OZONE_FORCING_NOTE = block(
-    """
-    Please note that the ozone forcing should come from files with the source ID `FZJ-CMIP-ozone-2-0`:
-    the CMIP Panel co-chairs are recommending that simulations based on `FZJ-CMIP-ozone-1-2` are re-run if possible.
-    `FZJ-CMIP-ozone-2-0` was released quite late, so if you have simulations based on `FZJ-CMIP-ozone-1-2`,
-    these would be of interest to the Forcings Task Team so please publish them
-    ([discussion of how to set the value for the forcing 'f' identifier in such files is ongoing](https://github.com/PCMDI/input4MIPs_CVs/issues/415)).
-    """
-)
-NITROGEN_DEPOSITION_FORCING_NOTE = block(
-    """
-    Please also note that the nitrogen deposition forcing should come from files with the source ID `FZJ-CMIP-nitrogen-2-0`.
-    `FZJ-CMIP-nitrogen-2-0` was released quite late and the impact of the change is likely to be small,
-    so if you have simulations based on `FZJ-CMIP-nitrogen-1-2`,
-    you do not need to re-run them.
-    """
-)
-HISTORICAL_NITROGEN_DEPOSITION_RECOMMENDATION = block(
-    """
-    Further, even if you have run pre-industrial control simulations with `FZJ-CMIP-nitrogen-1-2`,
-    it is recommended to nonetheless run historical simulations with `FZJ-CMIP-nitrogen-2-0`
-    because the discontinuity going from pre-industrial control `FZJ-CMIP-nitrogen-1-2`
-    to historical `FZJ-CMIP-nitrogen-2-0` is expected to introduce smaller issues
-    than using `FZJ-CMIP-nitrogen-1-2` over the historical period.
-    """
-)
-READ_FORCING_NOTES_GUIDANCE = block(
-    """
-    Please read the guidance pages linked under [notes](#notes)
-    to ensure that you use the correct forcing values.
-    """
-)
 ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
     block(
         r"""
@@ -150,144 +85,6 @@ ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
 
 PRESENT_YEAR = get_experiment("historical").end_timestamp.year
 
-PI_CONTROL_VERSIONS_TO_USE = render_versions_body(PI_CONTROL_FORCING_VERSIONS)
-HISTORICAL_VERSIONS_TO_USE = render_versions_body(HISTORICAL_FORCING_VERSIONS)
-
-
-def picontrol_forcings_setup(first_sentence: str) -> str:
-    """Render setup guidance for a piControl-forcings CMIP experiment."""
-    return join_blocks(first_sentence, PI_CONTROL_FORCINGS_REPEAT_SETUP).strip()
-
-
-def historical_forcings_setup(simulation_label: str) -> str:
-    """Render setup guidance for a historical-forcings CMIP experiment."""
-    return join_blocks(
-        f"The {simulation_label} uses a specific set of forcings (see [forcings](#forcings)).",
-        HISTORICAL_FORCINGS_SETUP_TAIL,
-    ).strip()
-
-
-def picontrol_cmip_data_access_body(experiment_name: str) -> str:
-    """Render the data-access body for piControl CMIP forcings."""
-    return render_data_access_body(
-        experiment_name=experiment_name,
-        source_ids=picontrol_cmip_source_ids(),
-    )
-
-
-def historical_cmip_data_access_body(experiment_name: str) -> str:
-    """Render the data-access body for historical CMIP forcings."""
-    return render_data_access_body(
-        experiment_name=experiment_name,
-        source_ids=historical_cmip_source_ids(),
-    )
-
-
-def picontrol_cmip_source_ids() -> tuple[str, ...]:
-    """Return source IDs for piControl CMIP forcings."""
-    return source_ids_from_forcing_versions(PI_CONTROL_FORCING_VERSIONS)
-
-
-def historical_cmip_source_ids() -> tuple[str, ...]:
-    """Return source IDs for historical CMIP forcings."""
-    return source_ids_from_forcing_versions(HISTORICAL_FORCING_VERSIONS)
-
-
-def picontrol_forcing_headlines(
-    experiment_name: str,
-    *,
-    forcing_values_experiment_name: str | None = None,
-) -> str:
-    """Render shared piControl-forcings headlines."""
-    forcing_values_experiment_name = forcing_values_experiment_name or experiment_name
-    return join_blocks(
-        block(
-            f"""
-        The `{experiment_name}` experiment is a fixed forcings experiment.
-
-        However, it can require some care to use the correct forcings for `{forcing_values_experiment_name}`.
-        This is particularly true for stratospheric aerosol forcing, ozone and solar
-        as the `{forcing_values_experiment_name}` values for these forcings aren't simply a repeat of 1850 values.
-        """
-        ),
-        PI_CONTROL_OZONE_FORCING_NOTE,
-        NITROGEN_DEPOSITION_FORCING_NOTE,
-        READ_FORCING_NOTES_GUIDANCE,
-    ).strip()
-
-
-def historical_forcing_headlines(experiment_name: str) -> str:
-    """Render shared historical-forcings headlines."""
-    return join_blocks(
-        block(
-            f"""
-        The `{experiment_name}` experiment is a time-varying forcings experiment.
-        """
-        ),
-        HISTORICAL_OZONE_FORCING_NOTE,
-        NITROGEN_DEPOSITION_FORCING_NOTE,
-        HISTORICAL_NITROGEN_DEPOSITION_RECOMMENDATION,
-        READ_FORCING_NOTES_GUIDANCE,
-    ).strip()
-
-
-def make_picontrol_forcing_page(
-    *,
-    slug: str,
-    experiment_name: str,
-    simulation_label: str,
-    setup_forcing_description: str,
-    forcing_values_experiment_name: str | None = None,
-) -> ExperimentPageOld:
-    """Create a piControl-forcing page."""
-    return ExperimentPageOld(
-        slug=slug,
-        experiment_setup=picontrol_forcings_setup(
-            f"The {simulation_label} uses {setup_forcing_description} (see [forcings](#forcings))."
-        ),
-        forcing_headlines=picontrol_forcing_headlines(
-            experiment_name,
-            forcing_values_experiment_name=forcing_values_experiment_name,
-        ),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=PI_CONTROL_VERSIONS_TO_USE,
-        getting_the_data=picontrol_cmip_data_access_body(experiment_name),
-    )
-
-
-def make_picontrol_spinup_page(
-    *,
-    slug: str,
-    experiment_name: str,
-    simulation_label: str,
-    forcing_values_experiment_name: str,
-) -> ExperimentPageOld:
-    """Create a piControl spin-up page."""
-    return make_picontrol_forcing_page(
-        slug=slug,
-        experiment_name=experiment_name,
-        simulation_label=simulation_label,
-        setup_forcing_description="piControl forcings",
-        forcing_values_experiment_name=forcing_values_experiment_name,
-    )
-
-
-def make_historical_page(
-    *,
-    slug: str,
-    experiment_name: str,
-    simulation_label: str,
-) -> ExperimentPageOld:
-    """Create a historical page."""
-    return ExperimentPageOld(
-        slug=slug,
-        experiment_setup=historical_forcings_setup(simulation_label),
-        forcing_headlines=historical_forcing_headlines(experiment_name),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=HISTORICAL_VERSIONS_TO_USE,
-        getting_the_data=historical_cmip_data_access_body(experiment_name),
-    )
-
 
 def get_historical_description(
     esgvoc_description: str, emms_driven: bool = False
@@ -304,7 +101,7 @@ def get_historical_description(
     return res
 
 
-CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
+CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         id_esgvoc="picontrol-spinup",
         forcings=ForcingSpecification(
