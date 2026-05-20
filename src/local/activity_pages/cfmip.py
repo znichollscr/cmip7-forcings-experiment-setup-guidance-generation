@@ -13,6 +13,7 @@ from local.forcing_versions import (
     source_ids_from_forcing_versions,
 )
 from local.forcings import (
+    HISTORICAL_FORCINGS_SPECIFICATION,
     PICONTROL_FORCINGS_SPECIFICATION,
     ForcingSpecification,
     OtherExperimentBasedForcingSpecification,
@@ -112,20 +113,39 @@ def make_amip_variant_page(
 
 
 CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
-    make_amip_variant_page(
-        slug="amip-p4k",
-        setup_text=(
-            "Sea-surface temperatures are increased by 4K in ice-free regions."
-        ),
-        headline_text=(
-            "The `amip-p4K` experiment is a time-varying forcings experiment."
-        ),
-        source_forcing_versions=HISTORICAL_FORCING_VERSIONS,
-        extra_note=(
-            "You have to add the 4K to the sea-surface temperatures in your "
-            "model's ice-free regions yourself."
+    ExperimentPage(
+        id_esgvoc="amip-p4k",
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="historical",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                ),
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug="amip-sst-sea-ice-boundary-forcing",
+                    experiment_esgvoc_id="amip",
+                    user_modifications="add 4K to sea-surface temperatures in ice-free regions",
+                ),
+            ),
         ),
     ),
+    # make_amip_variant_page(
+    #     slug="amip-p4k",
+    #     setup_text=(
+    #         "Sea-surface temperatures are increased by 4K in ice-free regions."
+    #     ),
+    #     headline_text=(
+    #         "The `amip-p4K` experiment is a time-varying forcings experiment."
+    #     ),
+    #     source_forcing_versions=HISTORICAL_FORCING_VERSIONS,
+    #     extra_note=(
+    #         "You have to add the 4K to the sea-surface temperatures in your "
+    #         "model's ice-free regions yourself."
+    #     ),
+    # ),
     make_amip_variant_page(
         slug="amip-piforcing",
         setup_text=(
