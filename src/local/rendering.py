@@ -115,14 +115,14 @@ def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
         list_item_match = LIST_ITEM_RE.match(line)
         if list_item_match:
             flush_paragraph()
-            wrapped.extend(
-                _wrap_list_item(
-                    list_item_match.group(1),
-                    list_item_match.group(2),
-                    width=width,
-                )
+            item_wrapped, consumed = _wrap_list_item_at(
+                lines,
+                index=index,
+                marker=list_item_match.group(1),
+                width=width,
             )
-            index += 1
+            wrapped.extend(item_wrapped)
+            index += consumed
             continue
 
         paragraph.append(line)
@@ -136,6 +136,9 @@ def _preserved_block_end(stripped_line: str) -> str | None:
     """Return the end marker for markdown blocks that should not be wrapped."""
     if stripped_line.startswith("```"):
         return "```"
+
+    if stripped_line == "$$":
+        return "$$"
 
     if stripped_line.startswith("<!--") and "-->" not in stripped_line:
         return "-->"
@@ -184,16 +187,113 @@ def _wrap_paragraph(lines: Sequence[str], *, width: int) -> list[str]:
     )
 
 
-def _wrap_list_item(marker: str, text: str, *, width: int) -> list[str]:
+def _wrap_list_item_at(
+    lines: Sequence[str],
+    *,
+    index: int,
+    marker: str,
+    width: int,
+) -> tuple[list[str], int]:
+    """Wrap the list item starting at ``index``."""
+    item_lines, consumed = _collect_list_item_lines(lines[index:], marker=marker)
+    return _wrap_list_item(item_lines, marker=marker, width=width), consumed
+
+
+def _wrap_list_item(lines: Sequence[str], *, marker: str, width: int) -> list[str]:
     """Wrap a single markdown list item."""
     continuation_indent = " " * len(marker)
-    return _wrap_sentences(
-        text.strip(),
-        width=width,
-        first_indent=marker,
-        subsequent_indent=continuation_indent,
-        next_sentence_indent=continuation_indent,
-    )
+    block_indent = " " * (len(marker) + 2)
+    wrapped: list[str] = []
+    paragraph: list[str] = []
+    preserved_block_end: str | None = None
+    first_paragraph = True
+
+    first_line_match = LIST_ITEM_RE.match(lines[0])
+    if first_line_match is None:
+        return []
+
+    paragraph.append(first_line_match.group(2))
+
+    def flush_paragraph() -> None:
+        nonlocal first_paragraph
+        if not paragraph:
+            return
+
+        first_indent = marker if first_paragraph else block_indent
+        subsequent_indent = continuation_indent if first_paragraph else block_indent
+        wrapped.extend(
+            _wrap_sentences(
+                " ".join(line.strip() for line in paragraph),
+                width=width,
+                first_indent=first_indent,
+                subsequent_indent=subsequent_indent,
+                next_sentence_indent=subsequent_indent,
+            )
+        )
+        paragraph.clear()
+        first_paragraph = False
+
+    for line in lines[1:]:
+        stripped = line.strip()
+
+        if preserved_block_end is not None:
+            wrapped.append(line)
+            if preserved_block_end in stripped:
+                preserved_block_end = None
+            continue
+
+        if not stripped:
+            flush_paragraph()
+            wrapped.append("")
+            continue
+
+        if block_end := _preserved_block_end(stripped):
+            flush_paragraph()
+            wrapped.append(line)
+            preserved_block_end = block_end
+            continue
+
+        if _should_preserve_line(line):
+            flush_paragraph()
+            wrapped.append(line)
+            continue
+
+        paragraph.append(line)
+
+    flush_paragraph()
+    return wrapped
+
+
+def _collect_list_item_lines(
+    lines: Sequence[str],
+    *,
+    marker: str,
+) -> tuple[list[str], int]:
+    """Collect the lines that belong to a list item."""
+    continuation_indent = len(marker)
+    item_lines: list[str] = [lines[0]]
+    index = 1
+
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+
+        if not stripped:
+            item_lines.append(line)
+            index += 1
+            continue
+
+        next_item_match = LIST_ITEM_RE.match(line)
+        if next_item_match:
+            break
+
+        if len(line) - len(line.lstrip()) < continuation_indent:
+            break
+
+        item_lines.append(line)
+        index += 1
+
+    return item_lines, index
 
 
 def _wrap_sentences(

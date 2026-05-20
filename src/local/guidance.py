@@ -432,8 +432,8 @@ class ExperimentPage:
                 other_page_dot_points = "\n".join(
                     f"- {render_link(experiment_drs_name, experiment_esgvoc_id)} for {', '.join(source_ids)}"
                     for (
-                        experiment_drs_name,
                         experiment_esgvoc_id,
+                        experiment_drs_name,
                     ), source_ids in source_ids_grouped.items()
                 )
                 data_described_on_other_experiment_pages = f"The data is described on other experiment pages, see:\n\n{other_page_dot_points}"
@@ -456,7 +456,7 @@ class ExperimentPage:
                     source_experiment.drs_name, source_experiment.id
                 )
                 modifications_list.append(
-                    f"- for {source_forcing.label}, use the forcings from {source_experiment.drs_name} but {v.user_modifications}".replace(
+                    f"- for {source_forcing.label}, use the forcings from {source_experiment.drs_name} but\n  {v.user_modifications}".replace(
                         f" {source_experiment.drs_name} ", f" {source_experiment_link} "
                     ).replace(
                         f" {source_experiment.id} ", f" {source_experiment_link} "
