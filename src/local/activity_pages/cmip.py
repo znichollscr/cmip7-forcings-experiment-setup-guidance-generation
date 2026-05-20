@@ -17,6 +17,7 @@ from local.forcings import (
     HISTORICAL_FORCINGS_SPECIFICATION,
     PICONTROL_FORCINGS_SPECIFICATION,
     ForcingSpecification,
+    NonInput4MIPsBasedForcingSpecification,
     OtherExperimentBasedForcingSpecification,
 )
 from local.guidance import (
@@ -27,6 +28,7 @@ from local.guidance import (
     ExperimentPage,
     ExperimentPageOld,
 )
+from local.output_time_axis import PiClimOutputTimeAxisInformation
 from local.piclim_variants import (
     HistoricalForcing,
     make_piclim_historical_forcing_variant_page,
@@ -36,6 +38,7 @@ from local.rendering import (
     join_blocks,
     join_lines,
     render_data_access_body,
+    render_link,
     render_versions_body,
     render_versions_json,
     same_as_versions,
@@ -432,56 +435,41 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
             "be set to four times the CO<sub>2</sub> concentrations used in the piControl experiment.",
         ),
     ),
-    ExperimentPageOld(
-        slug="piclim-control",
-        experiment_setup=join_blocks(
-            join_lines(
-                "The piClim-control simulation uses the same forcings as [piControl](./picontrol.md),",
-                "with the extra specification that sea-surface temperatures and sea-ice concentrations are prescribed.",
+    ExperimentPage(
+        id_esgvoc="piclim-control",
+        branch_information=BranchFromParentAtAnyTime(),
+        forcings=ForcingSpecification(
+            specific_forcings=(
+                NonInput4MIPsBasedForcingSpecification(
+                    forcing_slug="sst-sea-ice-boundary-forcing",
+                    fixed=True,
+                    notes=(
+                        "derived from a (monthly varying, annually repeating) "
+                        "climatology taken from at least 30 years of your "
+                        f"{render_link('pre-industrial control', 'picontrol')} simulation"
+                    ),
+                ),
             ),
+            other_experiment_based_forcings=tuple(
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug=v.forcing_slug,
+                    experiment_esgvoc_id="picontrol",
+                )
+                for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+            ),
+        ),
+        experiment_setup_notes=join_blocks(
             block(
-                """
+                f"""
                 The prescribed sea-surface temperatures and sea-ice concentrations
                 must come from a (monthly varying, annually repeating)
-                climatology taken from at least 30 years of your [pre-industrial control](./picontrol.md) simulation
+                climatology taken from at least 30 years of your {render_link("pre-industrial control", "picontrol")} simulation
                 (i.e. these forcings are derived from your model output from one of your own simulations,
                 they are not provided by a forcings provider).
                 """
             ),
-            block(
-                """
-                The start-time of the simulation is not tied to a particular year but, rather, can be chosen arbitrarily
-                (e.g., year 200 or year 1850 or year 1).
-                If you have no other strong feeling, then it may be clearest to set the start-time
-                to be equal to the middle of the period over which the climatology was taken from the pre-industrial control experiment.
-                For example, if your climatology is taken over the years 120-150 in the pre-industrial control experiment,
-                then you could start the time axis of your `piClim-control` at 135.
-                """
-            ),
-        ).strip(),
-        forcing_headlines=(
-            "The `piClim-control` experiment is a fixed forcings experiment.\n"
-            f"For further general headlines, please see the general headlines for the {PI_CONTROL_LINK}."
         ),
-        notes=f"See notes for the {PI_CONTROL_LINK}.",
-        versions_to_use=join_blocks(
-            same_as_versions("piControl simulation", "picontrol"),
-            join_lines(
-                PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
-                block(
-                    """
-                We recommend including information in your `piClim-control` output
-                that identifies the `piControl` simulation and time period used to generate
-                the prescribed sea-surface temperatures and sea-ice concentrations.
-                """
-                ),
-            ),
-        ).strip(),
-        getting_the_data=render_data_access_body(
-            experiment_name="piClim-control",
-            source_ids=picontrol_cmip_source_ids(),
-            extra=PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
-        ),
+        output_time_axis_info=PiClimOutputTimeAxisInformation(),
     ),
     ExperimentPageOld(
         slug="piclim-4xco2",

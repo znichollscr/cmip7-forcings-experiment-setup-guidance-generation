@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from local.rendering import block, join_blocks
+
 if TYPE_CHECKING:
     from local.guidance import ExperimentPage
 
@@ -101,5 +103,41 @@ class EsgvocDrivenOutputTimeAxisInformation:
                     f"{res} You must perform at least "
                     f"{min_number_years_per_simulation} simulation {year}."
                 )
+
+        return res
+
+
+@dataclass(frozen=True)
+class PiClimOutputTimeAxisInformation:
+    """
+    Output time axis information for piClim-* experiments
+    """
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the output time axis information as a string"""
+        experiment_esgvoc = experiment.experiment_esgvoc
+        if (
+            experiment_esgvoc.start_timestamp is not None
+            or experiment_esgvoc.end_timestamp is not None
+        ):
+            msg = "Expected no specific start and end"
+            raise AssertionError(msg)
+
+        base = EsgvocDrivenOutputTimeAxisInformation().render(experiment)
+        extra_notes = block(
+            f"""
+            If you have no strong feeling, then it may be clearest to set the start time
+            to the middle of the period over which the climatology
+            was taken from the pre-industrial control experiment.
+            For example, if your climatology is taken over the years 120-150
+            in the pre-industrial control experiment,
+            then you could start the time axis
+            of your {experiment_esgvoc.drs_name} output at year 135.
+            """
+        )
+        res = join_blocks(
+            base,
+            extra_notes,
+        )
 
         return res
