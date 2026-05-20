@@ -6,22 +6,21 @@ from functools import partial
 from textwrap import indent
 
 from local.branching import BranchAtSameTimeAsOtherExperiment, BranchFromParentAtAnyTime
-from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
+from local.forcing_references import COMMON_FORCING_NOTES
 from local.forcing_versions import (
-    AMIP_FORCING_VERSIONS,
     HISTORICAL_FORCING_VERSIONS,
     PI_CONTROL_FORCING_VERSIONS,
     source_ids_from_forcing_versions,
 )
 from local.forcings import (
     HISTORICAL_FORCINGS_SPECIFICATION,
+    HISTORICAL_FORCINGS_SPECIFICATION_AMIP_SSTS,
     PICONTROL_FORCINGS_SPECIFICATION,
     ForcingSpecification,
     NonInput4MIPsBasedForcingSpecification,
     OtherExperimentBasedForcingSpecification,
 )
 from local.guidance import (
-    HISTORICAL_LINK,
     PI_CONTROL_LINK,
     ExperimentPage,
     ExperimentPageOld,
@@ -30,12 +29,10 @@ from local.output_time_axis import PiClimOutputTimeAxisInformation
 from local.rendering import (
     block,
     join_blocks,
-    join_lines,
     only_keep_first_sentence,
     render_data_access_body,
     render_link,
     render_versions_body,
-    render_versions_json,
 )
 from local.vocab import get_experiment
 
@@ -352,13 +349,12 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     ),
     ExperimentPage(
         id_esgvoc="historical",
-        render_description=get_historical_description,
         branch_information=BranchFromParentAtAnyTime(),
         forcings=HISTORICAL_FORCINGS_SPECIFICATION,
+        render_description=get_historical_description,
     ),
     ExperimentPage(
         id_esgvoc="esm-hist",
-        render_description=partial(get_historical_description, emms_driven=True),
         branch_information=BranchFromParentAtAnyTime(),
         forcings=ForcingSpecification(
             other_experiment_based_forcings=tuple(
@@ -369,10 +365,19 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                 for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
             )
         ),
+        render_description=partial(get_historical_description, emms_driven=True),
     ),
     ExperimentPage(
         id_esgvoc="1pctco2",
         branch_information=BranchFromParentAtAnyTime(),
+        experiment_setup_notes=join_blocks(
+            f"The 1pctCO2 experiment is a simple branch from the {PI_CONTROL_LINK}. ",
+            "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the experiment.",
+        ),
+        fixed_or_transient_or_mix_forcing_override=(
+            "The 1pctCO2 experiment is a fixed forcings experiment, "
+            "except for CO<sub>2</sub> which is transient."
+        ),
         forcings=ForcingSpecification(
             other_experiment_based_forcings=(
                 *(
@@ -394,18 +399,15 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                 ),
             )
         ),
-        experiment_setup_notes=join_blocks(
-            f"The 1pctCO2 experiment is a simple branch from the {PI_CONTROL_LINK}. ",
-            "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the experiment.",
-        ),
-        fixed_or_transient_or_mix_forcing_override=(
-            "The 1pctCO2 experiment is a fixed forcings experiment, "
-            "except for CO<sub>2</sub> which is transient."
-        ),
     ),
     ExperimentPage(
         id_esgvoc="abrupt-4xco2",
         branch_information=BranchFromParentAtAnyTime(),
+        experiment_setup_notes=join_blocks(
+            f"The abrupt CO<sub>2</sub> quadrupling experiment is a simple branch from the {PI_CONTROL_LINK}. ",
+            "After branching, the atmospheric CO<sub>2</sub> concentrations should "
+            "be set to four times the CO<sub>2</sub> concentrations used in the piControl experiment.",
+        ),
         forcings=ForcingSpecification(
             other_experiment_based_forcings=(
                 *(
@@ -422,11 +424,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                     user_modifications="quadruple the CO<sub>2</sub> concentrations",
                 ),
             )
-        ),
-        experiment_setup_notes=join_blocks(
-            f"The abrupt CO<sub>2</sub> quadrupling experiment is a simple branch from the {PI_CONTROL_LINK}. ",
-            "After branching, the atmospheric CO<sub>2</sub> concentrations should "
-            "be set to four times the CO<sub>2</sub> concentrations used in the piControl experiment.",
         ),
     ),
     ExperimentPage(
@@ -537,38 +534,16 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=only_keep_first_sentence,
     ),
-    ExperimentPageOld(
-        slug="amip",
-        experiment_setup=historical_forcings_setup("amip simulation"),
-        forcing_headlines="The `amip` experiment is a time-varying forcings experiment.",
-        notes=join_blocks(
-            f"See notes for the {PI_CONTROL_LINK}.",
-            (
-                "The following pages give further information on each forcing "
-                f"beyond the ones used in the {HISTORICAL_LINK}:"
-            ),
-            "\n".join(
-                f"- {reference.label}: [{reference.display_url}]({reference.url})"
-                for reference in AMIP_FORCING_REFERENCES
-            ),
-        ).strip(),
-        versions_to_use=join_blocks(
-            join_lines(
-                f"The forcings relevant for this simulation are the same as for the {HISTORICAL_LINK}",
-                "with the addition of the SST and sea-ice forcing.",
-                (
-                    'For this additional forcing, we provide the version(s), in the form of "source ID(s)",'
-                ),
-                "which should be used when running this simulation.",
-                f"For all other forcings, please see the information on the {HISTORICAL_LINK} page.",
-            ),
-            render_versions_json(AMIP_FORCING_VERSIONS),
-        ).strip(),
-        getting_the_data=render_data_access_body(
-            experiment_name="amip",
-            source_ids=source_ids_from_forcing_versions(
-                AMIP_FORCING_VERSIONS,
-                HISTORICAL_FORCING_VERSIONS,
+    ExperimentPage(
+        id_esgvoc="amip",
+        forcings=ForcingSpecification(
+            specific_forcings=(HISTORICAL_FORCINGS_SPECIFICATION_AMIP_SSTS,),
+            other_experiment_based_forcings=tuple(
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug=v.forcing_slug,
+                    experiment_esgvoc_id="historical",
+                )
+                for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
             ),
         ),
     ),

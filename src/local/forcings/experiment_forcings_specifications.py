@@ -172,6 +172,12 @@ PICONTROL_FORCINGS_SPECIFICATION = ForcingSpecification(
     )
 )
 
+HISTORICAL_FORCINGS_SPECIFICATION_AMIP_SSTS = Input4MIPsBasedForcingSpecification(
+    "amip-sst-sea-ice-boundary-forcing",
+    fixed=False,
+    recommended_versions=("PCMDI-AMIP-1-1-10",),
+)
+
 
 def get_iam_based_emissions_scenario_forcings(
     forcing_slug: str,
