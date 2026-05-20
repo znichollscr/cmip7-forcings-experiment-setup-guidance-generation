@@ -190,3 +190,41 @@ class RecommendContinueFromBranchPointTimeAxisInformation:
         )
 
         return res
+
+
+@dataclass(frozen=True)
+class RecommendSameAsOtherExperimentTimeAxisInformation:
+    """
+    Output time axis information for piClim-* experiments
+    """
+
+    other_experiment: str
+    """Other experiment whose time axis should be matched"""
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the output time axis information as a string"""
+        experiment_esgvoc = experiment.experiment_esgvoc
+        if (
+            experiment_esgvoc.start_timestamp is not None
+            or experiment_esgvoc.end_timestamp is not None
+        ):
+            msg = "Expected no specific start and end"
+            raise AssertionError(msg)
+
+        base = EsgvocDrivenOutputTimeAxisInformation().render(experiment)
+
+        other_exp = get_experiment(self.other_experiment)
+        other_exp_link = render_link(other_exp.drs_name, other_exp.id)
+        extra_notes = block(
+            f"""
+        If you have no strong feeling, then you will make life simplest for analysts
+        if you use the same time axis as {other_exp_link}.
+        """
+        )
+
+        res = join_blocks(
+            base,
+            extra_notes,
+        )
+
+        return res
