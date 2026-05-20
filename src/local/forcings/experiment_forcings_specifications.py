@@ -7,14 +7,14 @@ Designed to be re-used and have these all in one place
 from __future__ import annotations
 
 from .specification import (
-    ESGFBasedForcingSpecification,
     ForcingSpecification,
-    NonESGFBasedForcingSpecification,
+    Input4MIPsBasedForcingSpecification,
+    NonInput4MIPsBasedForcingSpecification,
 )
 
 HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
     specific_forcings=(
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "anthropogenic-slcf-co2-emissions",
             fixed=False,
             recommended_versions=(
@@ -22,28 +22,28 @@ HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
                 "CEDS-CMIP-2025-04-18-supplemental",
             ),
         ),
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "open-biomass-burning-emissions",
             fixed=False,
             recommended_versions=("DRES-CMIP-BB4CMIP7-2-0",),
         ),
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "land-use",
             fixed=False,
             recommended_versions=("UofMD-landState-3-1-2",),
             acceptable_versions=("UofMD-landState-3-1-1",),
         ),
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "greenhouse-gas-concentrations",
             fixed=False,
             recommended_versions=("CR-CMIP-1-0-0",),
         ),
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "stratospheric-volcanic-so2-emissions-aod",
             fixed=False,
             recommended_versions=("UOEXETER-CMIP-2-2-1",),
         ),
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "ozone",
             fixed=False,
             recommended_versions=("FZJ-CMIP-ozone-2-0",),
@@ -60,7 +60,7 @@ HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
                 "([discussion of how to set the value for the forcing 'f' identifier in such files is ongoing](https://github.com/PCMDI/input4MIPs_CVs/issues/415))."  # noqa: E501
             ),
         ),
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "nitrogen-deposition",
             fixed=False,
             recommended_versions=("FZJ-CMIP-nitrogen-2-0",),
@@ -82,12 +82,12 @@ HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
                 "than using `FZJ-CMIP-nitrogen-1-2` over the historical period."
             ),
         ),
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "solar",
             fixed=False,
             recommended_versions=("SOLARIS-HEPPA-CMIP-4-6",),
         ),
-        NonESGFBasedForcingSpecification(
+        NonInput4MIPsBasedForcingSpecification(
             "aerosol-optical-properties-macv2-sp",
             fixed=False,
             notes=(
@@ -96,7 +96,7 @@ HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
                 "for data access and version information."
             ),
         ),
-        ESGFBasedForcingSpecification(
+        Input4MIPsBasedForcingSpecification(
             "population",
             fixed=False,
             recommended_versions=("PIK-CMIP-1-0-1",),

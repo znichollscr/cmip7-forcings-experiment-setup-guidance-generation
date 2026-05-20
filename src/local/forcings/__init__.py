@@ -5,9 +5,10 @@ Forcings details
 # TODO: move other forcings content into this module
 from .experiment_forcings_specifications import HISTORICAL_FORCINGS_SPECIFICATION
 from .specification import (
-    ESGFBasedForcingSpecification,
     ForcingSpecification,
-    NonESGFBasedForcingSpecification,
+    Input4MIPsBasedForcingSpecification,
+    NonInput4MIPsBasedForcingSpecification,
+    OtherExperimentBasedForcingSpecification,
 )
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "ESGFBasedForcingSpecification",
     "ForcingSpecification",
     "NonESGFBasedForcingSpecification",
+    "OtherExperimentBasedForcingSpecification",
 ]

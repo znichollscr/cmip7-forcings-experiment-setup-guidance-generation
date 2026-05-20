@@ -21,9 +21,9 @@ from local.experiment_pairs import (
     sort_experiment_slugs,
 )
 from local.forcings import (
-    ESGFBasedForcingSpecification,
     ForcingSpecification,
-    NonESGFBasedForcingSpecification,
+    Input4MIPsBasedForcingSpecification,
+    NonInput4MIPsBasedForcingSpecification,
 )
 from local.mip_co_chair_review import NoCoChairReview
 from local.output_time_axis import EsgvocDrivenOutputTimeAxisInformation
@@ -369,56 +369,216 @@ class ExperimentPage:
         Render the forcing information
         """
         # TODO: clean this up
-        esgf_based_forcings = tuple(
+        internal_data_link = "[data](#data)"
+
+        specific_forcings = self.forcings.specific_forcings
+        specific_forcings_input4mips_based = tuple(
             v
-            for v in self.forcings.specific_forcings
-            if isinstance(v, ESGFBasedForcingSpecification)
+            for v in specific_forcings
+            if isinstance(v, Input4MIPsBasedForcingSpecification)
         )
-        non_esgf_based_forcings = tuple(
+        specific_forcings_not_input4mips_based = tuple(
             v
-            for v in self.forcings.specific_forcings
-            if isinstance(v, NonESGFBasedForcingSpecification)
+            for v in specific_forcings
+            if isinstance(v, NonInput4MIPsBasedForcingSpecification)
         )
 
-        esgf_based_forcings_versions_simple_json = {}
-        recommended_source_ids = []
-        for v in esgf_based_forcings:
-            esgf_based_forcings_versions_simple_json[v.forcing_slug] = {
-                "human_readable_name": v.label,
-                "recommended_versions": v.recommended_versions,
-                "acceptable_versions": v.acceptable_versions,
-            }
-            recommended_source_ids.extend(v.recommended_versions)
-
-        esgpull_download_script = join_blocks(
-            # TODO: clean up use of block vs. join_lines vs. join_blocks, do we really need them all?
-            block("""
-                The data is available on ESGF and searchable [via metagrid](https://esgf-node.ornl.gov/search?project=input4MIPs&versionType=all&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%7D),
-                although this method of finding and downloading the data can involve a lot of clicking.
-            """),
-            block("""
-                If you install [esgpull](https://esgf.github.io/esgf-download/),
-                you can download all the data associated with the recommended source IDs above
-                using the script given below.
-                Note that this will download all the data associated with these source IDs,
-                which is likely to be much more data than you actually need to run your model.
-            """),
-            block(f"""
-                ```bash
-                #!/bin/bash
-
-                EXPERIMENT_NAME="{self.drs_name}"
-
-                ## You may need to run the below if you haven't already done it once with esgpull
-                # esgpull self install
-                ## You may also need to run this step to get the data to download
-                # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
-                esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(recommended_source_ids)}
-                esgpull update --tag ${{EXPERIMENT_NAME}} --yes
-                esgpull download --tag ${{EXPERIMENT_NAME}}
-                ```
-            """),
+        other_experiment_based_forcings = self.forcings.other_experiment_based_forcings
+        other_experiment_based_forcings_without_modifications_info = tuple(
+            v
+            for v in self.forcings.other_experiment_based_forcings
+            if not v.user_modifications
         )
+        other_experiment_based_forcings_with_modifications_info = tuple(
+            v
+            for v in self.forcings.other_experiment_based_forcings
+            if v.user_modifications
+        )
+
+        if other_experiment_based_forcings:
+            other_experiment_based_forcings_without_modifications_info = tuple(
+                v
+                for v in self.forcings.other_experiment_based_forcings
+                if not v.user_modifications
+            )
+            source_experiment_ids_set = set(
+                v.experiment_esgvoc_id
+                for v in self.forcings.other_experiment_based_forcings
+            )
+            all_forcings_described_on_single_other_experiment_page = (
+                len(source_experiment_ids_set) == 1
+            )
+            source_experiment_ids = list(source_experiment_ids_set)
+
+            if (
+                all_forcings_described_on_single_other_experiment_page
+                and not specific_forcings
+            ):
+                if len(source_experiment_ids) != 1:
+                    raise AssertionError(source_experiment_ids)
+
+                source_experiment_id = source_experiment_ids[0]
+                source_experiment = get_experiment(source_experiment_id)
+                source_experiment_link = render_link(
+                    source_experiment.drs_name, source_experiment.id
+                )
+
+            else:
+                raise NotImplementedError
+
+        if other_experiment_based_forcings_without_modifications_info:
+            source_experiment_ids_set = set(
+                v.experiment_esgvoc_id
+                for v in other_experiment_based_forcings_without_modifications_info
+            )
+            if (
+                not specific_forcings
+                and not other_experiment_based_forcings_with_modifications_info
+                and len(source_experiment_ids_set) == 1
+            ):
+                source_experiment = get_experiment(
+                    next(iter(source_experiment_ids_set))
+                )
+                source_experiment_link = render_link(
+                    source_experiment.drs_name, source_experiment.id
+                )
+                data_described_on_other_experiment_pages = f"All data is described on the {source_experiment_link} experiment page."
+
+            else:
+                breakpoint()
+                raise NotImplementedError
+
+        else:
+            data_described_on_other_experiment_pages = join_lines(
+                "No data is described on other experiment pages. ",
+                f"Please see the other {internal_data_link} sub-sections for details of the forcings data to use for this experiment.",
+            )
+
+        if other_experiment_based_forcings_with_modifications_info:
+            raise NotImplementedError
+
+        else:
+            data_described_on_other_experiment_pages_with_modifications = join_lines(
+                "No data described on other experiment pages requires modifications by you. ",
+                f"Please see the other {internal_data_link} sub-sections for details of the forcings data to use for this experiment.",
+            )
+
+        input4mips_based_forcings_versions_simple_json = {}
+        if specific_forcings_input4mips_based:
+            recommended_source_ids = []
+            for v in specific_forcings_input4mips_based:
+                input4mips_based_forcings_versions_simple_json[v.forcing_slug] = {
+                    "human_readable_name": v.label,
+                    "recommended_versions": v.recommended_versions,
+                    "acceptable_versions": v.acceptable_versions,
+                }
+                recommended_source_ids.extend(v.recommended_versions)
+
+            esgpull_download_script = join_blocks(
+                # TODO: clean up use of block vs. join_lines vs. join_blocks, do we really need them all?
+                block("""
+                    The data is available on ESGF and searchable [via metagrid](https://esgf-node.ornl.gov/search?project=input4MIPs&versionType=all&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%7D),
+                    although this method of finding and downloading the data can involve a lot of clicking.
+                """),
+                block("""
+                    If you install [esgpull](https://esgf.github.io/esgf-download/),
+                    you can download all the data associated with the recommended source IDs above
+                    using the script given below.
+                    Note that this will download all the data associated with these source IDs,
+                    which is likely to be much more data than you actually need to run your model.
+                """),
+                block(f"""
+                    ```bash
+                    #!/bin/bash
+
+                    EXPERIMENT_NAME="{self.drs_name}"
+
+                    ## You may need to run the below if you haven't already done it once with esgpull
+                    # esgpull self install
+                    ## You may also need to run this step to get the data to download
+                    # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
+                    esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(recommended_source_ids)}
+                    esgpull update --tag ${{EXPERIMENT_NAME}} --yes
+                    esgpull download --tag ${{EXPERIMENT_NAME}}
+                    ```
+                """),
+            )
+            data_availablity_specific_input4mips_based = join_blocks(
+                f"{'#' * (header_level_min + 2)} Versions to use",
+                join_lines(
+                    "For each forcing available via input4MIPs, we provide the version(s), "
+                    "called 'source ID(s)' in the file's metadata, which should be used when running this simulation. ",
+                    "The recommended version(s) are the version(s) we recommend using. ",
+                    "Any acceptable versions can be used "
+                    "(you are not obliged to re-run simulations that used them).",
+                    "Please see the guidance pages linked under each forcing for full details.",
+                ),
+                join_blocks(
+                    *(
+                        join_lines(
+                            f"- {v.label}",
+                            f"    - recommended source IDs: {', '.join(v.recommended_versions)}",
+                            (
+                                f"    - acceptable source IDs: {', '.join(v.acceptable_versions)}"
+                                if v.acceptable_versions
+                                else ""
+                            ),
+                            (f"    - notes: {v.notes}" if v.notes else ""),
+                            (
+                                f"    - further guidance: {v.rendered_input4mips_cvs_link}"
+                                if v.rendered_input4mips_cvs_link
+                                else ""
+                            ),
+                        )
+                        for v in specific_forcings_input4mips_based
+                    )
+                ),
+                f"{'#' * (header_level_min + 3)} JSON",
+                join_lines(
+                    "For easier parsing with machines, we also present the information given above as JSON.",
+                ),
+                # TODO: see if I can make this a collapsible block
+                "\n".join(
+                    (
+                        "```json",
+                        json.dumps(
+                            input4mips_based_forcings_versions_simple_json, indent=4
+                        ),
+                        "```",
+                    )
+                ),
+                f"{'#' * (header_level_min + 3)} Download via esgpull",
+                # TODO: see if I can make this a collapsible block
+                esgpull_download_script,
+            )
+
+        else:
+            data_availablity_specific_input4mips_based = join_lines(
+                "No ESGF-based data is described specifically on this page. ",
+                f"Please see the other {internal_data_link} sub-sections for details of the forcings data to use for this experiment.",
+            )
+
+        if specific_forcings_not_input4mips_based:
+            data_availability_specific_not_input4mips_based = join_blocks(
+                *(
+                    join_lines(
+                        f"- {v.label}",
+                        (f"    - notes: {v.notes}" if v.notes else ""),
+                        (
+                            f"    - further guidance: {v.rendered_input4mips_cvs_link}"
+                            if v.rendered_input4mips_cvs_link
+                            else ""
+                        ),
+                    )
+                    for v in specific_forcings_not_input4mips_based
+                )
+            )
+
+        else:
+            data_availability_specific_not_input4mips_based = join_lines(
+                "No input4MIPs-based data is described specifically on this page. ",
+                f"Please see the other {internal_data_link} sub-sections for details of the forcings data to use for this experiment.",
+            )
 
         res = join_blocks(
             join_lines(
@@ -433,69 +593,20 @@ class ExperimentPage:
             self.render_forcing_fixed_or_transient_or_mix_info(),
             f"{'#' * header_level_min} Data",
             join_lines(
-                "Here we make a distinction between data available via ESGF's input4MIPs project "
+                "Here we make a distinction between "
+                "data that is described on other experiment pages, "
+                "data that is described on other experiment pages with modifications you have to make yourself, "
+                "data available via ESGF's input4MIPs project "
                 "and data distributed via other channels."
             ),
+            f"{'#' * (header_level_min + 1)} Data described on other experiment pages",
+            data_described_on_other_experiment_pages,
+            f"{'#' * (header_level_min + 1)} Data described on other experiment pages with modifications you have to make",
+            data_described_on_other_experiment_pages_with_modifications,
             f"{'#' * (header_level_min + 1)} Data available via input4MIPs",
-            f"{'#' * (header_level_min + 2)} Versions to use",
-            join_lines(
-                "For each forcing available via input4MIPs, we provide the version(s), "
-                "called 'source ID(s)' in the file's metadata, which should be used when running this simulation. ",
-                "The recommended version(s) are the version(s) we recommend using. ",
-                "Any acceptable versions can be used "
-                "(you are not obliged to re-run simulations that used them).",
-                "Please see the guidance pages linked under each forcing for full details.",
-            ),
-            join_blocks(
-                *(
-                    join_lines(
-                        f"- {v.label}",
-                        f"    - recommended source IDs: {', '.join(v.recommended_versions)}",
-                        (
-                            f"    - acceptable source IDs: {', '.join(v.acceptable_versions)}"
-                            if v.acceptable_versions
-                            else ""
-                        ),
-                        (f"    - notes: {v.notes}" if v.notes else ""),
-                        (
-                            f"    - further guidance: {v.rendered_input4mips_cvs_link}"
-                            if v.rendered_input4mips_cvs_link
-                            else ""
-                        ),
-                    )
-                    for v in esgf_based_forcings
-                )
-            ),
-            f"{'#' * (header_level_min + 3)} JSON",
-            join_lines(
-                "For easier parsing with machines, we also present the information given above as JSON.",
-            ),
-            # TODO: see if I can make this a collapsible block
-            "\n".join(
-                (
-                    "```json",
-                    json.dumps(esgf_based_forcings_versions_simple_json, indent=4),
-                    "```",
-                )
-            ),
-            f"{'#' * (header_level_min + 3)} Download via esgpull",
-            # TODO: see if I can make this a collapsible block
-            esgpull_download_script,
+            data_availablity_specific_input4mips_based,
             f"{'#' * (header_level_min + 1)} Data not available via input4MIPs",
-            join_blocks(
-                *(
-                    join_lines(
-                        f"- {v.label}",
-                        (f"    - notes: {v.notes}" if v.notes else ""),
-                        (
-                            f"    - further guidance: {v.rendered_input4mips_cvs_link}"
-                            if v.rendered_input4mips_cvs_link
-                            else ""
-                        ),
-                    )
-                    for v in non_esgf_based_forcings
-                )
-            ),
+            data_availability_specific_not_input4mips_based,
         )
 
         return res

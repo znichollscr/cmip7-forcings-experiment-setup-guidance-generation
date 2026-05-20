@@ -11,7 +11,7 @@ from local.rendering import render_external_link
 
 
 @dataclass(frozen=True)
-class ESGFBasedForcingSpecification:
+class Input4MIPsBasedForcingSpecification:
     """
     Specification of an ESGF-based forcing to use
     """
@@ -70,7 +70,7 @@ class ESGFBasedForcingSpecification:
 
 
 @dataclass(frozen=True)
-class NonESGFBasedForcingSpecification:
+class NonInput4MIPsBasedForcingSpecification:
     """
     Specification of an non-ESGF-based forcing to use
     """
@@ -144,7 +144,8 @@ class ForcingSpecification:
     """
 
     specific_forcings: tuple[
-        ESGFBasedForcingSpecification | NonESGFBasedForcingSpecification, ...
+        Input4MIPsBasedForcingSpecification | NonInput4MIPsBasedForcingSpecification,
+        ...,
     ] = ()
     """
     Specifications of specific forcings
@@ -160,7 +161,10 @@ class ForcingSpecification:
     @property
     def all_forcings(
         self,
-    ) -> tuple[ESGFBasedForcingSpecification | NonESGFBasedForcingSpecification, ...]:
+    ) -> tuple[
+        Input4MIPsBasedForcingSpecification | NonInput4MIPsBasedForcingSpecification,
+        ...,
+    ]:
         """
         Get all forcing specifications, including resolving those from other experiments
 
@@ -175,4 +179,23 @@ class ForcingSpecification:
         from local.guidance import experiment_pages
 
         all_experiment_pages = experiment_pages()
-        raise NotImplementedError
+        all_experiment_pages_by_esgvoc_id = {
+            v.id_esgvoc: v
+            for v in all_experiment_pages
+            # TODO: delete when not needed
+            if hasattr(v, "id_esgvoc")
+        }
+        res_l = [*self.specific_forcings]
+
+        for v in self.other_experiment_based_forcings:
+            source_experiment = all_experiment_pages_by_esgvoc_id[
+                v.experiment_esgvoc_id
+            ]
+            source_experiment_forcings_by_slug = {
+                v.forcing_slug: v for v in source_experiment.forcings.all_forcings
+            }
+            res_l.append(source_experiment_forcings_by_slug[v.forcing_slug])
+
+        res = tuple(res_l)
+
+        return res

@@ -12,7 +12,11 @@ from local.forcing_versions import (
     PI_CONTROL_FORCING_VERSIONS,
     source_ids_from_forcing_versions,
 )
-from local.forcings import HISTORICAL_FORCINGS_SPECIFICATION, ForcingSpecification
+from local.forcings import (
+    HISTORICAL_FORCINGS_SPECIFICATION,
+    ForcingSpecification,
+    OtherExperimentBasedForcingSpecification,
+)
 from local.guidance import (
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
@@ -300,7 +304,15 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         id_esgvoc="esm-hist",
         render_description=partial(get_historical_description, emms_driven=True),
         branch_information=BranchFromParentAtAnyTime(),
-        forcings=ForcingSpecification(),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=tuple(
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug=v.forcing_slug,
+                    experiment_esgvoc_id="historical",
+                )
+                for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+            )
+        ),
     ),
     ExperimentPageOld(
         slug="1pctco2",
