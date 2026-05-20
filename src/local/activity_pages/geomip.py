@@ -5,54 +5,38 @@ from __future__ import annotations
 import datetime as dt
 
 from local.branching import BranchFromParentAtTime
-from local.forcings import ForcingSpecification
+from local.forcings import (
+    ForcingSpecification,
+    OtherExperimentBasedForcingSpecification,
+    get_scen7_forcing_specification,
+)
 from local.guidance import ExperimentPage
 from local.rendering import render_link
-
-SCEN7_M_LINK = render_link("scen7-ml simulation", "scen7-ml")
-
 
 GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         id_esgvoc="g7-1p5k-sai",
+        render_description=lambda _: "Stablisation of global-mean temperature at 1.5C by increasing stratospheric sulfur forcing.",
         branch_information=BranchFromParentAtTime(dt.datetime(2035, 1, 1)),
-        forcings=ForcingSpecification(),
+        # Checking if the modification is to forcing or something else:
+        # see https://github.com/WCRP-CMIP/cmip7-guidance/issues/166
+        experiment_setup_notes=(
+            f"This experiment is the same as {render_link('scen7-ml', 'scen7-ml')}, "
+            "except you should increase the stratospheric sulfur forcing "
+            "to whatever level is required to stablise global-mean temperatures at 1.5C "
+            "after the branching point. "
+            "We are still seeking clarification about exactly what 'increase the stratospheric sulfur forcing' means, "
+            "see [https://github.com/WCRP-CMIP/cmip7-guidance/issues/166]() "
+            "(and please comment there if you can clarify for us)."
+        ),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=tuple(
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug=v.forcing_slug,
+                    experiment_esgvoc_id="scen7-ml",
+                )
+                for v in get_scen7_forcing_specification("scen7-ml").specific_forcings
+            ),
+        ),
     ),
-    # ExperimentPageOld(
-    #     slug="g7-1p5k-sai",
-    #     experiment_setup=join_blocks(
-    #         f"The `{get_experiment('g7-1p5k-sai').drs_name}` simulation is a branch from the {SCEN7_M_LINK}.",
-    #         f"The simulation should follow the {SCEN7_M_LINK} scenario until 2035.",
-    #         block(
-    #             """
-    #             After 2035, increase the stratospheric sulfur forcing until the
-    #             global-mean temperature is stabilized at 1.5C.
-    #             """
-    #         ),
-    #     ).strip(),
-    #     forcing_headlines=(
-    #         f"The `{get_experiment('g7-1p5k-sai').drs_name}` experiment is a time-varying forcings experiment."
-    #     ),
-    #     notes=join_blocks(
-    #         f"See notes for the {SCEN7_M_LINK}.",
-    #         "You have to adjust the stratospheric sulfur forcing yourself to achieve temperature stabilization.",
-    #     ).strip(),
-    #     versions_to_use=join_blocks(
-    #         (
-    #             "For all forcings except the stratospheric sulfur forcing, the "
-    #             f"forcing versions relevant for this simulation are the same as "
-    #             f"for the {SCEN7_M_LINK}."
-    #         ),
-    #         (
-    #             "The stratospheric sulfur forcing must be adjusted by each "
-    #             "modeling group to achieve stable temperatures at 1.5C."
-    #         ),
-    #     ).strip(),
-    #     getting_the_data=render_data_access_body(
-    #         experiment_name="G7-1p5K-SAI",
-    #         source_ids=source_ids_from_forcing_versions(
-    #             SCEN7_FORCING_VERSIONS_BY_SLUG["scen7-ml"],
-    #         ),
-    #     ),
-    # ),
 )
