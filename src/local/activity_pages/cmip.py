@@ -441,7 +441,8 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         forcings=ForcingSpecification(
             specific_forcings=(
                 NonInput4MIPsBasedForcingSpecification(
-                    forcing_slug="sst-sea-ice-boundary-forcing",
+                    forcing_slug="sst-forcing",
+                    label_override="Sea-surface temperature forcing",
                     fixed=True,
                     notes=(
                         "derived from a (monthly varying, annually repeating) "

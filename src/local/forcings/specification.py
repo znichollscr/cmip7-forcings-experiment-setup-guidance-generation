@@ -92,6 +92,11 @@ class NonInput4MIPsBasedForcingSpecification:
     Further information about this forcing specification
     """
 
+    label_override: str | None = None
+    """
+    Override to use for labelling this forcin
+    """
+
     @property
     def reference(self) -> str:
         """Get the reference to use for this forcing"""
@@ -100,6 +105,9 @@ class NonInput4MIPsBasedForcingSpecification:
     @property
     def label(self) -> str:
         """Get the label to use for this forcing"""
+        if self.label_override:
+            return self.label_override
+
         return self.reference.label
 
     @property
