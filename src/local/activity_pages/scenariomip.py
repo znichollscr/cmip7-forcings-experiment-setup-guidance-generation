@@ -11,7 +11,9 @@ from local.forcing_versions import (
     ForcingValue,
     source_ids_from_forcing_versions,
 )
-from local.forcings import ForcingSpecification
+from local.forcings import (
+    get_scen7_forcing_specification,
+)
 from local.guidance import ExperimentPage, ExperimentPageOld
 from local.rendering import (
     join_blocks,
@@ -32,7 +34,7 @@ def make_scenariomip_page(
             id_esgvoc=slug,
             branch_information=BranchFromParentEnd(),
             # mip_co_chair_review=PendingCoChairReview(url="url"),
-            forcings=ForcingSpecification(),
+            forcings=get_scen7_forcing_specification(slug),
         )
 
     experiment_name = get_experiment(slug).drs_name

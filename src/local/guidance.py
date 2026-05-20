@@ -21,6 +21,7 @@ from local.experiment_pairs import (
     sort_experiment_slugs,
 )
 from local.forcings import (
+    NOT_AVAILABLE_YET,
     ForcingSpecification,
     Input4MIPsBasedForcingSpecification,
     NonInput4MIPsBasedForcingSpecification,
@@ -385,46 +386,11 @@ class ExperimentPage:
 
         other_experiment_based_forcings = self.forcings.other_experiment_based_forcings
         other_experiment_based_forcings_without_modifications_info = tuple(
-            v
-            for v in self.forcings.other_experiment_based_forcings
-            if not v.user_modifications
+            v for v in other_experiment_based_forcings if not v.user_modifications
         )
         other_experiment_based_forcings_with_modifications_info = tuple(
-            v
-            for v in self.forcings.other_experiment_based_forcings
-            if v.user_modifications
+            v for v in other_experiment_based_forcings if v.user_modifications
         )
-
-        if other_experiment_based_forcings:
-            other_experiment_based_forcings_without_modifications_info = tuple(
-                v
-                for v in self.forcings.other_experiment_based_forcings
-                if not v.user_modifications
-            )
-            source_experiment_ids_set = set(
-                v.experiment_esgvoc_id
-                for v in self.forcings.other_experiment_based_forcings
-            )
-            all_forcings_described_on_single_other_experiment_page = (
-                len(source_experiment_ids_set) == 1
-            )
-            source_experiment_ids = list(source_experiment_ids_set)
-
-            if (
-                all_forcings_described_on_single_other_experiment_page
-                and not specific_forcings
-            ):
-                if len(source_experiment_ids) != 1:
-                    raise AssertionError(source_experiment_ids)
-
-                source_experiment_id = source_experiment_ids[0]
-                source_experiment = get_experiment(source_experiment_id)
-                source_experiment_link = render_link(
-                    source_experiment.drs_name, source_experiment.id
-                )
-
-            else:
-                raise NotImplementedError
 
         if other_experiment_based_forcings_without_modifications_info:
             source_experiment_ids_set = set(
@@ -455,7 +421,31 @@ class ExperimentPage:
             )
 
         if other_experiment_based_forcings_with_modifications_info:
-            raise NotImplementedError
+            modifications_list = []
+            all_forcings_by_slug = {
+                v.forcing_slug: v for v in self.forcings.all_forcings
+            }
+            for v in other_experiment_based_forcings_with_modifications_info:
+                source_forcing = all_forcings_by_slug[v.forcing_slug]
+                source_experiment = get_experiment(v.experiment_esgvoc_id)
+                source_experiment_link = render_link(
+                    source_experiment.drs_name, source_experiment.id
+                )
+                modifications_list.append(
+                    f"- for {source_forcing.label}, use the forcings from {source_experiment.drs_name} but {v.user_modifications}".replace(
+                        f" {source_experiment.drs_name} ", f" {source_experiment_link} "
+                    ).replace(
+                        f" {source_experiment.id} ", f" {source_experiment_link} "
+                    )
+                )
+
+            data_described_on_other_experiment_pages_with_modifications = join_blocks(
+                join_lines(
+                    "For the following forcings, please use data from the specified experiment ",
+                    "with the specified modification. ",
+                ),
+                join_lines(*modifications_list),
+            )
 
         else:
             data_described_on_other_experiment_pages_with_modifications = join_lines(
@@ -466,43 +456,54 @@ class ExperimentPage:
         input4mips_based_forcings_versions_simple_json = {}
         if specific_forcings_input4mips_based:
             recommended_source_ids = []
+            any_forcings_unavailable = False
             for v in specific_forcings_input4mips_based:
                 input4mips_based_forcings_versions_simple_json[v.forcing_slug] = {
                     "human_readable_name": v.label,
                     "recommended_versions": v.recommended_versions,
                     "acceptable_versions": v.acceptable_versions,
                 }
-                recommended_source_ids.extend(v.recommended_versions)
+                if v.recommended_versions != (NOT_AVAILABLE_YET,):
+                    recommended_source_ids.extend(v.recommended_versions)
+                else:
+                    any_forcings_unavailable = True
+
+            if any_forcings_unavailable:
+                esgpull_download_script_start = "The available"
+
+            else:
+                esgpull_download_script_start = "The"
 
             esgpull_download_script = join_blocks(
                 # TODO: clean up use of block vs. join_lines vs. join_blocks, do we really need them all?
-                block("""
-                    The data is available on ESGF and searchable [via metagrid](https://esgf-node.ornl.gov/search?project=input4MIPs&versionType=all&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%7D),
-                    although this method of finding and downloading the data can involve a lot of clicking.
-                """),
-                block("""
-                    If you install [esgpull](https://esgf.github.io/esgf-download/),
-                    you can download all the data associated with the recommended source IDs above
-                    using the script given below.
-                    Note that this will download all the data associated with these source IDs,
-                    which is likely to be much more data than you actually need to run your model.
-                """),
                 block(f"""
-                    ```bash
-                    #!/bin/bash
+                        {esgpull_download_script_start} data is on ESGF and searchable [via metagrid](https://esgf-node.ornl.gov/search?project=input4MIPs&versionType=all&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%7D),
+                        although this method of finding and downloading the data can involve a lot of clicking.
+                    """),
+                block("""
+                        If you install [esgpull](https://esgf.github.io/esgf-download/),
+                        you can download all the data associated with the recommended source IDs above
+                        using the script given below.
+                        Note that this will download all the data associated with these source IDs,
+                        which is likely to be much more data than you actually need to run your model.
+                    """),
+                block(f"""
+                        ```bash
+                        #!/bin/bash
 
-                    EXPERIMENT_NAME="{self.drs_name}"
+                        EXPERIMENT_NAME="{self.drs_name}"
 
-                    ## You may need to run the below if you haven't already done it once with esgpull
-                    # esgpull self install
-                    ## You may also need to run this step to get the data to download
-                    # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
-                    esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(recommended_source_ids)}
-                    esgpull update --tag ${{EXPERIMENT_NAME}} --yes
-                    esgpull download --tag ${{EXPERIMENT_NAME}}
-                    ```
-                """),
+                        ## You may need to run the below if you haven't already done it once with esgpull
+                        # esgpull self install
+                        ## You may also need to run this step to get the data to download
+                        # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
+                        esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(recommended_source_ids)}
+                        esgpull update --tag ${{EXPERIMENT_NAME}} --yes
+                        esgpull download --tag ${{EXPERIMENT_NAME}}
+                        ```
+                    """),
             )
+
             data_availablity_specific_input4mips_based = join_blocks(
                 f"{'#' * (header_level_min + 2)} Versions to use",
                 join_lines(
