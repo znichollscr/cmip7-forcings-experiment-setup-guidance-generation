@@ -5,22 +5,14 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from local.branching import BranchFromParentEnd
-from local.forcing_references import COMMON_FORCING_NOTES
 from local.forcing_versions import (
     SCEN7_FORCING_VERSIONS_BY_SLUG,
     ForcingValue,
-    source_ids_from_forcing_versions,
 )
 from local.forcings import (
     get_scen7_forcing_specification,
 )
 from local.guidance import ExperimentPage, ExperimentPageOld
-from local.rendering import (
-    join_blocks,
-    render_data_access_body,
-    render_versions_body,
-)
-from local.vocab import get_experiment
 
 
 def make_scenariomip_page(
@@ -29,31 +21,11 @@ def make_scenariomip_page(
     forcing_versions: Mapping[str, ForcingValue],
 ) -> ExperimentPageOld:
     """Create a ScenarioMIP experiment page."""
-    if slug.startswith("scen7-vl"):
-        return ExperimentPage(
-            id_esgvoc=slug,
-            branch_information=BranchFromParentEnd(),
-            # mip_co_chair_review=PendingCoChairReview(url="url"),
-            forcings=get_scen7_forcing_specification(slug),
-        )
-
-    experiment_name = get_experiment(slug).drs_name
-
-    return ExperimentPageOld(
-        slug=slug,
-        experiment_setup=join_blocks(
-            f"The `{experiment_name}` simulation uses a specific set of forcings (see [forcings](#forcings)).",
-            "These should be applied as transient (i.e. time-changing) forcings over the length of the simulation.",
-        ).strip(),
-        forcing_headlines=(
-            f"The `{experiment_name}` experiment is a time-varying forcings experiment."
-        ),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=render_versions_body(forcing_versions),
-        getting_the_data=render_data_access_body(
-            experiment_name=experiment_name,
-            source_ids=source_ids_from_forcing_versions(forcing_versions),
-        ),
+    return ExperimentPage(
+        id_esgvoc=slug,
+        branch_information=BranchFromParentEnd(),
+        # mip_co_chair_review=PendingCoChairReview(url="url"),
+        forcings=get_scen7_forcing_specification(slug),
     )
 
 

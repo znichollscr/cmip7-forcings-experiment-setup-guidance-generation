@@ -497,7 +497,7 @@ class ExperimentPage:
                         # esgpull self install
                         ## You may also need to run this step to get the data to download
                         # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
-                        esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(recommended_source_ids)}
+                        esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(sorted(set(recommended_source_ids)))}
                         esgpull update --tag ${{EXPERIMENT_NAME}} --yes
                         esgpull download --tag ${{EXPERIMENT_NAME}}
                         ```
