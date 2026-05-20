@@ -4,7 +4,7 @@ Forcings specification
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from local.forcing_references import ALL_FORCING_REFERENCES
 from local.rendering import render_external_link
@@ -144,6 +144,11 @@ class OtherExperimentBasedForcingSpecification:
     Modifications which the user must make by hand
     """
 
+    fixed_override: bool | None = None
+    """
+    Should the fixed or transient status of the forcing being used be overridden?
+    """
+
 
 @dataclass(frozen=True)
 class ForcingSpecification:
@@ -202,7 +207,11 @@ class ForcingSpecification:
             source_experiment_forcings_by_slug = {
                 v.forcing_slug: v for v in source_experiment.forcings.all_forcings
             }
-            res_l.append(source_experiment_forcings_by_slug[v.forcing_slug])
+            keep = source_experiment_forcings_by_slug[v.forcing_slug]
+            if isinstance(v.fixed_override, bool):
+                keep = replace(keep, fixed=v.fixed_override)
+
+            res_l.append(keep)
 
         res = tuple(res_l)
 

@@ -272,10 +272,10 @@ def get_volcanic_scenario_forcings(
         return OtherExperimentBasedForcingSpecification(
             forcing_slug,
             experiment_esgvoc_id=scenario,
-            # Constant extension
             user_modifications=(
                 f"hold forcings constant after the end of the {scenario} data"
             ),
+            fixed_override=True,
         )
 
     res = Input4MIPsBasedForcingSpecification(
@@ -301,10 +301,10 @@ def get_ozone_scenario_forcings(
         return OtherExperimentBasedForcingSpecification(
             forcing_slug,
             experiment_esgvoc_id=scenario,
-            # Constant extension
             user_modifications=(
                 f"hold forcings constant after the end of the {scenario} data"
             ),
+            fixed_override=True,
         )
 
     if scenario_short_name not in {"vl", "h"}:
@@ -340,10 +340,10 @@ def get_nitrogen_deposition_scenario_forcings(
         return OtherExperimentBasedForcingSpecification(
             forcing_slug,
             experiment_esgvoc_id=scenario,
-            # Constant extension
             user_modifications=(
                 f"hold forcings constant after the end of the {scenario} data"
             ),
+            fixed_override=True,
         )
 
     if scenario_short_name not in {"vl", "h"}:
