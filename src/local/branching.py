@@ -111,6 +111,41 @@ class BranchFromParentEnd:
         return res
 
 
+@dataclass(frozen=True)
+class BranchAtSameTimeAsOtherExperiment:
+    """
+    Branch at the same time as another experiment
+    """
+
+    other_experiment: str
+    """
+    Experiment whose branching time we should match
+    """
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the branch information as a string"""
+        parent_experiment_esgvoc = experiment.parent_experiment_esgvoc
+        if parent_experiment_esgvoc is None:
+            msg = f"No parent experiment for {experiment.id_esgvoc}"
+            raise AssertionError(msg)
+
+        parent_experiment_link = render_link(
+            parent_experiment_esgvoc.drs_name, parent_experiment_esgvoc.id
+        )
+
+        experiment_to_match = get_experiment(self.other_experiment)
+        experiment_to_match_link = render_link(
+            experiment_to_match.drs_name, experiment_to_match.id
+        )
+
+        res = (
+            f"Branch from {parent_experiment_link} "
+            f"at the same time as {experiment_to_match_link}."
+        )
+
+        return res
+
+
 def render_parent_information(
     experiment: Any,
     *,

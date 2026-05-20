@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from local.rendering import block, join_blocks
+from local.rendering import block, join_blocks, render_link
+from local.vocab import get_experiment
 
 if TYPE_CHECKING:
     from local.guidance import ExperimentPage
@@ -124,8 +125,10 @@ class PiClimOutputTimeAxisInformation:
             raise AssertionError(msg)
 
         base = EsgvocDrivenOutputTimeAxisInformation().render(experiment)
-        extra_notes = block(
-            f"""
+
+        if experiment_esgvoc.id == "piclim-control":
+            extra_notes = block(
+                f"""
             If you have no strong feeling, then it may be clearest to set the start time
             to the middle of the period over which the climatology
             was taken from the pre-industrial control experiment.
@@ -134,7 +137,19 @@ class PiClimOutputTimeAxisInformation:
             then you could start the time axis
             of your {experiment_esgvoc.drs_name} output at year 135.
             """
-        )
+            )
+        else:
+            piclim_control_exp = get_experiment("piclim-control")
+            piclim_control_link = render_link(
+                piclim_control_exp.drs_name, piclim_control_exp.id
+            )
+            extra_notes = block(
+                f"""
+            If you have no strong feeling, then you will make life simplest for analysts
+            if you use the same time axis as {piclim_control_link}.
+            """
+            )
+
         res = join_blocks(
             base,
             extra_notes,

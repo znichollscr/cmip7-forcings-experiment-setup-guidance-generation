@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import partial
 from textwrap import indent
 
-from local.branching import BranchFromParentAtAnyTime
+from local.branching import BranchAtSameTimeAsOtherExperiment, BranchFromParentAtAnyTime
 from local.forcing_references import AMIP_FORCING_REFERENCES, COMMON_FORCING_NOTES
 from local.forcing_versions import (
     AMIP_FORCING_VERSIONS,
@@ -22,9 +22,7 @@ from local.forcings import (
 )
 from local.guidance import (
     HISTORICAL_LINK,
-    PI_CLIM_CONTROL_LINK,
     PI_CONTROL_LINK,
-    PICLIM_TIME_AXIS,
     ExperimentPage,
     ExperimentPageOld,
 )
@@ -41,7 +39,6 @@ from local.rendering import (
     render_link,
     render_versions_body,
     render_versions_json,
-    same_as_versions,
 )
 
 PI_CONTROL_FORCINGS_REPEAT_SETUP = join_blocks(
@@ -418,14 +415,10 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                     for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
                     if v.forcing_slug != "greenhouse-gas-concentrations"
                 ),
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                        user_modifications="quadruple the CO<sub>2</sub> concentrations",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug == "greenhouse-gas-concentrations"
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug="greenhouse-gas-concentrations",
+                    experiment_esgvoc_id="piclim-control",
+                    user_modifications="quadruple the CO<sub>2</sub> concentrations",
                 ),
             )
         ),
@@ -442,7 +435,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
             specific_forcings=(
                 NonInput4MIPsBasedForcingSpecification(
                     forcing_slug="sst-forcing",
-                    label_override="Sea-surface temperature forcing",
+                    label_override="sea-surface temperature forcing",
                     fixed=True,
                     notes=(
                         "derived from a (monthly varying, annually repeating) "
@@ -472,38 +465,68 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
     ),
-    ExperimentPageOld(
-        slug="piclim-4xco2",
-        experiment_setup=join_blocks(
-            join_lines(
-                "The piClim-4xCO2 simulation uses the same forcings as [piClim-control](./piclim-control.md),",
-                block(
-                    """
-                    except atmospheric CO<sub>2</sub> concentrations
-                    are set to four times the concentrations used in the [piClim-control](./piclim-control.md) simulation.
-                    """
+    ExperimentPage(
+        id_esgvoc="piclim-4xco2",
+        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug != "greenhouse-gas-concentrations"
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                        user_modifications="quadruple the CO<sub>2</sub> concentrations",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug == "greenhouse-gas-concentrations"
+                ),
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug="sst-forcing",
+                    experiment_esgvoc_id="piclim-control",
                 ),
             ),
-            PICLIM_TIME_AXIS,
-        ).strip(),
-        forcing_headlines=(
-            "See general headlines for the "
-            "[`piClim-control` simulation](./piclim-control.md)."
         ),
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-        versions_to_use=(
-            f"{same_as_versions('piClim-control simulation', 'piclim-control')} "
-            "You have to quadruple the CO2 concentrations yourself."
-        ),
-        getting_the_data=render_data_access_body(
-            experiment_name="piClim-4xCO2",
-            source_ids=picontrol_cmip_source_ids(),
-            extra=join_blocks(
-                "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
-                PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
-            ).strip(),
-        ),
+        output_time_axis_info=PiClimOutputTimeAxisInformation(),
     ),
+    # ExperimentPageOld(
+    #     slug="piclim-4xco2",
+    #     experiment_setup=join_blocks(
+    #         join_lines(
+    #             "The piClim-4xCO2 simulation uses the same forcings as [piClim-control](./piclim-control.md),",
+    #             block(
+    #                 """
+    #                 except atmospheric CO<sub>2</sub> concentrations
+    #                 are set to four times the concentrations used in the [piClim-control](./piclim-control.md) simulation.
+    #                 """
+    #             ),
+    #         ),
+    #         PICLIM_TIME_AXIS,
+    #     ).strip(),
+    #     forcing_headlines=(
+    #         "See general headlines for the "
+    #         "[`piClim-control` simulation](./piclim-control.md)."
+    #     ),
+    #     notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
+    #     versions_to_use=(
+    #         f"{same_as_versions('piClim-control simulation', 'piclim-control')} "
+    #         "You have to quadruple the CO2 concentrations yourself."
+    #     ),
+    #     getting_the_data=render_data_access_body(
+    #         experiment_name="piClim-4xCO2",
+    #         source_ids=picontrol_cmip_source_ids(),
+    #         extra=join_blocks(
+    #             "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
+    #             PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
+    #         ).strip(),
+    #     ),
+    # ),
     make_piclim_historical_forcing_variant_page(
         slug="piclim-anthro",
         historical_forcings=(

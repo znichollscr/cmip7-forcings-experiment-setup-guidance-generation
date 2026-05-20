@@ -436,7 +436,7 @@ class ExperimentPage:
                         experiment_drs_name,
                     ), source_ids in source_ids_grouped.items()
                 )
-                data_described_on_other_experiment_pages = f"The data is described on other experiment pages, see:\n\n{other_page_dot_points}"
+                data_described_on_other_experiment_pages = f"For the following data, please see these other experiment pages:\n\n{other_page_dot_points}"
 
         else:
             data_described_on_other_experiment_pages = join_lines(
@@ -465,8 +465,8 @@ class ExperimentPage:
 
             data_described_on_other_experiment_pages_with_modifications = join_blocks(
                 join_lines(
-                    "For the following forcings, please use data from the specified experiment ",
-                    "with the specified modification. ",
+                    "For the following forcings, please use data from the specified experiments ",
+                    "with the specified modifications. ",
                 ),
                 join_lines(*modifications_list),
             )
