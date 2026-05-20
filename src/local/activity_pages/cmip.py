@@ -27,19 +27,17 @@ from local.guidance import (
     ExperimentPageOld,
 )
 from local.output_time_axis import PiClimOutputTimeAxisInformation
-from local.piclim_variants import (
-    HistoricalForcing,
-    make_piclim_historical_forcing_variant_page,
-)
 from local.rendering import (
     block,
     join_blocks,
     join_lines,
+    only_keep_first_sentence,
     render_data_access_body,
     render_link,
     render_versions_body,
     render_versions_json,
 )
+from local.vocab import get_experiment
 
 PI_CONTROL_FORCINGS_REPEAT_SETUP = join_blocks(
     "These should be applied on repeat for the entirety of the simulation.",
@@ -152,6 +150,9 @@ ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
     ),
     "    ",
 )
+
+PRESENT_YEAR = get_experiment("historical").end_timestamp.year
+
 PI_CONTROL_VERSIONS_TO_USE = render_versions_body(PI_CONTROL_FORCING_VERSIONS)
 HISTORICAL_VERSIONS_TO_USE = render_versions_body(HISTORICAL_FORCING_VERSIONS)
 
@@ -431,6 +432,17 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     ExperimentPage(
         id_esgvoc="piclim-control",
         branch_information=BranchFromParentAtAnyTime(),
+        experiment_setup_notes=join_blocks(
+            block(
+                f"""
+                The prescribed sea-surface temperatures and sea-ice concentrations
+                must come from a (monthly varying, annually repeating)
+                climatology taken from at least 30 years of your {render_link("pre-industrial control", "picontrol")} simulation
+                (i.e. these forcings are derived from your model output from one of your own simulations,
+                they are not provided by a forcings provider).
+                """
+            ),
+        ),
         forcings=ForcingSpecification(
             specific_forcings=(
                 NonInput4MIPsBasedForcingSpecification(
@@ -450,17 +462,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                     experiment_esgvoc_id="picontrol",
                 )
                 for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-            ),
-        ),
-        experiment_setup_notes=join_blocks(
-            block(
-                f"""
-                The prescribed sea-surface temperatures and sea-ice concentrations
-                must come from a (monthly varying, annually repeating)
-                climatology taken from at least 30 years of your {render_link("pre-industrial control", "picontrol")} simulation
-                (i.e. these forcings are derived from your model output from one of your own simulations,
-                they are not provided by a forcings provider).
-                """
             ),
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
@@ -494,75 +495,47 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
             ),
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
+        render_description=only_keep_first_sentence,
     ),
-    # ExperimentPageOld(
-    #     slug="piclim-4xco2",
-    #     experiment_setup=join_blocks(
-    #         join_lines(
-    #             "The piClim-4xCO2 simulation uses the same forcings as [piClim-control](./piclim-control.md),",
-    #             block(
-    #                 """
-    #                 except atmospheric CO<sub>2</sub> concentrations
-    #                 are set to four times the concentrations used in the [piClim-control](./piclim-control.md) simulation.
-    #                 """
-    #             ),
-    #         ),
-    #         PICLIM_TIME_AXIS,
-    #     ).strip(),
-    #     forcing_headlines=(
-    #         "See general headlines for the "
-    #         "[`piClim-control` simulation](./piclim-control.md)."
-    #     ),
-    #     notes=f"See notes for the {PI_CLIM_CONTROL_LINK}.",
-    #     versions_to_use=(
-    #         f"{same_as_versions('piClim-control simulation', 'piclim-control')} "
-    #         "You have to quadruple the CO2 concentrations yourself."
-    #     ),
-    #     getting_the_data=render_data_access_body(
-    #         experiment_name="piClim-4xCO2",
-    #         source_ids=picontrol_cmip_source_ids(),
-    #         extra=join_blocks(
-    #             "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
-    #             PICLIM_PRESCRIBED_SST_SIC_FORCING_NOTE,
-    #         ).strip(),
-    #     ),
-    # ),
-    make_piclim_historical_forcing_variant_page(
-        slug="piclim-anthro",
-        historical_forcings=(
-            HistoricalForcing(
-                forcing_id="anthropogenic-emissions",
-                label="anthropogenic emissions",
-            ),
-            HistoricalForcing(
-                forcing_id="biomass-burning-emissions",
-                label="biomass-burning emissions",
-            ),
-            HistoricalForcing(
-                forcing_id="land-use",
-                label="land-use forcing",
-            ),
-            HistoricalForcing(
-                forcing_id="greenhouse-gas-concentrations",
-                label="greenhouse-gas concentrations",
-            ),
-            HistoricalForcing(
-                forcing_id="ozone",
-                label="ozone",
-            ),
-            HistoricalForcing(
-                forcing_id="nitrogen-deposition",
-                label="nitrogen deposition",
-            ),
-            HistoricalForcing(
-                forcing_id="population-density",
-                label="population density",
+    # TODO: de-duplicate the piclim-* definitions across activities
+    ExperimentPage(
+        id_esgvoc="piclim-anthro",
+        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug
+                    in (
+                        "solar",
+                        "stratospheric-volcanic-so2-emissions-aod",
+                    )
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                        user_modifications=f"apply the {PRESENT_YEAR} value on repeat",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug
+                    not in (
+                        "solar",
+                        "stratospheric-volcanic-so2-emissions-aod",
+                    )
+                ),
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug="sst-forcing",
+                    experiment_esgvoc_id="piclim-control",
+                ),
             ),
         ),
-        extra_setup=(
-            "Solar and stratospheric aerosol forcing should remain as in "
-            "[piClim-control](./piclim-control.md)."
-        ),
+        output_time_axis_info=PiClimOutputTimeAxisInformation(),
+        render_description=only_keep_first_sentence,
     ),
     ExperimentPageOld(
         slug="amip",

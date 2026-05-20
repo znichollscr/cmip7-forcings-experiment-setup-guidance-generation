@@ -823,3 +823,13 @@ def render_list_human_like(*parts: str) -> str:
     res = f"{', '.join(parts[:-1])} and {parts[-1]}"
 
     return res
+
+
+def only_keep_first_sentence(inval: str) -> str:
+    """
+    Only keep the first sentence
+    """
+    first_sentence = inval.split(".")[0]
+    res = f"{first_sentence}."
+
+    return res
