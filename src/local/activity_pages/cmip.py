@@ -24,7 +24,6 @@ from local.guidance import (
     PI_CLIM_CONTROL_LINK,
     PI_CONTROL_LINK,
     PICLIM_TIME_AXIS,
-    TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
     ExperimentPageOld,
 )
@@ -395,36 +394,43 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
             )
         ),
         experiment_setup_notes=join_blocks(
-            f"The 1pctCO2 simulation is a simple branch from the {PI_CONTROL_LINK}. ",
-            "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the simulation.",
+            f"The 1pctCO2 experiment is a simple branch from the {PI_CONTROL_LINK}. ",
+            "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the experiment.",
         ),
         fixed_or_transient_or_mix_forcing_override=(
             "The 1pctCO2 experiment is a fixed forcings experiment, "
             "except for CO<sub>2</sub> which is transient."
         ),
     ),
-    ExperimentPageOld(
-        slug="abrupt-4xco2",
-        experiment_setup=join_blocks(
-            f"The abrupt CO<sub>2</sub> quadrupling simulation is a simple branch from the {PI_CONTROL_LINK}.",
-            block(
-                """
-                After branching, the atmospheric CO<sub>2</sub> concentrations should be set to four times
-                the concentrations used in the `piControl` simulation.
-                """
-            ),
-            TIME_AXIS_CAN_BE_ARBITRARY,
-        ).strip(),
-        forcing_headlines=(
-            "The `abrupt-4xCO2` experiment is a fixed forcings experiment.\n"
-            f"For further general headlines, please see the general headlines for the {PI_CONTROL_LINK}."
+    ExperimentPage(
+        id_esgvoc="abrupt-4xco2",
+        branch_information=BranchFromParentAtAnyTime(),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug != "greenhouse-gas-concentrations"
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                        user_modifications="quadruple the CO<sub>2</sub> concentrations",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug == "greenhouse-gas-concentrations"
+                ),
+            )
         ),
-        notes=join_blocks(
-            f"See notes for the {PI_CONTROL_LINK}.",
-            "You have to quadruple the atmospheric CO<sub>2</sub> concentrations yourself.",
-        ).strip(),
-        versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=picontrol_cmip_data_access_body("abrupt-4xCO2"),
+        experiment_setup_notes=join_blocks(
+            f"The abrupt CO<sub>2</sub> quadrupling experiment is a simple branch from the {PI_CONTROL_LINK}. ",
+            "After branching, the atmospheric CO<sub>2</sub> concentrations should "
+            "be set to four times the CO<sub>2</sub> concentrations used in the piControl experiment.",
+        ),
     ),
     ExperimentPageOld(
         slug="piclim-control",
