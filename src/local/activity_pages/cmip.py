@@ -515,8 +515,9 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                 *(
                     OtherExperimentBasedForcingSpecification(
                         forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
+                        experiment_esgvoc_id="historical",
                         user_modifications=f"apply the {PRESENT_YEAR} value on repeat",
+                        # Need to override fixed value
                     )
                     for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
                     if v.forcing_slug

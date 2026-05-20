@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from local.branching import BranchAtSameTimeAsOtherExperiment
 from local.forcing_versions import (
     HISTORICAL_FORCING_VERSIONS,
     PI_CONTROL_FORCING_VERSIONS,
@@ -14,19 +15,29 @@ from local.forcing_versions import (
     select_forcing_versions,
     source_ids_from_forcing_versions,
 )
-from local.guidance import HISTORICAL_LINK, PI_CLIM_CONTROL_LINK, ExperimentPageOld
-from local.piclim_variants import (
-    HistoricalForcing,
-    make_piclim_historical_forcing_variant_page,
+from local.forcings import (
+    PICONTROL_FORCINGS_SPECIFICATION,
+    ForcingSpecification,
+    OtherExperimentBasedForcingSpecification,
 )
+from local.guidance import (
+    HISTORICAL_LINK,
+    PI_CLIM_CONTROL_LINK,
+    ExperimentPage,
+    ExperimentPageOld,
+)
+from local.output_time_axis import PiClimOutputTimeAxisInformation
 from local.rendering import (
     block,
     join_blocks,
     join_lines,
+    only_keep_first_sentence,
     render_data_access_body,
     render_link,
 )
 from local.vocab import get_experiment
+
+from .cmip import PRESENT_YEAR
 
 RFMIP_EXTENSION_SCENARIO_SLUGS = ("scen7-m", "esm-scen7-m")
 PICLIM_CONTROL_PRESCRIBED_BOUNDARY_CONDITIONS = block(
@@ -187,19 +198,59 @@ def source_ids_from_historical_and_extension_forcings(
 
 
 RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
-    make_piclim_historical_forcing_variant_page(
-        slug="piclim-aer",
-        historical_forcings=(
-            HistoricalForcing(
-                forcing_id="anthropogenic-emissions",
-                label="anthropogenic aerosol emissions",
-            ),
-            HistoricalForcing(
-                forcing_id="biomass-burning-emissions",
-                label="biomass-burning aerosol emissions",
+    ExperimentPage(
+        id_esgvoc="piclim-aer",
+        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug
+                    not in (
+                        "anthropogenic-slcf-co2-emissions",
+                        "open-biomass-burning-emissions",
+                    )
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="historical",
+                        user_modifications=f"apply the {PRESENT_YEAR} value on repeat",
+                        # Need to override fixed value
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug
+                    in (
+                        "anthropogenic-slcf-co2-emissions",
+                        "open-biomass-burning-emissions",
+                    )
+                ),
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug="sst-forcing",
+                    experiment_esgvoc_id="piclim-control",
+                ),
             ),
         ),
+        output_time_axis_info=PiClimOutputTimeAxisInformation(),
+        render_description=only_keep_first_sentence,
     ),
+    # make_piclim_historical_forcing_variant_page(
+    #     slug="piclim-aer",
+    #     historical_forcings=(
+    #         HistoricalForcing(
+    #             forcing_id="anthropogenic-emissions",
+    #             label="anthropogenic aerosol emissions",
+    #         ),
+    #         HistoricalForcing(
+    #             forcing_id="biomass-burning-emissions",
+    #             label="biomass-burning aerosol emissions",
+    #         ),
+    #     ),
+    # ),
     make_historical_transient_forcing_page(
         HistoricalTransientForcingPageSpec(
             slug="piclim-histaer",
