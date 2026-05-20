@@ -314,42 +314,116 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
             )
         ),
     ),
-    ExperimentPageOld(
-        slug="1pctco2",
-        experiment_setup=join_blocks(
-            f"The 1pctCO2 simulation is a simple branch from the {PI_CONTROL_LINK}.",
-            "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the simulation.",
-            TIME_AXIS_CAN_BE_ARBITRARY,
-        ).strip(),
-        forcing_headlines=(
-            "The `1pctCO2` experiment is a fixed forcings experiment, "
+    ExperimentPage(
+        id_esgvoc="1pctco2",
+        branch_information=BranchFromParentAtAnyTime(),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug != "greenhouse-gas-concentrations"
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                        # TODO: get this to render correctly in output
+                        user_modifications=r"""
+increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.
+CO2 concentrations should increase as
+
+$$
+c(t) = c_0 \cdot 1.01^{\frac{t - t_0}{\tau}},
+%$
+
+where $t_0$ is 1850 and $\tau$ is one year.
+
+For step-wise increases of CO<sub>2</sub>, specify a concentration that results,
+to good approximation, in a mean CO2 concentration (or mean forcing)
+for each time step consistent with the mean calculated when the CO2 concentration increases continuously.
+A particularly simple formula of sufficient accuracy for a 1% increase
+and time steps used in earth system models is
+
+$$
+c(t -> t + \Delta t) = (c(t) + c(t + \\Delta t)) / 2,
+$$
+
+where $c(t -> t + \Delta t)$ is the value to apply in the time step
+that extends from time $t$ to $t + \Delta t$ and $\Delta t$
+is the size of the time step in your model
+(this can vary from time step to time step and it does not affect the formula above).
+For annual time steps, this reduces to
+
+$$
+\begin{aligned}
+c(y)
+&= c_0 \cdot 1.01^{y - y_0} \cdot (1 + 1.01) / 2 \\
+&= c_0 \cdot 1.01^{y - y_0} \cdot 1.05,
+\end{aligned}
+$$
+
+where $y$ is the year in which to apply the given value
+and $y_0$ is the starting year i.e. 1850.
+
+For monthly time steps, this reduces to
+
+$$
+\begin{aligned}
+c(y, m)
+&= c_0 \cdot (1.01^{y - y_0} \cdot 1.01^{(m - 1) / 12} + 1.01^{y - y_0} \cdot 1.01^{m / 12}) / 2 \\
+&= c_0 \cdot 1.01^{y - y_0} \cdot 1.01^{(m - 1) / 12} \cdot (1 + 1.01^(1 / 12)) / 2 \\
+&= c_0 \cdot 1.01^{y - y_0} \cdot 1.01^{(m - 1) / 12} \cdot 1.0004,
+\end{aligned}
+$$
+
+where $m$ is the month in which to apply the given value (January is 1, February is 2 etc.).
+""",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug == "greenhouse-gas-concentrations"
+                ),
+            )
+        ),
+        fixed_or_transient_or_mix_forcing_override=(
+            "The 1pctCO2 experiment is a fixed forcings experiment, "
             "except for CO<sub>2</sub> which is transient."
         ),
-        notes=join_blocks(
-            f"See notes for the {PI_CONTROL_LINK}.",
-            "You have to increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.",
-            block(
-                """
-                <!---
-                    TODO: discuss with Matt/someone else the specific implementation instructions.
-                    Set concentrations in first year to be higher than piControl
-                    (because, if you don't do this and you have a linear increase,
-                    then you'd have to drop concentrations in January of the first year in order to get the average correct)
-                    TODO: check formula rendering
-                -->
-                The annual-average concentrations should increase following the formula c(y) = c_0 * 1.01 ** (y - y_0 - 1),
-                where c is the annual-average concentration in year y and y_0 is the first year of the `1pctCO2` simulation
-                (i.e. average atmospheric CO<sub>2</sub> concentrations in the first year of the `1pctCO2` simulation
-                should be higher than in `piControl`).
-                It is up to you to decide whether you apply your concentrations as a series of step changes
-                (constant over each year) or as a steady linear increase
-                (such that e.g. concentrations in December are higher than those in January)
-                that results in the correct annual average being applied.
-                """
-            ),
-        ).strip(),
-        versions_to_use=same_as_versions("piControl simulation", "picontrol"),
-        getting_the_data=picontrol_cmip_data_access_body("1pctCO2"),
+        # experiment_setup=join_blocks(
+        #     f"The 1pctCO2 simulation is a simple branch from the {PI_CONTROL_LINK}.",
+        #     "After branching, the atmospheric CO<sub>2</sub> concentrations should increase at one percent per year throughout the simulation.",
+        #     TIME_AXIS_CAN_BE_ARBITRARY,
+        # ).strip(),
+        # forcing_headlines=(
+        #     "The `1pctCO2` experiment is a fixed forcings experiment, "
+        #     "except for CO<sub>2</sub> which is transient."
+        # ),
+        # notes=join_blocks(
+        #     f"See notes for the {PI_CONTROL_LINK}.",
+        #     "You have to increase the atmospheric CO<sub>2</sub> concentrations at one percent per year yourself.",
+        #     block(
+        #         """
+        #         <!---
+        #             TODO: discuss with Matt/someone else the specific implementation instructions.
+        #             Set concentrations in first year to be higher than piControl
+        #             (because, if you don't do this and you have a linear increase,
+        #             then you'd have to drop concentrations in January of the first year in order to get the average correct)
+        #             TODO: check formula rendering
+        #         -->
+        #         The annual-average concentrations should increase following the formula c(y) = c_0 * 1.01 ** (y - y_0 - 1),
+        #         where c is the annual-average concentration in year y and y_0 is the first year of the `1pctCO2` simulation
+        #         (i.e. average atmospheric CO<sub>2</sub> concentrations in the first year of the `1pctCO2` simulation
+        #         should be higher than in `piControl`).
+        #         It is up to you to decide whether you apply your concentrations as a series of step changes
+        #         (constant over each year) or as a steady linear increase
+        #         (such that e.g. concentrations in December are higher than those in January)
+        #         that results in the correct annual average being applied.
+        #         """
+        #     ),
+        # ).strip(),
     ),
     ExperimentPageOld(
         slug="abrupt-4xco2",

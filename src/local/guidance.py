@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -222,6 +223,11 @@ class ExperimentPage:
     that don't appear elsewhere.
     """
 
+    fixed_or_transient_or_mix_forcing_override: str | None = None
+    """
+    If provided, string to use in place of rendering the fixed/transient information based on the forcing specification
+    """
+
     mip_co_chair_review: RenderableMIPCoChairReviewInformation | None = field(
         default_factory=NoCoChairReview
     )
@@ -411,8 +417,26 @@ class ExperimentPage:
                 data_described_on_other_experiment_pages = f"All data is described on the {source_experiment_link} experiment page."
 
             else:
-                breakpoint()
-                raise NotImplementedError
+                all_forcings_by_slug = {
+                    v.forcing_slug: v for v in self.forcings.all_forcings
+                }
+                source_ids_grouped = defaultdict(list)
+                for v in other_experiment_based_forcings_without_modifications_info:
+                    source_ids_grouped[
+                        (
+                            v.experiment_esgvoc_id,
+                            get_experiment(v.experiment_esgvoc_id).drs_name,
+                        )
+                    ].append(all_forcings_by_slug[v.forcing_slug].label)
+
+                other_page_dot_points = "\n".join(
+                    f"- {render_link(experiment_drs_name, experiment_esgvoc_id)} for {', '.join(source_ids)}"
+                    for (
+                        experiment_drs_name,
+                        experiment_esgvoc_id,
+                    ), source_ids in source_ids_grouped.items()
+                )
+                data_described_on_other_experiment_pages = f"The data is described on other experiment pages, see:\n\n{other_page_dot_points}"
 
         else:
             data_described_on_other_experiment_pages = join_lines(
@@ -616,6 +640,9 @@ class ExperimentPage:
         """
         Render information about whether forcings for a given experiment are fixed, transient or both
         """
+        if self.fixed_or_transient_or_mix_forcing_override is not None:
+            return self.fixed_or_transient_or_mix_forcing_override
+
         if all(v.fixed for v in self.forcings.all_forcings):
             res = f"The {self.drs_name} experiment is a fixed forcings experiment."
 
