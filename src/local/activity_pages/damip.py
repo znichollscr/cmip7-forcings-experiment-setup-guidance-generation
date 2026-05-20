@@ -2,156 +2,106 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 
-from local.forcing_references import COMMON_FORCING_NOTES
-from local.forcing_versions import (
-    HISTORICAL_FORCING_VERSIONS,
-    PI_CONTROL_FORCING_VERSIONS,
-    forcing_ids_except,
-    merge_source_ids,
-    scen7_forcing_versions_for_slug,
-    select_forcing_versions,
-    source_ids_from_forcing_versions,
+from local.branching import BranchAtSameTimeAsOtherExperiment
+from local.forcings import (
+    HISTORICAL_FORCINGS_SPECIFICATION,
+    PICONTROL_FORCINGS_SPECIFICATION,
+    ForcingSpecification,
+    OtherExperimentBasedForcingSpecification,
 )
-from local.guidance import HISTORICAL_LINK, PI_CONTROL_LINK, ExperimentPageOld
+from local.guidance import (
+    ExperimentPage,
+)
 from local.rendering import (
-    join_blocks,
-    join_lines,
-    render_data_access_body,
     render_link,
 )
 from local.vocab import get_experiment
 
-DAMIP_EXTENSION_SCENARIO_SLUG = "scen7-m"
+# TODO: split out a `render_link_for_experiment` function
+SCEN7_M = get_experiment("scen7-m")
+SCEN7_M_LINK = render_link(SCEN7_M.drs_name, SCEN7_M.id)
+
+PICLIM_CONTROL = get_experiment("piclim-control")
+PICLIM_CONTROL_LINK = render_link(PICLIM_CONTROL.drs_name, PICLIM_CONTROL.id)
 
 
 @dataclass(frozen=True)
 class HistoricalForcingPageSpec:
     """Inputs needed to create a DAMIP historical-forcing page."""
 
-    slug: str
+    id_esgvoc: str
     historical_forcing_ids: tuple[str, ...]
-    historical_forcing_label: str
 
 
-def make_historical_forcing_page(spec: HistoricalForcingPageSpec) -> ExperimentPageOld:
+def make_historical_forcing_page(spec: HistoricalForcingPageSpec) -> ExperimentPage:
     """Create a DAMIP page using selected historical forcings."""
-    experiment_name = get_experiment(spec.slug).drs_name
-    extension_scenario_link = damip_extension_scenario_link()
+    # experiment_name = get_experiment(spec.id_esgvoc).drs_name
 
-    return ExperimentPageOld(
-        slug=spec.slug,
-        experiment_setup=join_blocks(
-            f"The `{experiment_name}` simulation is a branch from the {PI_CONTROL_LINK}.",
-            (
-                f"The {spec.historical_forcing_label} should evolve as in the "
-                f"{HISTORICAL_LINK}."
-            ),
-            (
-                f"For the extension beyond the historical simulation, the "
-                f"{spec.historical_forcing_label} should follow the "
-                f"{extension_scenario_link} scenario simulation."
-            ),
-            f"All other forcings should remain as in the {PI_CONTROL_LINK}.",
-        ).strip(),
-        forcing_headlines=join_lines(
-            f"The `{experiment_name}` experiment combines historical",
-            spec.historical_forcing_label,
-            f"extended with the {extension_scenario_link} scenario,",
-            "with piControl values for all other forcings.",
-        ),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=join_blocks(
-            join_lines(
-                f"For {spec.historical_forcing_label},",
-                f"the relevant forcing is the same as for the {HISTORICAL_LINK},",
-                f"then the {extension_scenario_link} scenario for the extension.",
-            ),
-            join_lines(
-                "For all other forcings,",
-                f"the forcing versions relevant for this simulation are the same as for the {PI_CONTROL_LINK}.",
-            ),
-        ).strip(),
-        getting_the_data=render_data_access_body(
-            experiment_name=experiment_name,
-            source_ids=source_ids_for_historical_forcing_page(
-                spec.historical_forcing_ids
-            ),
-        ),
-    )
-
-
-def damip_extension_scenario_name() -> str:
-    """Return the display name of the scenario used for DAMIP extensions."""
-    return get_experiment(DAMIP_EXTENSION_SCENARIO_SLUG).drs_name
-
-
-def damip_extension_scenario_link() -> str:
-    """Return a link to the scenario used for DAMIP extensions."""
-    return render_link(
-        f"`{damip_extension_scenario_name()}`",
-        DAMIP_EXTENSION_SCENARIO_SLUG,
-    )
-
-
-def source_ids_for_historical_forcing_page(
-    historical_forcing_ids: Sequence[str],
-) -> tuple[str, ...]:
-    """Derive source IDs for a DAMIP selected-historical-forcing page."""
-    return merge_source_ids(
-        source_ids_from_forcing_versions(
-            select_forcing_versions(
-                PI_CONTROL_FORCING_VERSIONS,
-                forcing_ids_except(
-                    PI_CONTROL_FORCING_VERSIONS, *historical_forcing_ids
+    return ExperimentPage(
+        id_esgvoc=spec.id_esgvoc,
+        branch_information=BranchAtSameTimeAsOtherExperiment("historical"),
+        # experiment_setup_notes=block(
+        #     f"""
+        #     {experiment_name} is {HISTORICAL_LINK} followed by the {SCEN7_M_LINK} experiment,
+        #     except only specific forcings are used, see [forcings](#forcings).
+        #     """
+        # ),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="historical",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug in spec.historical_forcing_ids
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="scen7-m",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug in spec.historical_forcing_ids
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug not in spec.historical_forcing_ids
                 ),
             ),
         ),
-        source_ids_from_forcing_versions(
-            select_forcing_versions(
-                HISTORICAL_FORCING_VERSIONS,
-                historical_forcing_ids,
-            ),
-        ),
-        source_ids_from_forcing_versions(
-            select_forcing_versions(
-                scen7_forcing_versions_for_slug(DAMIP_EXTENSION_SCENARIO_SLUG),
-                historical_forcing_ids,
-            ),
-        ),
     )
 
 
-DAMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
+DAMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     make_historical_forcing_page(
         HistoricalForcingPageSpec(
-            slug="hist-aer",
+            id_esgvoc="hist-aer",
             historical_forcing_ids=(
-                "anthropogenic-emissions",
-                "biomass-burning-emissions",
-            ),
-            historical_forcing_label=(
-                "anthropogenic emissions and biomass-burning emissions"
+                "anthropogenic-slcf-co2-emissions",
+                "open-biomass-burning-emissions",
             ),
         )
     ),
     make_historical_forcing_page(
         HistoricalForcingPageSpec(
-            slug="hist-ghg",
+            id_esgvoc="hist-ghg",
             historical_forcing_ids=("greenhouse-gas-concentrations",),
-            historical_forcing_label="greenhouse-gas concentrations",
         )
     ),
     make_historical_forcing_page(
         HistoricalForcingPageSpec(
-            slug="hist-nat",
+            id_esgvoc="hist-nat",
             historical_forcing_ids=(
                 "solar",
-                "stratospheric-aerosol-forcing",
+                "stratospheric-volcanic-so2-emissions-aod",
             ),
-            historical_forcing_label=("natural forcings (solar and volcanic forcings)"),
         )
     ),
 )
