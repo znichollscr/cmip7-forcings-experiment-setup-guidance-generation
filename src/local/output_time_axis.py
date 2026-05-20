@@ -156,3 +156,37 @@ class PiClimOutputTimeAxisInformation:
         )
 
         return res
+
+
+@dataclass(frozen=True)
+class RecommendContinueFromBranchPointTimeAxisInformation:
+    """
+    Output time axis recommended to continue from branch in parent
+    """
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the output time axis information as a string"""
+        experiment_esgvoc = experiment.experiment_esgvoc
+        if (
+            experiment_esgvoc.start_timestamp is not None
+            or experiment_esgvoc.end_timestamp is not None
+        ):
+            msg = "Expected no specific start and end"
+            raise AssertionError(msg)
+
+        base = EsgvocDrivenOutputTimeAxisInformation().render(experiment)
+
+        extra_notes = block(
+            """
+        If you have no strong feeling, then you will make life simplest for analysts
+        if you continue your time axis from the branching point
+        (e.g. if you branch on 1500-01-01, start your time axis on 1500-01-01).
+        """
+        )
+
+        res = join_blocks(
+            base,
+            extra_notes,
+        )
+
+        return res
