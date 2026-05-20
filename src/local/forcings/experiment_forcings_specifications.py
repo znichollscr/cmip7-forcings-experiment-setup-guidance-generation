@@ -81,7 +81,7 @@ HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
             recommended_versions=("FZJ-CMIP-nitrogen-2-0",),
             acceptable_versions=("FZJ-CMIP-nitrogen-1-2",),
             notes=(
-                "the notrogen deposition forcing should come from files "
+                "the nitrogen deposition forcing should come from files "
                 "with the source ID `FZJ-CMIP-nitrogen-2-0`. "
                 "`FZJ-CMIP-nitrogen-2-0` was released quite late "
                 "and the impact of the change is likely to be small, "
@@ -107,6 +107,67 @@ HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
             "population",
             fixed=False,
             recommended_versions=("PIK-CMIP-1-0-1",),
+        ),
+    )
+)
+
+picontrol_forcings_specification_specific_forcings = []
+for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings:
+    if v.forcing_slug in ("ozone", "nitrogen-deposition"):
+        continue
+
+    keep = dataclasses.replace(v, fixed=True)
+    if keep.forcing_slug in (
+        "stratospheric-volcanic-so2-emissions-aod",
+        "solar",
+    ):
+        new_notes = (
+            "The piControl forcing is not simply a repeat of 1850 values. "
+            "Please use the specific piControl files provided."
+        )
+        if keep.notes:
+            keep_notes = keep.notes[:1].upper() + keep.notes[1:]
+            new_notes = f"{new_notes} {keep_notes}"
+
+        keep = dataclasses.replace(
+            keep,
+            notes=new_notes,
+        )
+
+    picontrol_forcings_specification_specific_forcings.append(keep)
+
+PICONTROL_FORCINGS_SPECIFICATION = ForcingSpecification(
+    specific_forcings=(
+        *picontrol_forcings_specification_specific_forcings,
+        Input4MIPsBasedForcingSpecification(
+            "ozone",
+            fixed=True,
+            recommended_versions=("FZJ-CMIP-ozone-1-2",),
+            notes=(
+                "The piControl forcing is not simply a repeat of 1850 values. "
+                "Please use the specific piControl files provided. "
+                "The ozone forcing should come from files "
+                "with the source ID `FZJ-CMIP-ozone-1-2`. "
+                "The release of `FZJ-CMIP-ozone-2-0` "
+                "only affected the historical forcing data. "
+                "`FZJ-CMIP-ozone-2-0` did not include "
+                "any data for piControl simulations. "
+                # TODO: check for inconsistent use of `experiment_name` throughout
+            ),
+        ),
+        Input4MIPsBasedForcingSpecification(
+            "nitrogen-deposition",
+            fixed=True,
+            recommended_versions=("FZJ-CMIP-nitrogen-2-0",),
+            acceptable_versions=("FZJ-CMIP-nitrogen-1-2",),
+            notes=(
+                "the nitrogen deposition forcing should come from files "
+                "with the source ID `FZJ-CMIP-nitrogen-2-0`. "
+                "`FZJ-CMIP-nitrogen-2-0` was released quite late "
+                "and the impact of the change is likely to be small, "
+                "so if you have simulations based on `FZJ-CMIP-nitrogen-1-2`, "
+                "you do not need to re-run them."
+            ),
         ),
     )
 )
@@ -186,6 +247,35 @@ def get_ghg_concentrations_scenario_forcings(
         fixed=False,
         recommended_versions=(scenario_specific,),
         acceptable_versions=acceptable_versions,
+    )
+
+    return res
+
+
+def get_volcanic_scenario_forcings(
+    forcing_slug: str,
+    scenario_drs_name: str,
+    scenario_short_name: str,
+) -> Input4MIPsBasedForcingSpecification:
+    """
+    Get the volcanic forcings for a given scenario
+    """
+    if scenario_drs_name.endswith("ext"):
+        scenario = scenario_drs_name.replace("-ext", "").lower()
+
+        return OtherExperimentBasedForcingSpecification(
+            forcing_slug,
+            experiment_esgvoc_id=scenario,
+            # Constant extension
+            user_modifications=(
+                f"hold forcings constant after the end of the {scenario} data"
+            ),
+        )
+
+    res = Input4MIPsBasedForcingSpecification(
+        forcing_slug,
+        fixed=False,
+        recommended_versions=("UOEXETER-ScenarioMIP-2-2-2",),
     )
 
     return res
@@ -338,13 +428,7 @@ GET_SCEN7_FORCINGS_BY_FORCING_TYPE = {
     "open-biomass-burning-emissions": get_iam_based_emissions_scenario_forcings,
     "land-use": get_land_use_scenario_forcings,
     "greenhouse-gas-concentrations": get_ghg_concentrations_scenario_forcings,
-    "stratospheric-volcanic-so2-emissions-aod": lambda forcing_slug,
-    x,
-    y: Input4MIPsBasedForcingSpecification(
-        forcing_slug,
-        fixed=False,
-        recommended_versions=("UOEXETER-ScenarioMIP-2-2-2",),
-    ),
+    "stratospheric-volcanic-so2-emissions-aod": get_volcanic_scenario_forcings,
     "ozone": get_ozone_scenario_forcings,
     "nitrogen-deposition": get_nitrogen_deposition_scenario_forcings,
     "solar": get_solar_scenario_forcings,

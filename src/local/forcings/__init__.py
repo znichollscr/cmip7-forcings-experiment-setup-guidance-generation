@@ -6,6 +6,7 @@ Forcings details
 from .experiment_forcings_specifications import (
     HISTORICAL_FORCINGS_SPECIFICATION,
     NOT_AVAILABLE_YET,
+    PICONTROL_FORCINGS_SPECIFICATION,
     get_scen7_forcing_specification,
 )
 from .specification import (
@@ -18,6 +19,7 @@ from .specification import (
 __all__ = [
     "HISTORICAL_FORCINGS_SPECIFICATION",
     "NOT_AVAILABLE_YET",
+    "PICONTROL_FORCINGS_SPECIFICATION",
     "ForcingSpecification",
     "ForcingSpecification",
     "Input4MIPsBasedForcingSpecification",
