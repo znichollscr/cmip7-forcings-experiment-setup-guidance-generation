@@ -25,9 +25,7 @@ class ForcingReference:
     @property
     def display_url(self) -> str:
         """The compact URL displayed in the rendered markdown."""
-        return (
-            "input4mips-cvs.readthedocs.io/dataset-overviews/" f"{self.overview_slug}"
-        )
+        return f"input4mips-cvs.readthedocs.io/dataset-overviews/{self.overview_slug}"
 
 
 COMMON_FORCING_REFERENCES = (

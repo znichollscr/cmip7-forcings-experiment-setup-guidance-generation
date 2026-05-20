@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -344,50 +345,6 @@ class ExperimentPage:
             self.render_minimum_ensemble_size_info(),
             "## Forcings",
             self.render_forcing_info(header_level_min=3),
-            #
-            #
-            # "## Experiment set up",
-            # # TODO: check that some overall general, consistent description bit
-            # # is consistently here
-            # self.experiment_setup,
-            # "### Timing, length and ensemble size",
-            # # TODO: add branching and parent experiment info in here.
-            # # "Branching, timing, simulation length and ensemble size"
-            # # TODO: then add an extra section for further set up notes
-            # render_experiment_requirements(experiment),
-            # (
-            #     join_blocks(
-            #         "### Parent experiment",
-            #         render_parent_information(
-            #             experiment,
-            #             page_slugs=page_slugs,
-            #             extra=self.parent_experiment_extra,
-            #         ),
-            #     )
-            #     # TODO: alter, should put "No parent experiment" or similar
-            #     # if there is no parent experiment rather than just skipping this block
-            #     if self.include_parent_information
-            #     else ""
-            # ),
-            # "## Forcings",
-            # "### General headlines",
-            # # TODO: check what is consistently here
-            # self.forcing_headlines,
-            # "### Notes",
-            # # TODO: check whether the content here is consistently
-            # # about details of implementation, leaving general headlines above
-            # # for information about whether the experiments are fixed, transient
-            # # or a mix.
-            # self.notes,
-            # "### Versions to use",
-            # # TODO: somehow make this more standard:
-            # # each page should either render JSON
-            # # or point to other pages
-            # # (but ideally not a blend of these two)
-            # self.versions_to_use,
-            # "### Getting the data",
-            # # TODO: add sections to this to help make clear what comes from what
-            # self.getting_the_data,
         )
 
     def render_branch_information(self) -> str:
@@ -411,13 +368,58 @@ class ExperimentPage:
         """
         Render the forcing information
         """
-        # Getting the data
-        # input4MIPs
-        # - data type (human-readable name), source ID, further guidance notes URL, other notes
-        # - repeat data type and source ID as JSON for easier parsing/re-use if people want
-        # getting input4MIPs data
-        # Other data
-        # - data type (human-readable name), further guidance notes URL, other notes
+        # TODO: clean this up
+        esgf_based_forcings = tuple(
+            v
+            for v in self.forcings.specific_forcings
+            if isinstance(v, ESGFBasedForcingSpecification)
+        )
+        non_esgf_based_forcings = tuple(
+            v
+            for v in self.forcings.specific_forcings
+            if isinstance(v, NonESGFBasedForcingSpecification)
+        )
+
+        esgf_based_forcings_versions_simple_json = {}
+        recommended_source_ids = []
+        for v in esgf_based_forcings:
+            esgf_based_forcings_versions_simple_json[v.forcing_slug] = {
+                "human_readable_name": v.label,
+                "recommended_versions": v.recommended_versions,
+                "acceptable_versions": v.acceptable_versions,
+            }
+            recommended_source_ids.extend(v.recommended_versions)
+
+        esgpull_download_script = join_blocks(
+            # TODO: clean up use of block vs. join_lines vs. join_blocks, do we really need them all?
+            block("""
+                The data is available on ESGF and searchable [via metagrid](https://esgf-node.ornl.gov/search?project=input4MIPs&versionType=all&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%7D),
+                although this method of finding and downloading the data can involve a lot of clicking.
+            """),
+            block("""
+                If you install [esgpull](https://esgf.github.io/esgf-download/),
+                you can download all the data associated with the recommended source IDs above
+                using the script given below.
+                Note that this will download all the data associated with these source IDs,
+                which is likely to be much more data than you actually need to run your model.
+            """),
+            block(f"""
+                ```bash
+                #!/bin/bash
+
+                EXPERIMENT_NAME="{self.drs_name}"
+
+                ## You may need to run the below if you haven't already done it once with esgpull
+                # esgpull self install
+                ## You may also need to run this step to get the data to download
+                # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
+                esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(recommended_source_ids)}
+                esgpull update --tag ${{EXPERIMENT_NAME}} --yes
+                esgpull download --tag ${{EXPERIMENT_NAME}}
+                ```
+            """),
+        )
+
         res = join_blocks(
             join_lines(
                 "The following information will help you identify the forcings to use. "
@@ -435,32 +437,63 @@ class ExperimentPage:
                 "and data distributed via other channels."
             ),
             f"{'#' * (header_level_min + 1)} Data available via input4MIPs",
-            # Text about what the different source IDs (recommended vs. acceptable) mean
+            f"{'#' * (header_level_min + 2)} Versions to use",
+            join_lines(
+                "For each forcing available via input4MIPs, we provide the version(s), "
+                "called 'source ID(s)' in the file's metadata, which should be used when running this simulation. ",
+                "The recommended version(s) are the version(s) we recommend using. ",
+                "Any acceptable versions can be used "
+                "(you are not obliged to re-run simulations that used them).",
+                "Please see the guidance pages linked under each forcing for full details.",
+            ),
             join_blocks(
                 *(
                     join_lines(
                         f"- {v.label}",
                         f"    - recommended source IDs: {', '.join(v.recommended_versions)}",
-                        f"    - acceptable source IDs: {', '.join(v.acceptable_versions)}"
-                        if v.acceptable_versions
-                        else "",
-                        # notes
-                        # Links to input4MIPs CVs
+                        (
+                            f"    - acceptable source IDs: {', '.join(v.acceptable_versions)}"
+                            if v.acceptable_versions
+                            else ""
+                        ),
+                        (f"    - notes: {v.notes}" if v.notes else ""),
+                        (
+                            f"    - further guidance: {v.rendered_input4mips_cvs_link}"
+                            if v.rendered_input4mips_cvs_link
+                            else ""
+                        ),
                     )
-                    for v in self.forcings.specific_forcings
-                    if isinstance(v, ESGFBasedForcingSpecification)
+                    for v in esgf_based_forcings
                 )
             ),
-            # Download script
+            f"{'#' * (header_level_min + 3)} JSON",
+            join_lines(
+                "For easier parsing with machines, we also present the information given above as JSON.",
+            ),
+            # TODO: see if I can make this a collapsible block
+            "\n".join(
+                (
+                    "```json",
+                    json.dumps(esgf_based_forcings_versions_simple_json, indent=4),
+                    "```",
+                )
+            ),
+            f"{'#' * (header_level_min + 3)} Download via esgpull",
+            # TODO: see if I can make this a collapsible block
+            esgpull_download_script,
             f"{'#' * (header_level_min + 1)} Data not available via input4MIPs",
             join_blocks(
                 *(
                     join_lines(
                         f"- {v.label}",
-                        # notes
+                        (f"    - notes: {v.notes}" if v.notes else ""),
+                        (
+                            f"    - further guidance: {v.rendered_input4mips_cvs_link}"
+                            if v.rendered_input4mips_cvs_link
+                            else ""
+                        ),
                     )
-                    for v in self.forcings.specific_forcings
-                    if isinstance(v, NonESGFBasedForcingSpecification)
+                    for v in non_esgf_based_forcings
                 )
             ),
         )

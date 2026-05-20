@@ -7,6 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from local.forcing_references import ALL_FORCING_REFERENCES
+from local.rendering import render_external_link
 
 
 @dataclass(frozen=True)
@@ -46,9 +47,26 @@ class ESGFBasedForcingSpecification:
     """
 
     @property
+    def reference(self) -> str:
+        """Get the reference to use for this forcing"""
+        return ALL_FORCING_REFERENCES[self.forcing_slug]
+
+    @property
     def label(self) -> str:
         """Get the label to use for this forcing"""
-        return ALL_FORCING_REFERENCES[self.forcing_slug].label
+        return self.reference.label
+
+    @property
+    def rendered_input4mips_cvs_link(self) -> str | None:
+        """Get the rendered input4MIPs CVs link for this forcing"""
+        try:
+            reference = self.reference
+            res = render_external_link(reference.display_url, reference.url)
+
+        except KeyError:
+            res = None
+
+        return res
 
 
 @dataclass(frozen=True)
@@ -75,9 +93,26 @@ class NonESGFBasedForcingSpecification:
     """
 
     @property
+    def reference(self) -> str:
+        """Get the reference to use for this forcing"""
+        return ALL_FORCING_REFERENCES[self.forcing_slug]
+
+    @property
     def label(self) -> str:
         """Get the label to use for this forcing"""
-        return ALL_FORCING_REFERENCES[self.forcing_slug].label
+        return self.reference.label
+
+    @property
+    def rendered_input4mips_cvs_link(self) -> str | None:
+        """Get the rendered input4MIPs CVs link for this forcing"""
+        try:
+            reference = self.reference
+            res = render_external_link(reference.display_url, reference.url)
+
+        except KeyError:
+            res = None
+
+        return res
 
 
 @dataclass(frozen=True)
