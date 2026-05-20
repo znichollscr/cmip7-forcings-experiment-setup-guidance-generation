@@ -651,10 +651,10 @@ class ExperimentPage:
 
         else:
             fixed_forcings_names = render_list_human_like(
-                *(v.label for v in self.forcings.all_forcings if v.fixed)
+                *sorted(set(v.label for v in self.forcings.all_forcings if v.fixed))
             )
             transient_forcings_names = render_list_human_like(
-                *(v.label for v in self.forcings.all_forcings if not v.fixed)
+                *sorted(set(v.label for v in self.forcings.all_forcings if not v.fixed))
             )
             res = join_lines(
                 f"The {self.drs_name} experiment uses a mix of fixed and transient forcings.",

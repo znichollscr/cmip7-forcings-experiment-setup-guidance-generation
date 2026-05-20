@@ -520,7 +520,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                         user_modifications=f"apply the {PRESENT_YEAR} value on repeat",
                         fixed_override=True,
                     )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
                     if v.forcing_slug
                     not in (
                         "solar",

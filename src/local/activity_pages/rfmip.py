@@ -16,6 +16,7 @@ from local.forcing_versions import (
     source_ids_from_forcing_versions,
 )
 from local.forcings import (
+    HISTORICAL_FORCINGS_SPECIFICATION,
     PICONTROL_FORCINGS_SPECIFICATION,
     ForcingSpecification,
     OtherExperimentBasedForcingSpecification,
@@ -38,6 +39,14 @@ from local.rendering import (
 from local.vocab import get_experiment
 
 from .cmip import PRESENT_YEAR
+
+# TODO: split out a `render_link_for_experiment` function
+SCEN7_M = get_experiment("scen7-m")
+SCEN7_M_LINK = render_link(SCEN7_M.drs_name, SCEN7_M.id)
+
+PICLIM_CONTROL = get_experiment("piclim-control")
+PICLIM_CONTROL_LINK = render_link(PICLIM_CONTROL.drs_name, PICLIM_CONTROL.id)
+
 
 RFMIP_EXTENSION_SCENARIO_SLUGS = ("scen7-m", "esm-scen7-m")
 PICLIM_CONTROL_PRESCRIBED_BOUNDARY_CONDITIONS = block(
@@ -222,7 +231,7 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                         user_modifications=f"apply the {PRESENT_YEAR} value on repeat",
                         fixed_override=True,
                     )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
                     if v.forcing_slug
                     in (
                         "anthropogenic-slcf-co2-emissions",
@@ -238,36 +247,92 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=only_keep_first_sentence,
     ),
-    # make_piclim_historical_forcing_variant_page(
-    #     slug="piclim-aer",
-    #     historical_forcings=(
-    #         HistoricalForcing(
-    #             forcing_id="anthropogenic-emissions",
-    #             label="anthropogenic aerosol emissions",
-    #         ),
-    #         HistoricalForcing(
-    #             forcing_id="biomass-burning-emissions",
-    #             label="biomass-burning aerosol emissions",
-    #         ),
-    #     ),
-    # ),
-    make_historical_transient_forcing_page(
-        HistoricalTransientForcingPageSpec(
-            slug="piclim-histaer",
-            historical_forcing_ids=(
-                "anthropogenic-emissions",
-                "biomass-burning-emissions",
+    ExperimentPage(
+        id_esgvoc="piclim-histaer",
+        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
+        experiment_setup_notes=block(
+            f"""
+            piClim-histaer is the same setup as {PICLIM_CONTROL_LINK},
+            except aerosol emissions follow the {HISTORICAL_LINK} experiment
+            then the {SCEN7_M_LINK} experiment.
+            """
+        ),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="historical",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug
+                    in (
+                        "anthropogenic-slcf-co2-emissions",
+                        "open-biomass-burning-emissions",
+                    )
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="scen7-m",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug
+                    in (
+                        "anthropogenic-slcf-co2-emissions",
+                        "open-biomass-burning-emissions",
+                    )
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug
+                    not in (
+                        "anthropogenic-slcf-co2-emissions",
+                        "open-biomass-burning-emissions",
+                    )
+                ),
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug="sst-forcing",
+                    experiment_esgvoc_id="piclim-control",
+                ),
             ),
-            historical_forcing_label="aerosol emissions",
-            use_piclim_control_for_other_forcings=True,
-        )
+        ),
     ),
-    make_historical_transient_forcing_page(
-        HistoricalTransientForcingPageSpec(
-            slug="piclim-histall",
-            historical_forcing_ids=tuple(HISTORICAL_FORCING_VERSIONS),
-            historical_forcing_label="all forcings",
-            use_piclim_control_for_other_forcings=False,
-        )
+    ExperimentPage(
+        id_esgvoc="piclim-histall",
+        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
+        experiment_setup_notes=block(
+            f"""
+            piClim-histaer is the same setup as {PICLIM_CONTROL_LINK},
+            except all forcings follow the {HISTORICAL_LINK} experiment
+            then the {SCEN7_M_LINK} experiment.
+            """
+        ),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="historical",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="scen7-m",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                ),
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug="sst-forcing",
+                    experiment_esgvoc_id="piclim-control",
+                ),
+            ),
+        ),
     ),
 )
