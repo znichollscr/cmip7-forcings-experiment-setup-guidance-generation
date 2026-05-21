@@ -42,12 +42,6 @@ def make_historical_forcing_page(spec: HistoricalForcingPageSpec) -> ExperimentP
     return ExperimentPage(
         id_esgvoc=spec.id_esgvoc,
         branch_information=BranchAtSameTimeAsOtherExperiment("historical"),
-        # experiment_setup_notes=block(
-        #     f"""
-        #     {experiment_name} is {HISTORICAL_LINK} followed by the {SCEN7_M_LINK} experiment,
-        #     except only specific forcings are used, see [forcings](#forcings).
-        #     """
-        # ),
         forcings=ForcingSpecification(
             other_experiment_based_forcings=(
                 *(

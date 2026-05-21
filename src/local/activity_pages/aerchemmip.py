@@ -17,10 +17,8 @@ from local.forcing_versions import (
     SCEN7_VL_FORCING_VERSIONS,
     ForcingValue,
     forcing_ids_except,
-    historical_forcing_ids_except,
     merge_source_ids,
     select_forcing_versions,
-    source_ids_for_picontrol_historical_forcing_combination,
     source_ids_from_forcing_versions,
 )
 from local.forcings import (
@@ -39,7 +37,6 @@ from local.output_time_axis import (
     PiClimOutputTimeAxisInformation,
 )
 from local.rendering import (
-    block,
     join_blocks,
     join_lines,
     only_keep_first_sentence,
@@ -212,6 +209,46 @@ def make_piclim_based_page(
     return res
 
 
+# TODO: re-use something like this elsewhere
+def make_hist_star_page(
+    id_esgvoc: str,
+    forcing_slugs_historical_modified: tuple[str, ...],
+    user_modifications: str | None = None,
+    render_description: Callable[[str], str] = lambda x: x,
+) -> ExperimentPage:
+    """
+    Make a hist-* page
+    """
+    res = ExperimentPage(
+        id_esgvoc=id_esgvoc,
+        branch_information=BranchAtSameTimeAsOtherExperiment("historical"),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="historical",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug not in forcing_slugs_historical_modified
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="historical",
+                        user_modifications=user_modifications,
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug in forcing_slugs_historical_modified
+                ),
+            ),
+        ),
+        render_description=render_description,
+    )
+
+    return res
+
+
 AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
     make_piclim_based_page(
         "piclim-ch4",
@@ -271,97 +308,45 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         ),
         render_description=only_keep_first_sentence,
     ),
-    ExperimentPageOld(
-        slug="hist-piaer",
-        experiment_setup=join_blocks(
-            # TODO: remove this
-            "<!-- TODO: check this with someone who knows what they're reading -->",
-            # TODO: Get this from esgvoc instead
-            block(
-                """
-                The `hist-piAer` simulation is a simple variant of the [historical simulation](./historical.md)
-                where aerosol and tropospheric non-methane ozone precursor emissions are kept at pre-industrial levels.
-                `hist-piAer` is for models that do not include interactive chemistry.
-                """
-            ),
-        ).strip(),
-        parent_experiment_extra=(
-            "This branch time should match the branch time used for "
-            f"initialising the {HISTORICAL_LINK}."
+    make_hist_star_page(
+        "hist-piaer",
+        forcing_slugs_historical_modified=tuple(
+            (
+                # TODO: check if biomass burning is meant to be included
+                "anthropogenic-slcf-co2-emissions",
+                "open-biomass-burning-emissions",
+            )
         ),
-        forcing_headlines=block(
-            """
-            The `hist-piAer` experiment is a time-varying forcings experiment,
-            except for aerosol and tropospheric non-methane ozone precursor emissions which should be fixed.
-            """
+        user_modifications=(
+            "BC, OC, NH<sub>3</sub> and SO<sub>2</sub> emissions "
+            f"should be fixed to  {PI_CONTROL_LINK} values"
         ),
-        notes=f"See notes for the {PI_CONTROL_LINK} and {HISTORICAL_LINK}.",
-        versions_to_use=join_blocks(
-            join_lines(
-                "For aerosol and tropospheric non-methane ozone precursor emissions",
-                f"the relevant forcing is the same as for the {PI_CONTROL_LINK}.",
-            ),
-            join_lines(
-                "For all other forcings,",
-                f"the forcing versions relevant for this simulation are the same as for the {HISTORICAL_LINK}.",
-            ),
-        ).strip(),
-        getting_the_data=render_data_access_body(
-            experiment_name="hist-piAer",
-            source_ids=source_ids_for_picontrol_historical_forcing_combination(
-                picontrol_forcing_ids=("anthropogenic-emissions",),
-                historical_forcing_ids=historical_forcing_ids_except(
-                    "anthropogenic-emissions",
-                    "aerosol-optical-properties",
-                ),
-            ),
-        ),
+        # Probably better to keep this off as it will help people spot errors more easily
+        # render_description=lambda x: (
+        #     f"{only_keep_first_sentence(x)} "
+        #     "Intended for models without interactive chemistry. "
+        #     "Identical to hist-piAer in AerChemMIP phase 1."
+        # ),
     ),
-    ExperimentPageOld(
-        slug="hist-piaq",
-        experiment_setup=join_blocks(
-            # TODO: remove this
-            "<!-- TODO: check this with someone who knows what they're reading -->",
-            # TODO: Get this from esgvoc instead
-            block(
-                """
-                The `hist-piAQ` simulation is a simple variant of the [historical simulation](./historical.md)
-                where aerosol and tropospheric non-methane ozone precursor emissions are kept at pre-industrial levels.
-                `hist-piAQ` is for models that include interactive chemistry.
-                """
-            ),
-        ).strip(),
-        parent_experiment_extra=(
-            "This branch time should match the branch time used for "
-            f"initialising the {HISTORICAL_LINK}."
+    make_hist_star_page(
+        "hist-piaq",
+        forcing_slugs_historical_modified=tuple(
+            (
+                # TODO: check if biomass burning is meant to be included
+                "anthropogenic-slcf-co2-emissions",
+                "open-biomass-burning-emissions",
+            )
         ),
-        forcing_headlines=block(
-            """
-            The `hist-piAQ` experiment is a time-varying forcings experiment,
-            except for aerosol and tropospheric non-methane ozone precursor emissions which should be fixed.
-            """
+        user_modifications=(
+            "aerosol (BC, OC, NH<sub>3</sub>, SO<sub>2</sub>) "
+            "and tropospheric non-methane ozone precursor emissions (NMVOCs, CO, NO<sub>x</sub>) "
+            f"should be fixed to  {PI_CONTROL_LINK} values"
         ),
-        notes=f"See notes for the {PI_CONTROL_LINK} and {HISTORICAL_LINK}.",
-        versions_to_use=join_blocks(
-            join_lines(
-                "For aerosol and tropospheric non-methane ozone precursor emissions",
-                f"the relevant forcing is the same as for the {PI_CONTROL_LINK}.",
-            ),
-            join_lines(
-                "For all other forcings,",
-                f"the forcing versions relevant for this simulation are the same as for the {HISTORICAL_LINK}.",
-            ),
-        ).strip(),
-        getting_the_data=render_data_access_body(
-            experiment_name="hist-piAQ",
-            source_ids=source_ids_for_picontrol_historical_forcing_combination(
-                picontrol_forcing_ids=("anthropogenic-emissions",),
-                historical_forcing_ids=historical_forcing_ids_except(
-                    "anthropogenic-emissions",
-                    "aerosol-optical-properties",
-                ),
-            ),
-        ),
+        # Probably better to keep this off as it will help people spot errors more easily
+        # render_description=lambda x: (
+        #     f"{only_keep_first_sentence(x)} "
+        #     "Intended for models with interactive chemistry. "
+        # ),
     ),
     make_scen7_aerchem_page(
         Scen7AerChemPageSpec(

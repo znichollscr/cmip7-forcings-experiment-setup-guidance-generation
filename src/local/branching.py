@@ -228,7 +228,7 @@ def render_parent_and_branching_information(experiment: ExperimentPage) -> str:
     parent_activity_link = render_activity_index_link(parent_activity_esgvoc)
 
     parent_information = (
-        f"The `{experiment.drs_name}` experiment branches from the "
+        f"The {experiment.drs_name} experiment branches from the "
         f"{parent_experiment_link} experiment (part of {parent_activity_link}). "
         "The parent experiment's MIP era is "
         f"{render_term_reference(parent_mip_era.drs_name, (parent_mip_era.url,))}."
