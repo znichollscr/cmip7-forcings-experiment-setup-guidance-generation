@@ -2,26 +2,28 @@
 
 from __future__ import annotations
 
-from local.forcing_versions import (
-    PI_CONTROL_FORCING_VERSIONS,
-    source_ids_from_forcing_versions,
+from local.branching import BranchAtSameTimeAsOtherExperiment
+from local.forcings import (
+    PICONTROL_FORCINGS_SPECIFICATION,
+    ForcingSpecification,
+    OtherExperimentBasedForcingSpecification,
 )
 from local.guidance import (
     ONEPCTCO2_LINK,
-    TIME_AXIS_CAN_BE_ARBITRARY,
     ExperimentPage,
 )
+from local.output_time_axis import RecommendSameAsOtherExperimentTimeAxisInformation
 from local.rendering import (
     block,
     join_blocks,
-    render_data_access_body,
-    same_as_versions,
 )
 
+# TODO: reduce duplication with 1pctco2
 C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
-        slug="1pctco2-bgc",
-        experiment_setup=join_blocks(
+        id_esgvoc="1pctco2-bgc",
+        branch_information=BranchAtSameTimeAsOtherExperiment("1pctco2"),
+        experiment_setup_notes=join_blocks(
             f"The 1pctCO2-bgc simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
             block(
                 """
@@ -30,20 +32,29 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 and does not see any other changes (e.g. changes in atmospheric temperatures).
                 """
             ),
-            TIME_AXIS_CAN_BE_ARBITRARY,
-        ).strip(),
-        forcing_headlines=f"See general headlines for the {ONEPCTCO2_LINK}.",
-        notes=f"See notes for the {ONEPCTCO2_LINK}.",
-        versions_to_use=same_as_versions("1pctCO2 simulation", "1pctco2"),
-        getting_the_data=render_data_access_body(
-            experiment_name="1pctCO2-bgc",
-            source_ids=source_ids_from_forcing_versions(PI_CONTROL_FORCING_VERSIONS),
+        ),
+        fixed_or_transient_or_mix_forcing_override=(
+            "The 1pctCO2-bgc experiment is a fixed forcings experiment, "
+            "except for CO<sub>2</sub> which is transient."
+        ),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=tuple(
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug=v.forcing_slug,
+                    experiment_esgvoc_id="1pctco2",
+                )
+                for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+            )
+        ),
+        output_time_axis_info=RecommendSameAsOtherExperimentTimeAxisInformation(
+            "1pctco2"
         ),
     ),
     ExperimentPage(
-        slug="1pctco2-rad",
-        experiment_setup=join_blocks(
-            f"The 1pctCO2-rad simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
+        id_esgvoc="1pctco2-rad",
+        branch_information=BranchAtSameTimeAsOtherExperiment("1pctco2"),
+        experiment_setup_notes=join_blocks(
+            f"The 1pctCO2-bgc simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
             block(
                 """
                 The difference is that your model should be configured such that the carbon cycle
@@ -51,14 +62,22 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 and does not see any other changes (e.g. changes in atmospheric CO<sub>2</sub> concentrations).
                 """
             ),
-            TIME_AXIS_CAN_BE_ARBITRARY,
-        ).strip(),
-        forcing_headlines=f"See general headlines for the {ONEPCTCO2_LINK}.",
-        notes=f"See notes for the {ONEPCTCO2_LINK}.",
-        versions_to_use=same_as_versions("1pctCO2 simulation", "1pctco2"),
-        getting_the_data=render_data_access_body(
-            experiment_name="1pctCO2-rad",
-            source_ids=source_ids_from_forcing_versions(PI_CONTROL_FORCING_VERSIONS),
+        ),
+        fixed_or_transient_or_mix_forcing_override=(
+            "The 1pctCO2-bgc experiment is a fixed forcings experiment, "
+            "except for CO<sub>2</sub> which is transient."
+        ),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=tuple(
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug=v.forcing_slug,
+                    experiment_esgvoc_id="1pctco2",
+                )
+                for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+            )
+        ),
+        output_time_axis_info=RecommendSameAsOtherExperimentTimeAxisInformation(
+            "1pctco2"
         ),
     ),
 )

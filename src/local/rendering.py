@@ -4,29 +4,14 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Collection, Mapping, Sequence
-from datetime import date, datetime
+from collections.abc import Sequence
 from textwrap import TextWrapper, dedent
-from typing import TYPE_CHECKING, Any, Protocol
-
-from local.forcing_versions import (
-    ForcingValue,
-    acceptable_forcing_values,
-    recommended_forcing_values,
-)
-
-if TYPE_CHECKING:
-    from local.forcing_references import ForcingReference
-
+from typing import Any, Protocol
 
 MARKDOWN_WRAP_WIDTH = 120
 LIST_ITEM_RE = re.compile(r"^(\s*(?:[-*+]|\d+[.])\s+)(.*)$")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^)]+\)")
 MARKDOWN_LINK_SPACE = "\x07"
-START_OF_YEAR_MONTH = 1
-START_OF_YEAR_DAY = 1
-END_OF_YEAR_MONTH = 12
-END_OF_YEAR_DAY = 31
 SENTENCE_BOUNDARY_RE = re.compile(
     r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
     r"\s+(?=[`\"'(\[]?[A-Z])"
@@ -42,7 +27,7 @@ class RenderablePage(Protocol):
 
     slug: str
 
-    def render(self, *, page_slugs: Collection[str] | None = None) -> str:
+    def render(self) -> str:
         """Render the page as markdown."""
 
 
@@ -115,14 +100,14 @@ def wrap_markdown(markdown: str, *, width: int = MARKDOWN_WRAP_WIDTH) -> str:
         list_item_match = LIST_ITEM_RE.match(line)
         if list_item_match:
             flush_paragraph()
-            wrapped.extend(
-                _wrap_list_item(
-                    list_item_match.group(1),
-                    list_item_match.group(2),
-                    width=width,
-                )
+            item_wrapped, consumed = _wrap_list_item_at(
+                lines,
+                index=index,
+                marker=list_item_match.group(1),
+                width=width,
             )
-            index += 1
+            wrapped.extend(item_wrapped)
+            index += consumed
             continue
 
         paragraph.append(line)
@@ -136,6 +121,9 @@ def _preserved_block_end(stripped_line: str) -> str | None:
     """Return the end marker for markdown blocks that should not be wrapped."""
     if stripped_line.startswith("```"):
         return "```"
+
+    if stripped_line == "$$":
+        return "$$"
 
     if stripped_line.startswith("<!--") and "-->" not in stripped_line:
         return "-->"
@@ -184,16 +172,113 @@ def _wrap_paragraph(lines: Sequence[str], *, width: int) -> list[str]:
     )
 
 
-def _wrap_list_item(marker: str, text: str, *, width: int) -> list[str]:
+def _wrap_list_item_at(
+    lines: Sequence[str],
+    *,
+    index: int,
+    marker: str,
+    width: int,
+) -> tuple[list[str], int]:
+    """Wrap the list item starting at ``index``."""
+    item_lines, consumed = _collect_list_item_lines(lines[index:], marker=marker)
+    return _wrap_list_item(item_lines, marker=marker, width=width), consumed
+
+
+def _wrap_list_item(lines: Sequence[str], *, marker: str, width: int) -> list[str]:
     """Wrap a single markdown list item."""
     continuation_indent = " " * len(marker)
-    return _wrap_sentences(
-        text.strip(),
-        width=width,
-        first_indent=marker,
-        subsequent_indent=continuation_indent,
-        next_sentence_indent=continuation_indent,
-    )
+    block_indent = " " * (len(marker) + 2)
+    wrapped: list[str] = []
+    paragraph: list[str] = []
+    preserved_block_end: str | None = None
+    first_paragraph = True
+
+    first_line_match = LIST_ITEM_RE.match(lines[0])
+    if first_line_match is None:
+        return []
+
+    paragraph.append(first_line_match.group(2))
+
+    def flush_paragraph() -> None:
+        nonlocal first_paragraph
+        if not paragraph:
+            return
+
+        first_indent = marker if first_paragraph else block_indent
+        subsequent_indent = continuation_indent if first_paragraph else block_indent
+        wrapped.extend(
+            _wrap_sentences(
+                " ".join(line.strip() for line in paragraph),
+                width=width,
+                first_indent=first_indent,
+                subsequent_indent=subsequent_indent,
+                next_sentence_indent=subsequent_indent,
+            )
+        )
+        paragraph.clear()
+        first_paragraph = False
+
+    for line in lines[1:]:
+        stripped = line.strip()
+
+        if preserved_block_end is not None:
+            wrapped.append(line)
+            if preserved_block_end in stripped:
+                preserved_block_end = None
+            continue
+
+        if not stripped:
+            flush_paragraph()
+            wrapped.append("")
+            continue
+
+        if block_end := _preserved_block_end(stripped):
+            flush_paragraph()
+            wrapped.append(line)
+            preserved_block_end = block_end
+            continue
+
+        if _should_preserve_line(line):
+            flush_paragraph()
+            wrapped.append(line)
+            continue
+
+        paragraph.append(line)
+
+    flush_paragraph()
+    return wrapped
+
+
+def _collect_list_item_lines(
+    lines: Sequence[str],
+    *,
+    marker: str,
+) -> tuple[list[str], int]:
+    """Collect the lines that belong to a list item."""
+    continuation_indent = len(marker)
+    item_lines: list[str] = [lines[0]]
+    index = 1
+
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+
+        if not stripped:
+            item_lines.append(line)
+            index += 1
+            continue
+
+        next_item_match = LIST_ITEM_RE.match(line)
+        if next_item_match:
+            break
+
+        if len(line) - len(line.lstrip()) < continuation_indent:
+            break
+
+        item_lines.append(line)
+        index += 1
+
+    return item_lines, index
 
 
 def _wrap_sentences(
@@ -306,6 +391,7 @@ def render_front_matter(title: str) -> str:
     )
 
 
+# TODO: rename
 def render_link(label: str, slug: str) -> str:
     """Render a relative markdown link to another generated page."""
     return f"[{label}](./{slug}.md)"
@@ -348,8 +434,10 @@ def render_term_reference(label: str, urls: Sequence[str]) -> str:
     return f"{label} ({render_url_list(urls)})"
 
 
+# TODO: delete when everything is transitioned
 def render_activity_urls(urls: Sequence[str]) -> str:
     """Render activity URLs as further-information links."""
+    # TODO: alter so first sentence below is always included
     if not urls:
         return ""
 
@@ -364,310 +452,60 @@ def render_activity_urls(urls: Sequence[str]) -> str:
     ).strip()
 
 
-def render_experiment_requirements(experiment: Any) -> str:
-    """Render experiment timing, length, and ensemble requirements."""
-    return join_blocks(
-        render_start_end_dates(experiment),
-        render_minimum_simulation_length(experiment),
-        render_minimum_ensemble_size(experiment),
-    ).strip()
-
-
-def render_start_end_dates(experiment: Any) -> str:
-    """Render start and end date requirements from an esgvoc experiment."""
-    start_date = format_timestamp(getattr(experiment, "start_timestamp", None))
-    end_date = format_timestamp(getattr(experiment, "end_timestamp", None))
-
-    if start_date and end_date:
-        return (
-            f"The simulation output should start on {start_date} "
-            f"and end on {end_date}."
+def render_activity_urls_v2(urls: Sequence[str]) -> str:
+    """Render activity URLs as further-information links."""
+    blocks = [
+        join_lines(
+            "This page is intended to help with implementation. "
+            "If you notice something that is unclear, "
+            "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new)."
+        )
+    ]
+    if urls:
+        blocks.extend(
+            [
+                "For the full background of the experiment, please see the following URLs:",
+                render_url_bullet_list(urls),
+            ]
         )
 
-    if start_date:
-        return (
-            f"The simulation output should start on {start_date}. "
-            "The CMIP7 CVs do not define a fixed end date for this simulation."
-        )
+    res = join_blocks(*blocks).strip()
 
-    if end_date:
-        return (
-            f"The simulation output should end on {end_date}. "
-            "The CMIP7 CVs do not define a fixed start date for this simulation."
-        )
-
-    return "The CMIP7 CVs do not define fixed start or end dates for this simulation."
-
-
-def render_minimum_simulation_length(experiment: Any) -> str:
-    """Render minimum simulation length from an esgvoc experiment."""
-    start_timestamp = getattr(experiment, "start_timestamp", None)
-    end_timestamp = getattr(experiment, "end_timestamp", None)
-    if start_timestamp is not None and end_timestamp is not None:
-        start_date = _required_date_from_timestamp(
-            start_timestamp,
-            timestamp_name="start_timestamp",
-            experiment=experiment,
-        )
-        end_date = _required_date_from_timestamp(
-            end_timestamp,
-            timestamp_name="end_timestamp",
-            experiment=experiment,
-        )
-        return (
-            "Simulations should be "
-            f"{format_number(_simulation_years(start_date, end_date, experiment))} "
-            "years in length."
-        )
-
-    minimum_years = getattr(experiment, "min_number_yrs_per_sim", None)
-    if minimum_years is None:
-        return (
-            "The CMIP7 CVs do not define a minimum simulation length for this "
-            "experiment."
-        )
-
-    return (
-        "Simulations should be at least "
-        f"{format_number(minimum_years)} years in length."
-    )
-
-
-def render_minimum_ensemble_size(experiment: Any) -> str:
-    """Render minimum ensemble size from an esgvoc experiment."""
-    minimum_ensemble_size = getattr(experiment, "min_ensemble_size", None)
-    if minimum_ensemble_size is None:
-        return ""
-
-    if minimum_ensemble_size == 1:
-        return "Only one ensemble member is required."
-
-    return f"At least {minimum_ensemble_size} ensemble members are required."
-
-
-def format_timestamp(timestamp: Any) -> str:
-    """Format an esgvoc timestamp as an ISO date."""
-    timestamp_date = date_from_timestamp(timestamp)
-    if timestamp_date is None:
-        return ""
-
-    return timestamp_date.isoformat()
-
-
-def date_from_timestamp(timestamp: Any) -> date | None:
-    """Return the date part of a CV timestamp."""
-    if timestamp is None:
-        return None
-
-    if isinstance(timestamp, datetime):
-        return timestamp.date()
-
-    if isinstance(timestamp, date):
-        return timestamp
-
-    date_method = getattr(timestamp, "date", None)
-    if callable(date_method):
-        return date_method()
-
-    return None
-
-
-def _required_date_from_timestamp(
-    timestamp: Any,
-    *,
-    timestamp_name: str,
-    experiment: Any,
-) -> date:
-    """Return a date from a specified timestamp, failing if unsupported."""
-    timestamp_date = date_from_timestamp(timestamp)
-    if timestamp_date is not None:
-        return timestamp_date
-
-    experiment_id = getattr(experiment, "id", experiment)
-    msg = (
-        f"Cannot calculate exact simulation years for {experiment_id!r}: "
-        f"{timestamp_name} has unsupported value {timestamp!r}."
-    )
-    raise NotImplementedError(msg)
-
-
-def _simulation_years(start_date: date, end_date: date, experiment: Any) -> int:
-    """Return exact simulation years for whole-year start/end dates."""
-    if (
-        start_date.month != START_OF_YEAR_MONTH
-        or start_date.day != START_OF_YEAR_DAY
-        or end_date.month != END_OF_YEAR_MONTH
-        or end_date.day != END_OF_YEAR_DAY
-    ):
-        experiment_id = getattr(experiment, "id", experiment)
-        msg = (
-            f"Cannot calculate exact simulation years for {experiment_id!r}: "
-            f"start date is {start_date.isoformat()} and end date is "
-            f"{end_date.isoformat()}."
-        )
-        raise NotImplementedError(msg)
-
-    return end_date.year - start_date.year + 1
-
-
-def format_number(value: float) -> str:
-    """Format a numeric CV value without a redundant decimal."""
-    float_value = float(value)
-    if float_value.is_integer():
-        return str(int(float_value))
-
-    return str(value)
-
-
-def same_as_versions(label: str, slug: str) -> str:
-    """Render a short versions section for experiments sharing another setup."""
-    return (
-        "The forcings relevant for this simulation are the same as for the "
-        f"{render_link(label, slug)}."
-    )
-
-
-def render_forcing_reference_list(
-    forcing_references: Sequence[ForcingReference],
-) -> str:
-    """Render the list of forcing reference pages."""
-    lines = ["The following pages give further information on each forcing:"]
-    lines.extend(
-        f"- {reference.label}: [{reference.display_url}]({reference.url})"
-        for reference in forcing_references
-    )
-    return "\n\n".join((lines[0], "\n".join(lines[1:])))
-
-
-def render_forcing_value(
-    value: ForcingValue,
-) -> Any:
-    """Render one forcing version value as a JSON-serialisable object."""
-    recommended_values = recommended_forcing_values(value=value)
-    if not recommended_values and not value.acceptable:
-        return None
-
-    rendered_value: dict[str, Any] = {
-        "recommended": render_version_values(recommended_values),
-    }
-    acceptable_values = acceptable_forcing_values(value=value)
-    if acceptable_values:
-        rendered_value["acceptable"] = list(acceptable_values)
-
-    return rendered_value
-
-
-def render_version_values(values: Sequence[str]) -> str | list[str] | None:
-    """Render one or more version source IDs compactly."""
-    if not values:
-        return None
-
-    if len(values) == 1:
-        return values[0]
-
-    return list(values)
-
-
-def render_versions_json(
-    forcing_versions: Mapping[str, ForcingValue],
-) -> str:
-    """Render forcing versions as a JSON code block."""
-    rendered_versions = {
-        forcing_id: render_forcing_value(value)
-        for forcing_id, value in forcing_versions.items()
-    }
-
-    return "\n".join(("```json", json.dumps(rendered_versions, indent=4), "```"))
-
-
-def render_versions_body(forcing_versions: Mapping[str, ForcingValue]) -> str:
-    """Render the standard forcing versions section body."""
-    return join_blocks(
-        block(
-            """
-            The forcings relevant for this simulation are listed below.
-            For each forcing, we provide the version(s), in the form of "source ID(s)",
-            which should be used when running this simulation.
-            The recommended version(s) are the version(s) we recommend using.
-            Any acceptable versions can be used (you are not obliged to re-run simulations that used them).
-            Please see the guidance pages linked above for details
-            and note that the data-retrieval script below only includes recommended versions.
-            """
-        ),
-        render_versions_json(forcing_versions),
-    ).strip()
-
-
-DATA_ACCESS_INTRO = join_blocks(
-    block(
-        """
-        The data is available on ESGF and searchable [via metagrid](https://esgf-node.ornl.gov/search?project=input4MIPs&versionType=all&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%7D),
-        although this method of finding and downloading the data can involve a lot of clicking.
-        """
-    ),
-    (
-        "Having said this, please also note: the aerosol optical properties "
-        "based on the MACv2-SP parameterisation are not distributed via the ESGF; "
-        "please see their [specific guidance section]"
-        "(https://input4mips-cvs.readthedocs.io/en/latest/dataset-overviews/"
-        "aerosol-optical-properties-macv2-sp/#datasets-for-cmip7-phases) "
-        "for data access information."
-    ),
-).strip()
-
-
-def render_data_access_body(
-    *,
-    experiment_name: str,
-    source_ids: Sequence[str],
-    extra: str = "",
-) -> str:
-    """Render the standard data-access section body."""
-    return join_blocks(
-        DATA_ACCESS_INTRO,
-        block(
-            """
-            If you install [esgpull](https://esgf.github.io/esgf-download/),
-            you can download all the data associated with the source IDs above with the script shown below.
-            Note that this will download all the data associated with these source IDs,
-            which is likely to be much more data than you actually need to run your model.
-            """
-        ),
-        render_esgpull_script(experiment_name=experiment_name, source_ids=source_ids),
-        extra,
-    ).strip()
-
-
-def render_esgpull_script(
-    *,
-    experiment_name: str,
-    source_ids: Sequence[str],
-) -> str:
-    """Render an esgpull download script for source IDs."""
-    source_id_query = ",".join(source_ids)
-    return block(
-        f"""
-        ```bash
-        #!/bin/bash
-
-        EXPERIMENT_NAME="{experiment_name}"
-
-        ## You may need to run the below if you haven't already done it once with esgpull
-        # esgpull self install
-        ## You may also need to run this step to get the data to download
-        # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
-        esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{source_id_query}
-        esgpull update --tag ${{EXPERIMENT_NAME}} --yes
-        esgpull download --tag ${{EXPERIMENT_NAME}}
-        ```
-        """
-    )
+    return res
 
 
 def render_pages(pages: Sequence[RenderablePage]) -> dict[str, str]:
     """Render guidance pages keyed by output filename."""
-    page_slugs = frozenset(page.slug for page in pages)
-    return {
-        f"{page.slug}.md": wrap_markdown(page.render(page_slugs=page_slugs))
-        for page in pages
-    }
+    res = {}
+    for page in pages:
+        raw = page.render()
+
+        res[f"{page.slug}.md"] = wrap_markdown(raw)
+
+    return res
+
+
+def render_list_human_like(*parts: str) -> str:
+    """
+    Render a list like a human i.e. using 'and' between the last two elements.
+    """
+    if len(parts) < 1:
+        msg = "Need some parts"
+        raise ValueError(msg)
+
+    if len(parts) == 1:
+        return parts[0]
+
+    res = f"{', '.join(parts[:-1])} and {parts[-1]}"
+
+    return res
+
+
+def only_keep_first_sentence(inval: str) -> str:
+    """
+    Only keep the first sentence
+    """
+    first_sentence = inval.split(".")[0]
+    res = f"{first_sentence}."
+
+    return res

@@ -2,83 +2,108 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection, Iterable
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from local.rendering import join_blocks, render_link
 from local.vocab import get_experiment
 
 
-class MissingRelatedExperimentPageError(ValueError):
-    """Raised when a related experiment has no generated guidance page."""
-
-
 @dataclass(frozen=True)
 class ExperimentPair:
     """A pair of experiments that should cross-reference each other."""
 
-    left_slug: str
-    right_slug: str
+    left_id_esgvoc: str
+    right_id_esgvoc: str
+    # TODO: move these defaults to class methods instead
+    # to allow for easier addition/use of aq/aer pairs (for example)
     left_to_right_text: str = (
-        "is the emissions-driven counterpart to this concentration-driven "
-        "experiment."
+        # TODO: remove trailing full stop
+        "is the emissions-driven counterpart to this concentration-driven experiment."
     )
     right_to_left_text: str = (
-        "is the concentration-driven counterpart to this emissions-driven "
-        "experiment."
+        # TODO: remove trailing full stop
+        "is the concentration-driven counterpart to this emissions-driven experiment."
     )
 
-    def reference_from(
+    def reference_to(
         self,
-        slug: str,
-        *,
-        page_slugs: Collection[str],
+        id_esgvoc: str,
     ) -> str | None:
-        """Render a reference from ``slug`` to the other experiment in the pair."""
-        if slug == self.left_slug:
-            return _render_reference(
-                source_slug=slug,
-                target_slug=self.right_slug,
+        # TODO: put related-experiment validation somewhere earlier in the stack.
+        """Render a reference from `id_esgvoc` to the other experiment in the pair."""
+        if id_esgvoc == self.left_id_esgvoc:
+            return _render_reference_v2(
+                target_slug=self.right_id_esgvoc,
                 text=self.left_to_right_text,
-                page_slugs=page_slugs,
             )
 
-        if slug == self.right_slug:
-            return _render_reference(
-                source_slug=slug,
-                target_slug=self.left_slug,
+        if id_esgvoc == self.right_id_esgvoc:
+            return _render_reference_v2(
+                target_slug=self.left_id_esgvoc,
                 text=self.right_to_left_text,
-                page_slugs=page_slugs,
             )
 
-        return None
+        msg = (
+            f"A reference is meant to be made to {id_esgvoc} "
+            f"but it is neither {self.left_id_esgvoc=} nor {self.right_id_esgvoc=}"
+        )
+        raise ValueError(msg)
 
-    def related_slug_from(self, slug: str) -> str | None:
-        """Return the other slug in the pair if ``slug`` belongs to this pair."""
-        if slug == self.left_slug:
-            return self.right_slug
+    # TODO: consider returning the paired ID from reference_to to avoid two lookups.
+    def related_esgvoc_id_from(self, id_esgvoc: str) -> str | None:
+        """Return the other esgvoc ID in the pair."""
+        if id_esgvoc == self.left_id_esgvoc:
+            return self.right_id_esgvoc
 
-        if slug == self.right_slug:
-            return self.left_slug
+        if id_esgvoc == self.right_id_esgvoc:
+            return self.left_id_esgvoc
 
-        return None
+        msg = (
+            f"A related esgvoc ID is meant to be retrieved for {id_esgvoc} "
+            f"but it is neither {self.left_id_esgvoc=} nor {self.right_id_esgvoc=}"
+        )
+        raise ValueError(msg)
 
 
 EMISSIONS_CONCENTRATION_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
     ExperimentPair(
-        left_slug="picontrol-spinup",
-        right_slug="esm-picontrol-spinup",
+        left_id_esgvoc="picontrol-spinup",
+        right_id_esgvoc="esm-picontrol-spinup",
     ),
     ExperimentPair(
-        left_slug="picontrol",
-        right_slug="esm-picontrol",
+        left_id_esgvoc="picontrol",
+        right_id_esgvoc="esm-picontrol",
     ),
     ExperimentPair(
-        left_slug="historical",
-        right_slug="esm-hist",
+        left_id_esgvoc="historical",
+        right_id_esgvoc="esm-hist",
+    ),
+    ExperimentPair(
+        left_id_esgvoc="scen7-h-aer",
+        right_id_esgvoc="esm-scen7-h-aer",
+    ),
+    ExperimentPair(
+        left_id_esgvoc="scen7-h-aq",
+        right_id_esgvoc="esm-scen7-h-aq",
+    ),
+    ExperimentPair(
+        left_id_esgvoc="scen7-vl-aer",
+        right_id_esgvoc="esm-scen7-vl-aer",
+    ),
+    ExperimentPair(
+        left_id_esgvoc="scen7-vl-aq",
+        right_id_esgvoc="esm-scen7-vl-aq",
     ),
 )
 
+# # TODO: switch to these
+# AQ_AER_LEFT_TO_RIGHT_TEXT = (
+#     "is the corresponding experiment for models that include interactive chemistry"
+# )
+# AQ_AER_RIGHT_TO_LEFT_TEXT = (
+#     "is the corresponding experiment for models that do not include interactive chemistry"  # noqa: E501
+# )
 AQ_AER_LEFT_TO_RIGHT_TEXT = (
     "is the corresponding interactive-chemistry experiment for models "
     "that include interactive chemistry."
@@ -92,8 +117,8 @@ AQ_AER_RIGHT_TO_LEFT_TEXT = (
 def make_aq_aer_experiment_pair(*, aer_slug: str, aq_slug: str) -> ExperimentPair:
     """Create an AQ/Aer experiment pair."""
     return ExperimentPair(
-        left_slug=aer_slug,
-        right_slug=aq_slug,
+        left_id_esgvoc=aer_slug,
+        right_id_esgvoc=aq_slug,
         left_to_right_text=AQ_AER_LEFT_TO_RIGHT_TEXT,
         right_to_left_text=AQ_AER_RIGHT_TO_LEFT_TEXT,
     )
@@ -103,6 +128,8 @@ AQ_AER_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
     make_aq_aer_experiment_pair(aer_slug="hist-piaer", aq_slug="hist-piaq"),
     make_aq_aer_experiment_pair(aer_slug="scen7-h-aer", aq_slug="scen7-h-aq"),
     make_aq_aer_experiment_pair(aer_slug="scen7-vl-aer", aq_slug="scen7-vl-aq"),
+    make_aq_aer_experiment_pair(aer_slug="esm-scen7-h-aer", aq_slug="esm-scen7-h-aq"),
+    make_aq_aer_experiment_pair(aer_slug="esm-scen7-vl-aer", aq_slug="esm-scen7-vl-aq"),
 )
 
 EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
@@ -111,29 +138,42 @@ EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
 )
 
 
-def render_related_experiments(
-    slug: str,
-    *,
-    page_slugs: Collection[str],
-    experiment_pairs: Iterable[ExperimentPair] = EXPERIMENT_PAIRS,
-) -> str:
-    """Render related-experiment cross-references for a page."""
-    references_by_slug = {
-        related_slug: reference
-        for pair in experiment_pairs
-        if (related_slug := pair.related_slug_from(slug)) is not None
-        if (reference := pair.reference_from(slug, page_slugs=page_slugs))
-    }
-    if not references_by_slug:
-        return ""
+def get_experiment_pairs(id_esgvoc: str) -> tuple[ExperimentPair, ...]:
+    """Get experiment pairs that a given experiment is involved in"""
+    pairs = []
+    for pair in EXPERIMENT_PAIRS:
+        if id_esgvoc in (pair.left_id_esgvoc, pair.right_id_esgvoc):
+            pairs.append(pair)
 
-    return join_blocks(
-        "## Related experiments",
-        "\n".join(
-            f"- {references_by_slug[related_slug]}"
-            for related_slug in sort_experiment_slugs(references_by_slug)
-        ),
-    ).strip()
+    res = tuple(pairs)
+
+    return res
+
+
+# TODO: put experiment_pairs on ExperimentPage somehow
+# rather than hiding them here (class method?)
+def render_experiment_pair_info(
+    experiment_pairs: tuple[ExperimentPair, ...], *, target_id_esgvoc: str
+) -> str:
+    """
+    Render experiment pair information for a given target experiment
+    """
+    pair_line_by_slug = {}
+    for experiment_pair in experiment_pairs:
+        pair_line = experiment_pair.reference_to(target_id_esgvoc)
+        pair_line_by_slug[experiment_pair.related_esgvoc_id_from(target_id_esgvoc)] = (
+            f"- {pair_line}"
+        )
+
+    sorted_pair_lines = [
+        pair_line_by_slug[k] for k in sort_experiment_slugs(pair_line_by_slug.keys())
+    ]
+    res = join_blocks(
+        "## Paired experiments",
+        "\n".join(sorted_pair_lines),
+    )
+
+    return res
 
 
 def sort_experiment_slugs(slugs: Iterable[str]) -> tuple[str, ...]:
@@ -157,8 +197,8 @@ def _paired_sort_keys(slugs: Iterable[str]) -> dict[str, tuple[str, int, str]]:
 
     for pair in EXPERIMENT_PAIRS:
         _add_pair_sort_keys(
-            pair.left_slug,
-            pair.right_slug,
+            pair.left_id_esgvoc,
+            pair.right_id_esgvoc,
             slug_set=slug_set,
             paired_sort_keys=paired_sort_keys,
         )
@@ -200,21 +240,11 @@ def _add_pair_sort_keys(
     paired_sort_keys.setdefault(right_slug, (primary_key, 1, right_slug.lower()))
 
 
-def _render_reference(
+def _render_reference_v2(
     *,
-    source_slug: str,
     target_slug: str,
     text: str,
-    page_slugs: Collection[str],
 ) -> str:
-    """Render one related experiment reference, failing if the page is missing."""
-    if target_slug not in page_slugs:
-        msg = (
-            f"Experiment {source_slug!r} is paired with related experiment "
-            f"{target_slug!r}, but no generated page with slug {target_slug!r} "
-            "exists."
-        )
-        raise MissingRelatedExperimentPageError(msg)
-
+    """Render one related experiment reference."""
     target_experiment = get_experiment(target_slug)
     return f"{render_link(target_experiment.drs_name, target_slug)} {text}"

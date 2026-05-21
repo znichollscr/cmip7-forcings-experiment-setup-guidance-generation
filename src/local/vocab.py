@@ -55,5 +55,5 @@ def get_responsible_activity(experiment: Any) -> Any:
 
 
 def urls_from_term(term: Any) -> tuple[str, ...]:
-    """Return URL strings from an esgvoc term that has a ``urls`` attribute."""
-    return tuple(str(url) for url in getattr(term, "urls", ()) or ())
+    """Return URL strings from an esgvoc term that has a `urls` attribute."""
+    return tuple(str(url) for url in term.urls)

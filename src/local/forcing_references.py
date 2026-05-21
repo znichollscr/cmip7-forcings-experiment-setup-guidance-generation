@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from local.rendering import render_forcing_reference_list
-
 
 @dataclass(frozen=True)
 class ForcingReference:
@@ -25,9 +23,7 @@ class ForcingReference:
     @property
     def display_url(self) -> str:
         """The compact URL displayed in the rendered markdown."""
-        return (
-            "input4mips-cvs.readthedocs.io/dataset-overviews/" f"{self.overview_slug}"
-        )
+        return f"input4mips-cvs.readthedocs.io/dataset-overviews/{self.overview_slug}"
 
 
 COMMON_FORCING_REFERENCES = (
@@ -62,4 +58,7 @@ AMIP_FORCING_REFERENCES = (
     ),
 )
 
-COMMON_FORCING_NOTES = render_forcing_reference_list(COMMON_FORCING_REFERENCES)
+# TODO: inline?
+ALL_FORCING_REFERENCES = {
+    v.overview_slug: v for v in (*COMMON_FORCING_REFERENCES, *AMIP_FORCING_REFERENCES)
+}
