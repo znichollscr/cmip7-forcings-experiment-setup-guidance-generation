@@ -122,6 +122,22 @@ EMISSIONS_CONCENTRATION_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
         left_id_esgvoc="historical",
         right_id_esgvoc="esm-hist",
     ),
+    ExperimentPair(
+        left_id_esgvoc="scen7-h-aer",
+        right_id_esgvoc="esm-scen7-h-aer",
+    ),
+    ExperimentPair(
+        left_id_esgvoc="scen7-h-aq",
+        right_id_esgvoc="esm-scen7-h-aq",
+    ),
+    ExperimentPair(
+        left_id_esgvoc="scen7-vl-aer",
+        right_id_esgvoc="esm-scen7-vl-aer",
+    ),
+    ExperimentPair(
+        left_id_esgvoc="scen7-vl-aq",
+        right_id_esgvoc="esm-scen7-vl-aq",
+    ),
 )
 
 # # TODO: switch to these
@@ -155,6 +171,8 @@ AQ_AER_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
     make_aq_aer_experiment_pair(aer_slug="hist-piaer", aq_slug="hist-piaq"),
     make_aq_aer_experiment_pair(aer_slug="scen7-h-aer", aq_slug="scen7-h-aq"),
     make_aq_aer_experiment_pair(aer_slug="scen7-vl-aer", aq_slug="scen7-vl-aq"),
+    make_aq_aer_experiment_pair(aer_slug="esm-scen7-h-aer", aq_slug="esm-scen7-h-aq"),
+    make_aq_aer_experiment_pair(aer_slug="esm-scen7-vl-aer", aq_slug="esm-scen7-vl-aq"),
 )
 
 EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (

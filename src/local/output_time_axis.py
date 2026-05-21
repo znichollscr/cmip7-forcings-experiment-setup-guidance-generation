@@ -40,12 +40,6 @@ class EsgvocDrivenOutputTimeAxisInformation:
         )
 
         if start_date and end_date:
-            res = (
-                "Your output time axis must start on "
-                f"{start_date.date().isoformat()} "
-                "and must not end later than "
-                f"{end_date.date().isoformat()}. "
-            )
             if min_number_years_per_simulation:
                 START_OF_YEAR_MONTH = 1
                 START_OF_YEAR_DAY = 1
@@ -63,14 +57,22 @@ class EsgvocDrivenOutputTimeAxisInformation:
                 year = "years" if min_number_years_per_simulation > 1 else "year"
                 if min_number_years_per_simulation == full_simulation_years:
                     res = (
-                        f"{res} You must perform the full simulation "
+                        "Your output time axis must start on "
+                        f"{start_date.date().isoformat()} "
+                        "and must end on "
+                        f"{end_date.date().isoformat()}. "
+                        f"You must perform the full simulation "
                         f"i.e. {min_number_years_per_simulation} "
                         f"simulation {year}."
                     )
 
                 else:
                     res = (
-                        f"{res} You must perform at least "
+                        "Your output time axis must start on "
+                        f"{start_date.date().isoformat()} "
+                        "and must not end later than "
+                        f"{end_date.date().isoformat()}. "
+                        f"You must perform at least "
                         f"{min_number_years_per_simulation} simulation {year}."
                     )
 
