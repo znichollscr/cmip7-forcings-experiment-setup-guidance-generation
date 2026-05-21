@@ -463,9 +463,7 @@ class ExperimentPage:
             modification_lines.append(
                 f"- for {source_forcing.label}, use the forcings from {source_experiment.drs_name} but\n  {forcing.user_modifications}".replace(
                     f" {source_experiment.drs_name} ", f" {source_experiment_link} "
-                ).replace(
-                    f" {source_experiment.id} ", f" {source_experiment_link} "
-                )
+                ).replace(f" {source_experiment.id} ", f" {source_experiment_link} ")
             )
 
         return join_blocks(
@@ -844,9 +842,9 @@ INDEX_GROUPS = (
                 experiment_slugs=(
                     "1pctco2-bgc",
                     "1pctco2-rad",
-                    # "esm-flat10",
-                    # "esm-flat10-cdr",
-                    # "esm-flat10-zec",
+                    "esm-flat10",
+                    "esm-flat10-cdr",
+                    "esm-flat10-zec",
                 ),
             ),
             IndexActivity(

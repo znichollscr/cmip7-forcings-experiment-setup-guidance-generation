@@ -49,6 +49,27 @@ class BranchFromParentAtTime:
 
 
 @dataclass(frozen=True)
+class BranchFromParentAtGivenYearStart:
+    """
+    Branching from the parent experiment at the start of a given year
+    """
+
+    branch_year: int
+    """
+    Number of years after the start of the parent experiment to branch
+    """
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the branch information as a string"""
+        parent_experiment_link = render_parent_experiment_link(experiment)
+        return (
+            f"Branch from {parent_experiment_link} "
+            f"at the start of year {self.branch_year} "
+            f"(i.e. {self.branch_year}-01-01)."
+        )
+
+
+@dataclass(frozen=True)
 class BranchFromParentEnd:
     """
     Branching from the end of the parent experiment with an optional increment
