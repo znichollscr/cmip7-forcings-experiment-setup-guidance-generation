@@ -29,10 +29,8 @@ class ExperimentPair:
     def reference_to(
         self,
         id_esgvoc: str,
-        # # TODO: put the page slugs check somewhere earlier in the stack
-        # *,
-        # page_slugs: Collection[str],
     ) -> str | None:
+        # TODO: put related-experiment validation somewhere earlier in the stack.
         """Render a reference from `id_esgvoc` to the other experiment in the pair."""
         if id_esgvoc == self.left_id_esgvoc:
             return _render_reference_v2(
@@ -52,7 +50,7 @@ class ExperimentPair:
         )
         raise ValueError(msg)
 
-    # TODO: remove
+    # TODO: consider returning the paired ID from reference_to to avoid two lookups.
     def related_esgvoc_id_from(self, id_esgvoc: str) -> str | None:
         """Return the other esgvoc ID in the pair."""
         if id_esgvoc == self.left_id_esgvoc:

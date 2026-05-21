@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import dataclasses
 
+from local.vocab import get_experiment
+
 from .specification import (
     ForcingSpecification,
     Input4MIPsBasedForcingSpecification,
@@ -262,20 +264,13 @@ def get_volcanic_scenario_forcings(
     forcing_slug: str,
     scenario_drs_name: str,
     scenario_short_name: str,
-) -> Input4MIPsBasedForcingSpecification:
+) -> Input4MIPsBasedForcingSpecification | OtherExperimentBasedForcingSpecification:
     """
     Get the volcanic forcings for a given scenario
     """
     if scenario_drs_name.endswith("ext"):
-        scenario = scenario_drs_name.replace("-ext", "").lower()
-
-        return OtherExperimentBasedForcingSpecification(
-            forcing_slug,
-            experiment_esgvoc_id=scenario,
-            user_modifications=(
-                f"hold forcings constant after the end of the {scenario} data"
-            ),
-            fixed_override=True,
+        return get_scenario_extension_forcing_for_constant_extension(
+            forcing_slug, scenario_drs_name
         )
 
     res = Input4MIPsBasedForcingSpecification(
@@ -296,19 +291,8 @@ def get_ozone_scenario_forcings(
     Get the ozone forcings for a given scenario
     """
     if scenario_drs_name.endswith("ext"):
-        scenario = scenario_drs_name.replace("-ext", "").lower()
-
-        # TODO: add guidance that says just use constant from end of scenario
-        # for all extension versions.
-        # I guess that means the recommended version is just the same
-        # as the scenario version, and we have specific guidance in the notes section.
-        return OtherExperimentBasedForcingSpecification(
-            forcing_slug,
-            experiment_esgvoc_id=scenario,
-            user_modifications=(
-                f"hold forcings constant after the end of the {scenario} data"
-            ),
-            fixed_override=True,
+        return get_scenario_extension_forcing_for_constant_extension(
+            forcing_slug, scenario_drs_name
         )
 
     if scenario_short_name not in {"vl", "h"}:
@@ -338,20 +322,9 @@ def get_nitrogen_deposition_scenario_forcings(
     """
     Get the nitrogen deposition forcings for a given scenario
     """
-    if scenario_short_name.endswith("ext"):
-        scenario = scenario_drs_name.replace("-ext", "").lower()
-
-        # TODO: add guidance that says just use constant from end of scenario
-        # for all extension versions.
-        # I guess that means the recommended version is just the same
-        # as the scenario version, and we have specific guidance in the notes section.
-        return OtherExperimentBasedForcingSpecification(
-            forcing_slug,
-            experiment_esgvoc_id=scenario,
-            user_modifications=(
-                f"hold forcings constant after the end of the {scenario} data"
-            ),
-            fixed_override=True,
+    if scenario_drs_name.endswith("ext"):
+        return get_scenario_extension_forcing_for_constant_extension(
+            forcing_slug, scenario_drs_name
         )
 
     if scenario_short_name not in {"vl", "h"}:
@@ -385,10 +358,13 @@ def get_solar_scenario_forcings(
         forcing_slug,
         fixed=False,
         recommended_versions=("SOLARIS-HEPPA-ScenarioMIP-4-6",),
+        # Checked via email with Bernd.
+        # Subject "Extending solar data beyond 2300"
         notes=(
             "If running beyond the time period provided in the data, "
-            # TODO: try and get guidance on when that last solar cycle is
-            "simply repeat the last solar cycle."
+            "repeat the data, starting with 24 August 2038 "
+            "(i.e. for 2300-01-01, use data from 2038-08-24, "
+            "for 2300-01-02, use data from 2038-08-25 etc.)."
         )
         if scenario_drs_name.endswith("ext")
         else None,
@@ -435,6 +411,21 @@ def get_population_density_scenario_forcings(
     )
 
     return res
+
+
+def get_scenario_extension_forcing_for_constant_extension(
+    forcing_slug: str, scenario_drs_name: str
+) -> OtherExperimentBasedForcingSpecification:
+    """Return scenario extension forcing by just keeping scenario forcing constant."""
+    scenario = scenario_drs_name.replace("-ext", "").lower()
+    scenario_esgvoc = get_experiment(scenario)
+    scenario_last_year = scenario_esgvoc.end_timestamp.year
+    return OtherExperimentBasedForcingSpecification(
+        forcing_slug,
+        experiment_esgvoc_id=scenario,
+        user_modifications=f"hold forcings constant at {scenario_last_year} levels",
+        fixed_override=True,
+    )
 
 
 GET_SCEN7_FORCINGS_BY_FORCING_TYPE = {

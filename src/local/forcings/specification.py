@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
-from local.forcing_references import ALL_FORCING_REFERENCES
+from local.forcing_references import ALL_FORCING_REFERENCES, ForcingReference
 from local.rendering import render_external_link
 
 
@@ -35,7 +35,7 @@ class Input4MIPsBasedForcingSpecification:
 
     acceptable_versions: tuple[str, ...] = ()
     """
-    Acceptable, but not rceommended, versions (i.e. source IDs) of this forcing
+    Acceptable, but not recommended, versions (i.e. source IDs) of this forcing
 
     These might be older versions that have the same data but not metadata
     or versions that were superseded late without a requirement to re-run.
@@ -47,7 +47,7 @@ class Input4MIPsBasedForcingSpecification:
     """
 
     @property
-    def reference(self) -> str:
+    def reference(self) -> ForcingReference:
         """Get the reference to use for this forcing"""
         return ALL_FORCING_REFERENCES[self.forcing_slug]
 
@@ -59,14 +59,7 @@ class Input4MIPsBasedForcingSpecification:
     @property
     def rendered_input4mips_cvs_link(self) -> str | None:
         """Get the rendered input4MIPs CVs link for this forcing"""
-        try:
-            reference = self.reference
-            res = render_external_link(reference.display_url, reference.url)
-
-        except KeyError:
-            res = None
-
-        return res
+        return render_input4mips_cvs_link(self.forcing_slug)
 
 
 @dataclass(frozen=True)
@@ -94,11 +87,11 @@ class NonInput4MIPsBasedForcingSpecification:
 
     label_override: str | None = None
     """
-    Override to use for labelling this forcin
+    Override to use for labelling this forcing
     """
 
     @property
-    def reference(self) -> str:
+    def reference(self) -> ForcingReference:
         """Get the reference to use for this forcing"""
         return ALL_FORCING_REFERENCES[self.forcing_slug]
 
@@ -113,14 +106,7 @@ class NonInput4MIPsBasedForcingSpecification:
     @property
     def rendered_input4mips_cvs_link(self) -> str | None:
         """Get the rendered input4MIPs CVs link for this forcing"""
-        try:
-            reference = self.reference
-            res = render_external_link(reference.display_url, reference.url)
-
-        except KeyError:
-            res = None
-
-        return res
+        return render_input4mips_cvs_link(self.forcing_slug)
 
 
 @dataclass(frozen=True)
@@ -191,28 +177,33 @@ class ForcingSpecification:
 
         from local.guidance import experiment_pages
 
-        all_experiment_pages = experiment_pages()
-        all_experiment_pages_by_esgvoc_id = {
-            v.id_esgvoc: v
-            for v in all_experiment_pages
-            # TODO: delete when not needed
-            if hasattr(v, "id_esgvoc")
-        }
-        res_l = [*self.specific_forcings]
+        experiment_pages_by_id = {page.id_esgvoc: page for page in experiment_pages()}
+        resolved_forcings = [*self.specific_forcings]
 
-        for v in self.other_experiment_based_forcings:
-            source_experiment = all_experiment_pages_by_esgvoc_id[
-                v.experiment_esgvoc_id
-            ]
+        for forcing in self.other_experiment_based_forcings:
+            source_experiment = experiment_pages_by_id[forcing.experiment_esgvoc_id]
             source_experiment_forcings_by_slug = {
-                v.forcing_slug: v for v in source_experiment.forcings.all_forcings
+                forcing.forcing_slug: forcing
+                for forcing in source_experiment.forcings.all_forcings
             }
-            keep = source_experiment_forcings_by_slug[v.forcing_slug]
-            if isinstance(v.fixed_override, bool):
-                keep = replace(keep, fixed=v.fixed_override)
+            keep = source_experiment_forcings_by_slug[forcing.forcing_slug]
+            if isinstance(forcing.fixed_override, bool):
+                keep = replace(keep, fixed=forcing.fixed_override)
 
-            res_l.append(keep)
+            resolved_forcings.append(keep)
 
-        res = tuple(res_l)
+        res = tuple(resolved_forcings)
 
         return res
+
+
+def render_input4mips_cvs_link(forcing_slug: str) -> str | None:
+    """
+    Render input4MIPs CVs link for a given forcing slug
+    """
+    try:
+        reference = ALL_FORCING_REFERENCES[forcing_slug]
+    except KeyError:
+        return None
+
+    return render_external_link(reference.display_url, reference.url)

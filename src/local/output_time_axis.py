@@ -12,6 +12,11 @@ if TYPE_CHECKING:
     from local.guidance import ExperimentPage
 
 
+START_OF_YEAR_MONTH = 1
+START_OF_YEAR_DAY = 1
+END_OF_YEAR_MONTH = 12
+END_OF_YEAR_DAY = 31
+
 # Usually quite standard and simple.
 # Sometimes need lines like,
 # "You can choose start and end dates, but to keep life for analysts easy,
@@ -31,81 +36,26 @@ class EsgvocDrivenOutputTimeAxisInformation:
         experiment_esgvoc = experiment.experiment_esgvoc
         start_date = experiment_esgvoc.start_timestamp
         end_date = experiment_esgvoc.end_timestamp
-        min_number_years_per_simulation = experiment_esgvoc.min_number_yrs_per_sim
-        min_number_years_per_simulation = (
-            int(min_number_years_per_simulation)
-            if min_number_years_per_simulation is not None
-            and min_number_years_per_simulation.is_integer()
-            else min_number_years_per_simulation
-        )
+        minimum_simulation_years = _minimum_simulation_years(experiment_esgvoc)
 
         if start_date and end_date:
-            if min_number_years_per_simulation:
-                START_OF_YEAR_MONTH = 1
-                START_OF_YEAR_DAY = 1
-                END_OF_YEAR_MONTH = 12
-                END_OF_YEAR_DAY = 31
-                if (
-                    start_date.month != START_OF_YEAR_MONTH
-                    or start_date.day != START_OF_YEAR_DAY
-                    or end_date.month != END_OF_YEAR_MONTH
-                    or end_date.day != END_OF_YEAR_DAY
-                ):
-                    raise NotImplementedError(experiment)
-                full_simulation_years = end_date.year - start_date.year + 1
+            return _render_fixed_start_and_end_time_axis(
+                experiment=experiment,
+                start_date=start_date,
+                end_date=end_date,
+                minimum_simulation_years=minimum_simulation_years,
+            )
 
-                year = "years" if min_number_years_per_simulation > 1 else "year"
-                if min_number_years_per_simulation == full_simulation_years:
-                    res = (
-                        "Your output time axis must start on "
-                        f"{start_date.date().isoformat()} "
-                        "and must end on "
-                        f"{end_date.date().isoformat()}. "
-                        f"You must perform the full simulation "
-                        f"i.e. {min_number_years_per_simulation} "
-                        f"simulation {year}."
-                    )
-
-                else:
-                    res = (
-                        "Your output time axis must start on "
-                        f"{start_date.date().isoformat()} "
-                        "and must not end later than "
-                        f"{end_date.date().isoformat()}. "
-                        f"You must perform at least "
-                        f"{min_number_years_per_simulation} simulation {year}."
-                    )
-
-        else:
-            if start_date:
-                res = (
-                    "Your output time axis must start on "
-                    f"{start_date.date().isoformat()}. "
-                    "You are free to end the time axis of your outputs "
-                    "at whatever time you like that is compatible with the start date."
-                )
-
-            elif end_date:
-                res = (
-                    "Your output time axis must not end later than "
-                    f"{end_date.date().isoformat()}. "
-                    "You are free to start the time axis of your outputs "
-                    "at whatever time you like that is compatible with the end date."
-                )
-
-            else:
-                res = (
-                    "You are free to start and end the time axis of your outputs "
-                    "at whatever time you like "
-                    "(e.g. starting at year 1, or 1850, or year 500)."
-                )
-
-            if min_number_years_per_simulation:
-                year = "years" if min_number_years_per_simulation > 1 else "year"
-                res = (
-                    f"{res} You must perform at least "
-                    f"{min_number_years_per_simulation} simulation {year}."
-                )
+        res = _render_open_time_axis(
+            start_date=start_date,
+            end_date=end_date,
+        )
+        if minimum_simulation_years:
+            year = _year_word(minimum_simulation_years)
+            res = (
+                f"{res} You must perform at least "
+                f"{minimum_simulation_years} simulation {year}."
+            )
 
         return res
 
@@ -119,14 +69,7 @@ class PiClimOutputTimeAxisInformation:
     def render(self, experiment: ExperimentPage) -> str:
         """Render the output time axis information as a string"""
         experiment_esgvoc = experiment.experiment_esgvoc
-        if (
-            experiment_esgvoc.start_timestamp is not None
-            or experiment_esgvoc.end_timestamp is not None
-        ):
-            msg = "Expected no specific start and end"
-            raise AssertionError(msg)
-
-        base = EsgvocDrivenOutputTimeAxisInformation().render(experiment)
+        base = _render_open_base_time_axis(experiment)
 
         if experiment_esgvoc.id == "piclim-control":
             extra_notes = block(
@@ -168,15 +111,7 @@ class RecommendContinueFromBranchPointTimeAxisInformation:
 
     def render(self, experiment: ExperimentPage) -> str:
         """Render the output time axis information as a string"""
-        experiment_esgvoc = experiment.experiment_esgvoc
-        if (
-            experiment_esgvoc.start_timestamp is not None
-            or experiment_esgvoc.end_timestamp is not None
-        ):
-            msg = "Expected no specific start and end"
-            raise AssertionError(msg)
-
-        base = EsgvocDrivenOutputTimeAxisInformation().render(experiment)
+        base = _render_open_base_time_axis(experiment)
 
         extra_notes = block(
             """
@@ -205,15 +140,7 @@ class RecommendSameAsOtherExperimentTimeAxisInformation:
 
     def render(self, experiment: ExperimentPage) -> str:
         """Render the output time axis information as a string"""
-        experiment_esgvoc = experiment.experiment_esgvoc
-        if (
-            experiment_esgvoc.start_timestamp is not None
-            or experiment_esgvoc.end_timestamp is not None
-        ):
-            msg = "Expected no specific start and end"
-            raise AssertionError(msg)
-
-        base = EsgvocDrivenOutputTimeAxisInformation().render(experiment)
+        base = _render_open_base_time_axis(experiment)
 
         other_exp = get_experiment(self.other_experiment)
         other_exp_link = render_link(other_exp.drs_name, other_exp.id)
@@ -230,3 +157,93 @@ class RecommendSameAsOtherExperimentTimeAxisInformation:
         )
 
         return res
+
+
+def _minimum_simulation_years(experiment_esgvoc) -> int | float | None:
+    minimum_years = experiment_esgvoc.min_number_yrs_per_sim
+    if minimum_years is not None and minimum_years.is_integer():
+        return int(minimum_years)
+
+    return minimum_years
+
+
+def _render_fixed_start_and_end_time_axis(
+    *,
+    experiment: ExperimentPage,
+    start_date,
+    end_date,
+    minimum_simulation_years: int | float | None,
+) -> str:
+    if minimum_simulation_years:
+        if (
+            start_date.month != START_OF_YEAR_MONTH
+            or start_date.day != START_OF_YEAR_DAY
+            or end_date.month != END_OF_YEAR_MONTH
+            or end_date.day != END_OF_YEAR_DAY
+        ):
+            raise NotImplementedError(experiment)
+
+        full_simulation_years = end_date.year - start_date.year + 1
+        year = _year_word(minimum_simulation_years)
+        if minimum_simulation_years == full_simulation_years:
+            return (
+                "Your output time axis must start on "
+                f"{start_date.date().isoformat()} "
+                "and must end on "
+                f"{end_date.date().isoformat()}. "
+                f"You must perform the full simulation "
+                f"i.e. {minimum_simulation_years} "
+                f"simulation {year}."
+            )
+
+        return (
+            "Your output time axis must start on "
+            f"{start_date.date().isoformat()} "
+            "and must not end later than "
+            f"{end_date.date().isoformat()}. "
+            f"You must perform at least "
+            f"{minimum_simulation_years} simulation {year}."
+        )
+
+    msg = "Expected minimum simulation years with fixed start and end"
+    raise AssertionError(msg)
+
+
+def _render_open_time_axis(*, start_date, end_date) -> str:
+    if start_date:
+        return (
+            "Your output time axis must start on "
+            f"{start_date.date().isoformat()}. "
+            "You are free to end the time axis of your outputs "
+            "at whatever time you like that is compatible with the start date."
+        )
+
+    if end_date:
+        return (
+            "Your output time axis must not end later than "
+            f"{end_date.date().isoformat()}. "
+            "You are free to start the time axis of your outputs "
+            "at whatever time you like that is compatible with the end date."
+        )
+
+    return (
+        "You are free to start and end the time axis of your outputs "
+        "at whatever time you like "
+        "(e.g. starting at year 1, or 1850, or year 500)."
+    )
+
+
+def _render_open_base_time_axis(experiment: ExperimentPage) -> str:
+    experiment_esgvoc = experiment.experiment_esgvoc
+    if (
+        experiment_esgvoc.start_timestamp is not None
+        or experiment_esgvoc.end_timestamp is not None
+    ):
+        msg = "Expected no specific start and end"
+        raise AssertionError(msg)
+
+    return EsgvocDrivenOutputTimeAxisInformation().render(experiment)
+
+
+def _year_word(years: int | float) -> str:
+    return "years" if years > 1 else "year"
