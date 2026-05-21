@@ -729,6 +729,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
     from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES
     from local.activity_pages.geomip import GEOMIP_EXPERIMENT_PAGES
+    from local.activity_pages.lmip import LMIP_EXPERIMENT_PAGES
     from local.activity_pages.pmip import PMIP_EXPERIMENT_PAGES
     from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES
     from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
@@ -740,6 +741,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
         *C4MIP_EXPERIMENT_PAGES,
         *DAMIP_EXPERIMENT_PAGES,
         *GEOMIP_EXPERIMENT_PAGES,
+        *LMIP_EXPERIMENT_PAGES,
         *PMIP_EXPERIMENT_PAGES,
         *RFMIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
@@ -887,6 +889,10 @@ INDEX_GROUPS = (
             IndexActivity(
                 activity_id="geomip",
                 experiment_slugs=("g7-1p5k-sai",),
+            ),
+            IndexActivity(
+                activity_id="lmip",
+                experiment_slugs=("land-hist",),
             ),
             IndexActivity(
                 activity_id="pmip",
