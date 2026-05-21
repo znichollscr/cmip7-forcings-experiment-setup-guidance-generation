@@ -18,16 +18,18 @@ GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         id_esgvoc="g7-1p5k-sai",
         render_description=lambda _: "Stablisation of global-mean temperature at 1.5C by increasing stratospheric sulfur forcing.",
         branch_information=BranchFromParentAtTime(dt.datetime(2035, 1, 1)),
-        # Checking if the modification is to forcing or something else:
-        # see https://github.com/WCRP-CMIP/cmip7-guidance/issues/166
         experiment_setup_notes=(
             f"This experiment is the same as {render_link('scen7-ml', 'scen7-ml')}, "
             "except you should increase the stratospheric sulfur forcing "
+            "through the injection of SO₂ at 30N and 30S year round, "
+            "or (for models with no prognostic sulfate cycle) "
+            "through the addition of a prescribed stratospheric aerosol field provided "
+            "by the GeoMIP team. "
+            "The stratospheric sulfur forcing should be increased "
             "to whatever level is required to stablise global-mean temperatures at 1.5C "
             "after the branching point. "
-            "We are still seeking clarification about exactly what 'increase the stratospheric sulfur forcing' means, "
-            "see [https://github.com/WCRP-CMIP/cmip7-guidance/issues/166]() "
-            "(and please comment there if you can clarify for us)."
+            "For details, see [Visioni et al., 2026](https://doi.org/10.5194/egusphere-2026-2417), "
+            "Section 3.1.2."
         ),
         forcings=ForcingSpecification(
             other_experiment_based_forcings=tuple(
