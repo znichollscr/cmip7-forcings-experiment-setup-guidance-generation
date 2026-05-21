@@ -792,17 +792,9 @@ def render_esgpull_script(
 
 def render_pages(pages: Sequence[RenderablePage]) -> dict[str, str]:
     """Render guidance pages keyed by output filename."""
-    from local.guidance import ExperimentPageOld
-
-    page_slugs = frozenset(page.slug for page in pages)
-
     res = {}
     for page in pages:
-        if isinstance(page, ExperimentPageOld):
-            # TODO: delete when we remove ExperimentPageOld
-            raw = page.render(page_slugs=page_slugs)
-        else:
-            raw = page.render()
+        raw = page.render()
 
         res[f"{page.slug}.md"] = wrap_markdown(raw)
 

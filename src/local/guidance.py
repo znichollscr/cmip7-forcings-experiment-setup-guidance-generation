@@ -12,13 +12,10 @@ from typing import Protocol
 from local.activities import get_activity_definition
 from local.branching import (
     render_parent_and_branching_information,
-    render_parent_information,
 )
-from local.experiment_descriptions import render_experiment_description
 from local.experiment_pairs import (
     get_experiment_pairs,
     render_experiment_pair_info,
-    render_related_experiments,
     sort_experiment_slugs,
 )
 from local.forcings import (
@@ -36,7 +33,6 @@ from local.rendering import (
     render_activity_index_link,
     render_activity_urls,
     render_activity_urls_v2,
-    render_experiment_requirements,
     render_front_matter,
     render_link,
     render_list_human_like,
@@ -76,100 +72,6 @@ class CheckResult:
     def ok(self) -> bool:
         """Whether the generated output matches the files on disk."""
         return not self.missing and not self.changed and not self.extra
-
-
-@dataclass(frozen=True)
-class ExperimentPageOld:
-    """A full experiment setup and forcings guidance page."""
-
-    slug: str
-    experiment_setup: str
-    forcing_headlines: str
-    notes: str
-    versions_to_use: str
-    getting_the_data: str
-    pre_description_note: str = ""
-    parent_experiment_extra: str = ""
-    include_parent_information: bool = True
-
-    @property
-    def experiment(self):
-        """Return this page's esgvoc experiment term."""
-        return get_experiment(self.slug)
-
-    @property
-    def display_name(self) -> str:
-        """Return this experiment's DRS name."""
-        return self.experiment.drs_name
-
-    @property
-    def title(self) -> str:
-        """Return this page's generated title."""
-        return f"Experiment Setup and Forcings Guidance: {self.display_name}"
-
-    def render(self, *, page_slugs: Collection[str] | None = None) -> str:
-        """Render the page as markdown."""
-        experiment = self.experiment
-        responsible_activity = get_responsible_activity(experiment)
-        page_slugs = page_slugs or frozenset()
-
-        return join_blocks(
-            render_front_matter(self.title),
-            f"# {self.title}",
-            # TODO: remove this and just use a function for altering the esgvoc description
-            self.pre_description_note,
-            # TODO: make this an ExperimentPage parameter
-            render_experiment_description(experiment.description),
-            # TODO: make this an ExperimentPage parameter
-            render_experiment_metadata_line(
-                experiment=experiment,
-                responsible_activity=responsible_activity,
-            ),
-            render_activity_urls(urls_from_term(responsible_activity)),
-            render_related_experiments(self.slug, page_slugs=page_slugs),
-            "## Experiment set up",
-            # TODO: check that some overall general, consistent description bit
-            # is consistently here
-            self.experiment_setup,
-            "### Timing, length and ensemble size",
-            # TODO: add branching and parent experiment info in here.
-            # "Branching, timing, simulation length and ensemble size"
-            # TODO: then add an extra section for further set up notes
-            render_experiment_requirements(experiment),
-            (
-                join_blocks(
-                    "### Parent experiment",
-                    render_parent_information(
-                        experiment,
-                        page_slugs=page_slugs,
-                        extra=self.parent_experiment_extra,
-                    ),
-                )
-                # TODO: alter, should put "No parent experiment" or similar
-                # if there is no parent experiment rather than just skipping this block
-                if self.include_parent_information
-                else ""
-            ),
-            "## Forcings",
-            "### General headlines",
-            # TODO: check what is consistently here
-            self.forcing_headlines,
-            "### Notes",
-            # TODO: check whether the content here is consistently
-            # about details of implementation, leaving general headlines above
-            # for information about whether the experiments are fixed, transient
-            # or a mix.
-            self.notes,
-            "### Versions to use",
-            # TODO: somehow make this more standard:
-            # each page should either render JSON
-            # or point to other pages
-            # (but ideally not a blend of these two)
-            self.versions_to_use,
-            "### Getting the data",
-            # TODO: add sections to this to help make clear what comes from what
-            self.getting_the_data,
-        )
 
 
 class RenderableBranchInformation(Protocol):

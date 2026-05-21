@@ -7,11 +7,7 @@ from dataclasses import dataclass
 
 from local.branching import BranchAtSameTimeAsOtherExperiment, BranchFromParentEnd
 from local.experiment_dates import historical_end_year
-from local.forcing_references import COMMON_FORCING_NOTES
 from local.forcing_versions import (
-    SCEN7_FORCING_VERSIONS_BY_SLUG,
-    SCEN7_H_FORCING_VERSIONS,
-    SCEN7_VL_FORCING_VERSIONS,
     ForcingValue,
     forcing_ids_except,
     merge_source_ids,
@@ -28,18 +24,13 @@ from local.guidance import (
     HISTORICAL_LINK,
     PI_CONTROL_LINK,
     ExperimentPage,
-    ExperimentPageOld,
 )
 from local.output_time_axis import (
     PiClimOutputTimeAxisInformation,
 )
 from local.rendering import (
-    join_blocks,
-    join_lines,
     only_keep_first_sentence,
-    render_data_access_body,
 )
-from local.vocab import get_experiment
 
 from .cmip import LAST_HISTORICAL_YEAR
 
@@ -104,55 +95,6 @@ def source_ids_for_scen7_aerchem_variant(
                     *SCEN7_NON_DOWNLOADABLE_FORCING_IDS,
                 ),
             )
-        ),
-    )
-
-
-def make_scen7_aerchem_page(spec: Scen7AerChemPageSpec) -> ExperimentPageOld:
-    """Create an AerChemMIP scenario-variant page."""
-    experiment_name = get_experiment(spec.slug).drs_name
-    forcing_label = (
-        SCEN7_AQ_FORCING_LABEL
-        if spec.include_interactive_chemistry
-        else SCEN7_AER_FORCING_LABEL
-    )
-    chemistry_capability = (
-        "include interactive chemistry"
-        if spec.include_interactive_chemistry
-        else "do not include interactive chemistry"
-    )
-
-    return ExperimentPageOld(
-        slug=spec.slug,
-        experiment_setup=join_blocks(
-            f"The `{experiment_name}` simulation is a variant of the `{spec.base_scenario_name}` simulation.",
-            f"The {forcing_label} should {spec.aerchem_setup_source}.",
-            f"All other forcings should evolve as in `{spec.base_scenario_name}`.",
-            f"`{experiment_name}` is for models that {chemistry_capability}.",
-        ).strip(),
-        forcing_headlines=join_lines(
-            f"The `{experiment_name}` experiment is a time-varying forcings experiment,",
-            f"combining {forcing_label} from {spec.aerchem_versions_source}",
-            f"with all other forcings from the `{spec.base_scenario_name}` simulation.",
-        ),
-        notes=COMMON_FORCING_NOTES,
-        versions_to_use=join_blocks(
-            join_lines(
-                f"For {forcing_label},",
-                f"the relevant forcing is the same as for {spec.aerchem_versions_source}.",
-            ),
-            join_lines(
-                "For all other forcings,",
-                "the forcing versions relevant for this simulation are the same as for "
-                f"the `{spec.base_scenario_name}` simulation.",
-            ),
-        ).strip(),
-        getting_the_data=render_data_access_body(
-            experiment_name=experiment_name,
-            source_ids=source_ids_for_scen7_aerchem_variant(
-                aerchem_forcing_versions=spec.aerchem_forcing_versions,
-                base_forcing_versions=spec.base_forcing_versions,
-            ),
         ),
     )
 
@@ -246,6 +188,54 @@ def make_hist_star_page(
     return res
 
 
+def make_aerchemmip_scen7_vl_based_page(
+    id_esgvoc: str,
+    forcing_slugs_scen7_h: tuple[str, ...],
+    user_modifications_text: str,
+    render_description: Callable[[str], str] = lambda x: x,
+) -> ExperimentPage:
+    """
+    Make a scen7-vl* AerChemMIP page
+    """
+    res = ExperimentPage(
+        id_esgvoc=id_esgvoc,
+        branch_information=BranchFromParentEnd(),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="scen7-h",
+                        user_modifications=f"only for {user_modifications_text}. ",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug in forcing_slugs_scen7_h
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="scen7-vl",
+                        user_modifications=f"only for everything except {user_modifications_text}.",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug in forcing_slugs_scen7_h
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="scen7-vl",
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug not in forcing_slugs_scen7_h
+                ),
+            ),
+        ),
+        render_description=render_description,
+    )
+
+    return res
+
+
 def make_aerchemmip_scen7_h_based_page(
     id_esgvoc: str,
     forcing_slugs_historical_constant: tuple[str, ...],
@@ -253,7 +243,7 @@ def make_aerchemmip_scen7_h_based_page(
     render_description: Callable[[str], str] = lambda x: x,
 ) -> ExperimentPage:
     """
-    Make a *scen7-h* AerChemMIP page
+    Make a scen7-h* AerChemMIP page
     """
     res = ExperimentPage(
         id_esgvoc=id_esgvoc,
@@ -324,7 +314,7 @@ def make_aerchemmip_esm_variant_page(
     return res
 
 
-AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
+AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     make_piclim_based_page(
         "piclim-ch4",
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
@@ -452,48 +442,33 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
         ),
     ),
     make_aerchemmip_esm_variant_page("esm-scen7-h-aq"),
-    make_scen7_aerchem_page(
-        Scen7AerChemPageSpec(
-            slug="scen7-vl-aer",
-            base_scenario_name="scen7-vl",
-            aerchem_setup_source="evolve as in the `scen7-h` simulation",
-            aerchem_versions_source="the `scen7-h` simulation",
-            aerchem_forcing_versions=SCEN7_H_FORCING_VERSIONS,
-            base_forcing_versions=SCEN7_VL_FORCING_VERSIONS,
-            include_interactive_chemistry=False,
-        )
+    make_aerchemmip_scen7_vl_based_page(
+        "scen7-vl-aer",
+        forcing_slugs_scen7_h=tuple(
+            (
+                # TODO: check if biomass burning is meant to be included
+                "anthropogenic-slcf-co2-emissions",
+                "open-biomass-burning-emissions",
+            )
+        ),
+        user_modifications_text=(
+            "aerosol (BC, OC, NH<sub>3</sub>, SO<sub>2</sub>) emissions"
+        ),
     ),
-    make_scen7_aerchem_page(
-        Scen7AerChemPageSpec(
-            slug="scen7-vl-aq",
-            base_scenario_name="scen7-vl",
-            aerchem_setup_source="evolve as in the `scen7-h` simulation",
-            aerchem_versions_source="the `scen7-h` simulation",
-            aerchem_forcing_versions=SCEN7_H_FORCING_VERSIONS,
-            base_forcing_versions=SCEN7_VL_FORCING_VERSIONS,
-            include_interactive_chemistry=True,
-        )
+    make_aerchemmip_esm_variant_page("esm-scen7-vl-aer"),
+    make_aerchemmip_scen7_vl_based_page(
+        "scen7-vl-aq",
+        forcing_slugs_scen7_h=tuple(
+            (
+                # TODO: check if biomass burning is meant to be included
+                "anthropogenic-slcf-co2-emissions",
+                "open-biomass-burning-emissions",
+            )
+        ),
+        user_modifications_text=(
+            "aerosol (BC, OC, NH<sub>3</sub>, SO<sub>2</sub>) "
+            "and tropospheric non-methane ozone precursor emissions (NMVOCs, CO, NO<sub>x</sub>)"
+        ),
     ),
-    make_scen7_aerchem_page(
-        Scen7AerChemPageSpec(
-            slug="esm-scen7-vl-aer",
-            base_scenario_name="esm-scen7-vl",
-            aerchem_setup_source="evolve as in the `esm-scen7-h` simulation",
-            aerchem_versions_source="the `esm-scen7-h` simulation",
-            aerchem_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-h"],
-            base_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-vl"],
-            include_interactive_chemistry=False,
-        )
-    ),
-    make_scen7_aerchem_page(
-        Scen7AerChemPageSpec(
-            slug="esm-scen7-vl-aq",
-            base_scenario_name="esm-scen7-vl",
-            aerchem_setup_source="evolve as in the `esm-scen7-h` simulation",
-            aerchem_versions_source="the `esm-scen7-h` simulation",
-            aerchem_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-h"],
-            base_forcing_versions=SCEN7_FORCING_VERSIONS_BY_SLUG["esm-scen7-vl"],
-            include_interactive_chemistry=True,
-        )
-    ),
+    make_aerchemmip_esm_variant_page("esm-scen7-vl-aq"),
 )

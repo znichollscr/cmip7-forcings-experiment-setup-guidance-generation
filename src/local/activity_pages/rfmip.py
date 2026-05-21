@@ -25,15 +25,11 @@ from local.guidance import (
     HISTORICAL_LINK,
     PI_CLIM_CONTROL_LINK,
     ExperimentPage,
-    ExperimentPageOld,
 )
 from local.output_time_axis import PiClimOutputTimeAxisInformation
 from local.rendering import (
     block,
-    join_blocks,
-    join_lines,
     only_keep_first_sentence,
-    render_data_access_body,
     render_link,
 )
 from local.vocab import get_experiment
@@ -68,69 +64,6 @@ class HistoricalTransientForcingPageSpec:
     historical_forcing_ids: tuple[str, ...]
     historical_forcing_label: str
     use_piclim_control_for_other_forcings: bool
-
-
-def make_historical_transient_forcing_page(
-    spec: HistoricalTransientForcingPageSpec,
-) -> ExperimentPageOld:
-    """Create an RFMIP page using historical forcings with scenario extensions."""
-    experiment_name = get_experiment(spec.slug).drs_name
-    extension_scenario_links = rfmip_extension_scenario_links()
-
-    if spec.use_piclim_control_for_other_forcings:
-        other_forcings_setup = (
-            f"All other forcings should remain as in the {PI_CLIM_CONTROL_LINK}."
-        )
-        other_forcings_versions = join_lines(
-            "For all other forcings,",
-            (
-                "the forcing versions relevant for this simulation are the same "
-                f"as for the {PI_CLIM_CONTROL_LINK}."
-            ),
-        )
-        source_ids = source_ids_for_partial_historical_transient_forcing_page(
-            spec.historical_forcing_ids
-        )
-    else:
-        other_forcings_setup = ""
-        other_forcings_versions = ""
-        source_ids = source_ids_for_all_historical_transient_forcing_page()
-
-    return ExperimentPageOld(
-        slug=spec.slug,
-        experiment_setup=join_blocks(
-            PICLIM_CONTROL_PRESCRIBED_BOUNDARY_CONDITIONS,
-            (
-                f"{forcing_subject(spec, sentence_start=True)} should evolve as in the "
-                f"{HISTORICAL_LINK}."
-            ),
-            (
-                "For the extension beyond the historical simulation, "
-                f"{forcing_subject(spec)} should follow "
-                f"{extension_scenario_links}, whichever is relevant to your "
-                "model setup."
-            ),
-            other_forcings_setup,
-        ).strip(),
-        forcing_headlines=join_lines(
-            f"The `{experiment_name}` experiment combines",
-            historical_forcing_phrase(spec),
-            f"extended with {extension_scenario_links}.",
-        ),
-        notes=f"See notes for the {PI_CLIM_CONTROL_LINK} and {HISTORICAL_LINK}.",
-        versions_to_use=join_blocks(
-            join_lines(
-                f"For {spec.historical_forcing_label},",
-                f"the relevant forcing is the same as for the {HISTORICAL_LINK},",
-                f"then {extension_scenario_links} for the extension.",
-            ),
-            other_forcings_versions,
-        ).strip(),
-        getting_the_data=render_data_access_body(
-            experiment_name=experiment_name,
-            source_ids=source_ids,
-        ),
-    )
 
 
 def forcing_subject(
@@ -206,7 +139,7 @@ def source_ids_from_historical_and_extension_forcings(
     )
 
 
-RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
+RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         id_esgvoc="piclim-aer",
         branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
