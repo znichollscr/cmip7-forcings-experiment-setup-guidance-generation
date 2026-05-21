@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from local.rendering import render_forcing_reference_list
-
 
 @dataclass(frozen=True)
 class ForcingReference:
@@ -59,8 +57,6 @@ AMIP_FORCING_REFERENCES = (
         "amip-sst-sea-ice-boundary-forcing",
     ),
 )
-
-COMMON_FORCING_NOTES = render_forcing_reference_list(COMMON_FORCING_REFERENCES)
 
 # TODO: inline?
 ALL_FORCING_REFERENCES = {

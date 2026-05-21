@@ -23,7 +23,6 @@ __all__ = [
     "NOT_AVAILABLE_YET",
     "PICONTROL_FORCINGS_SPECIFICATION",
     "ForcingSpecification",
-    "ForcingSpecification",
     "Input4MIPsBasedForcingSpecification",
     "NonInput4MIPsBasedForcingSpecification",
     "OtherExperimentBasedForcingSpecification",

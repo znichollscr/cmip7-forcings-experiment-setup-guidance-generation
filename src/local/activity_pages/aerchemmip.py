@@ -2,18 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from collections.abc import Callable
 
 from local.branching import BranchAtSameTimeAsOtherExperiment, BranchFromParentEnd
-from local.experiment_dates import historical_end_year
-from local.forcing_versions import (
-    ForcingValue,
-    forcing_ids_except,
-    merge_source_ids,
-    select_forcing_versions,
-    source_ids_from_forcing_versions,
-)
 from local.forcings import (
     HISTORICAL_FORCINGS_SPECIFICATION,
     PICONTROL_FORCINGS_SPECIFICATION,
@@ -21,7 +12,6 @@ from local.forcings import (
     OtherExperimentBasedForcingSpecification,
 )
 from local.guidance import (
-    HISTORICAL_LINK,
     PI_CONTROL_LINK,
     ExperimentPage,
 )
@@ -35,68 +25,6 @@ from local.rendering import (
 from .cmip import LAST_HISTORICAL_YEAR
 
 PRE_INDUSTRIAL_YEAR = 1850
-SCEN7_AERCHEM_FORCING_IDS = ("anthropogenic-emissions",)
-SCEN7_NON_DOWNLOADABLE_FORCING_IDS = ("aerosol-optical-properties",)
-
-SCEN7_AER_FORCING_LABEL = (
-    "aerosol and tropospheric non-methane ozone precursor emissions"
-)
-SCEN7_AQ_FORCING_LABEL = (
-    "anthropogenic non-CH4 tropospheric ozone precursor emissions, "
-    "aerosols and aerosol precursor emissions"
-)
-
-
-@dataclass(frozen=True)
-class Scen7AerChemPageSpec:
-    """Inputs needed to create an AerChemMIP scenario-variant page."""
-
-    slug: str
-    base_scenario_name: str
-    aerchem_setup_source: str
-    aerchem_versions_source: str
-    aerchem_forcing_versions: Mapping[str, ForcingValue]
-    base_forcing_versions: Mapping[str, ForcingValue]
-    include_interactive_chemistry: bool
-
-
-def historical_end_year_setup_source() -> str:
-    """Render the setup source text for fixed historical-end-year forcings."""
-    return (
-        "be held fixed at "
-        f"{historical_end_year()} values from the historical simulation"
-    )
-
-
-def historical_end_year_versions_source() -> str:
-    """Render the versions source text for fixed historical-end-year forcings."""
-    return f"the {historical_end_year()} values in the {HISTORICAL_LINK}"
-
-
-def source_ids_for_scen7_aerchem_variant(
-    *,
-    aerchem_forcing_versions: Mapping[str, ForcingValue],
-    base_forcing_versions: Mapping[str, ForcingValue],
-) -> tuple[str, ...]:
-    """Derive source IDs for a scen7 AerChemMIP scenario-variant page."""
-    return merge_source_ids(
-        source_ids_from_forcing_versions(
-            select_forcing_versions(
-                aerchem_forcing_versions,
-                SCEN7_AERCHEM_FORCING_IDS,
-            )
-        ),
-        source_ids_from_forcing_versions(
-            select_forcing_versions(
-                base_forcing_versions,
-                forcing_ids_except(
-                    base_forcing_versions,
-                    *SCEN7_AERCHEM_FORCING_IDS,
-                    *SCEN7_NON_DOWNLOADABLE_FORCING_IDS,
-                ),
-            )
-        ),
-    )
 
 
 def make_piclim_based_page(

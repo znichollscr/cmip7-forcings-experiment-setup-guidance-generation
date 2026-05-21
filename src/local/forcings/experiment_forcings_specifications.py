@@ -298,6 +298,10 @@ def get_ozone_scenario_forcings(
     if scenario_drs_name.endswith("ext"):
         scenario = scenario_drs_name.replace("-ext", "").lower()
 
+        # TODO: add guidance that says just use constant from end of scenario
+        # for all extension versions.
+        # I guess that means the recommended version is just the same
+        # as the scenario version, and we have specific guidance in the notes section.
         return OtherExperimentBasedForcingSpecification(
             forcing_slug,
             experiment_esgvoc_id=scenario,
@@ -337,6 +341,10 @@ def get_nitrogen_deposition_scenario_forcings(
     if scenario_short_name.endswith("ext"):
         scenario = scenario_drs_name.replace("-ext", "").lower()
 
+        # TODO: add guidance that says just use constant from end of scenario
+        # for all extension versions.
+        # I guess that means the recommended version is just the same
+        # as the scenario version, and we have specific guidance in the notes section.
         return OtherExperimentBasedForcingSpecification(
             forcing_slug,
             experiment_esgvoc_id=scenario,

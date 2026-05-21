@@ -14,17 +14,8 @@ from local.forcings import (
 from local.guidance import (
     ExperimentPage,
 )
-from local.rendering import (
-    render_link,
-)
-from local.vocab import get_experiment
 
 # TODO: split out a `render_link_for_experiment` function
-SCEN7_M = get_experiment("scen7-m")
-SCEN7_M_LINK = render_link(SCEN7_M.drs_name, SCEN7_M.id)
-
-PICLIM_CONTROL = get_experiment("piclim-control")
-PICLIM_CONTROL_LINK = render_link(PICLIM_CONTROL.drs_name, PICLIM_CONTROL.id)
 
 
 @dataclass(frozen=True)

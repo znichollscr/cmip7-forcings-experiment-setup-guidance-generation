@@ -6,7 +6,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 import local.vocab
-from local.rendering import join_blocks, render_activity_index_link, render_link
+from local.rendering import join_blocks, render_activity_index_link
 
 ActivityDescriptionModifier = Callable[[str], str]
 SCENARIOMIP_DESCRIPTION_TRUNCATION_MARKER = "In CMIP7, the priority tier"
@@ -39,7 +39,6 @@ class Activity:
         return self.description_modifier(esgvoc_description)
 
 
-SCEN7_VL_LINK = render_link("`scen7-vl`", "scen7-vl")
 SCENARIOMIP_FURTHER_DETAILS = join_blocks(
     (
         "The priority of ScenarioMIP experiments (expressed as Tier 1 and 2) "

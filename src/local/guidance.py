@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from collections.abc import Callable, Collection, Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
@@ -249,6 +249,7 @@ class ExperimentPage:
             "### Parent experiment and branching",
             parent_experiment_and_branching_info,
             "### Output time axis",
+            # TODO: switch to dot points or something so faster to parse/easier to see the standardisation
             self.render_output_time_axis_info(),
             "### Minimum ensemble size",
             self.render_minimum_ensemble_size_info(),
@@ -273,7 +274,7 @@ class ExperimentPage:
 
         return branch_information
 
-    def render_forcing_info(self, header_level_min: int) -> str:
+    def render_forcing_info(self, header_level_min: int) -> str:  # noqa: PLR0912, PLR0915
         """
         Render the forcing information
         """
@@ -572,6 +573,7 @@ class ExperimentPage:
         """
         min_ensemble_size = self.experiment_esgvoc.min_ensemble_size
         if not isinstance(min_ensemble_size, int):
+            # TODO: switch to ValueError
             raise TypeError(min_ensemble_size)
 
         if min_ensemble_size == 1:
@@ -595,23 +597,6 @@ class ExperimentPage:
         return output_time_axis_info
 
 
-def render_experiment_metadata_line(*, experiment, responsible_activity) -> str:
-    """Render the activity and tier metadata line for an experiment page."""
-    if responsible_activity.id == "scenariomip":
-        tier_label = (
-            f"See {render_activity_index_link(responsible_activity)} information"
-        )
-    else:
-        # TODO: switch to ValueError
-        tier = getattr(experiment, "tier", None)
-        tier_label = "not defined" if tier is None else str(tier)
-
-    return (
-        f"Responsible activity: {render_activity_index_link(responsible_activity)}. "
-        f"Tier: {tier_label}"
-    )
-
-
 @dataclass(frozen=True)
 class SimplePage:
     """A markdown page with front matter and a body."""
@@ -622,7 +607,7 @@ class SimplePage:
     body: str
     front_matter_title: str | None = None
 
-    def render(self, *, page_slugs: Collection[str] | None = None) -> str:
+    def render(self) -> str:
         """Render the page as markdown."""
         return join_blocks(
             render_front_matter(self.front_matter_title or self.title),
@@ -648,33 +633,11 @@ class IndexGroup:
 
 
 PI_CONTROL_LINK = render_link("piControl simulation", "picontrol")
-ESM_PI_CONTROL_LINK = render_link("esm-piControl simulation", "esm-picontrol")
 HISTORICAL_LINK = render_link("historical simulation", "historical")
 ONEPCTCO2_LINK = render_link("1pctCO2 simulation", "1pctco2")
-PI_CLIM_CONTROL_LINK = render_link("piClim-control simulation", "piclim-control")
-ABRUPT_4XCO2_LINK = render_link("abrupt-4xCO2 simulation", "abrupt-4xco2")
 
 
-TIME_AXIS_CAN_BE_ARBITRARY = block(
-    """
-    The start-time of the simulation is not tied to a particular year but, rather, can be chosen arbitrarily
-    (e.g., year 200 or year 1850 or year 1).
-    However, it is easier for analysts if the start-time is consistent with the branching time in the parent experiment
-    (e.g., if the the simulation branches from year 200 in the parent experiment,
-    then the start time in the child experiment would be set to year 200).
-    """
-)
-
-PICLIM_TIME_AXIS = block(
-    """
-    It is recommended that you use the same time axis as you use for your [piClim-control](./piclim-control.md) output
-    to make life easy for analysts of your output
-    (although this is not enforced so you are technically free to start the time axis of your outputs at whatever year you like).
-    """
-)
-
-
-def experiment_pages() -> tuple[ExperimentPageOld, ...]:
+def experiment_pages() -> tuple[ExperimentPage, ...]:
     """Return generated experiment pages."""
     from local.activity_pages.aerchemmip import AERCHEMMIP_EXPERIMENT_PAGES
     from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
@@ -703,7 +666,7 @@ def experiment_pages() -> tuple[ExperimentPageOld, ...]:
     return tuple(detailed_pages_by_slug[slug] for slug in EXPERIMENT_SLUGS_TO_GENERATE)
 
 
-def content_pages() -> tuple[ExperimentPageOld | SimplePage, ...]:
+def content_pages() -> tuple[ExperimentPage | SimplePage, ...]:
     """Return all generated content pages except the index page."""
     return experiment_pages()
 
@@ -868,7 +831,7 @@ EXPERIMENT_SLUGS_TO_GENERATE = tuple(
 def render_activity_section(
     activity: IndexActivity,
     *,
-    page_lookup: Mapping[str, ExperimentPageOld | SimplePage],
+    page_lookup: Mapping[str, ExperimentPage | SimplePage],
 ) -> str:
     """Render one activity section on the index page."""
     activity_definition = get_activity_definition(activity.activity_id)
@@ -890,7 +853,7 @@ def render_activity_section(
 
 
 def make_index_page(
-    pages: tuple[ExperimentPageOld | SimplePage, ...] | None = None,
+    pages: tuple[ExperimentPage | SimplePage, ...] | None = None,
 ) -> SimplePage:
     """Create the generated index page."""
     if pages is None:
@@ -916,10 +879,10 @@ def make_index_page(
 
 
 def pages_by_id_esgvoc(
-    pages: tuple[ExperimentPageOld, ...],
-) -> dict[str, ExperimentPageOld]:
+    pages: tuple[ExperimentPage, ...],
+) -> dict[str, ExperimentPage]:
     """Return pages keyed by esgvoc id, failing on duplicates."""
-    pages_by_id_esgvoc: dict[str, ExperimentPageOld] = {}
+    pages_by_id_esgvoc: dict[str, ExperimentPage] = {}
     duplicate_slugs: list[str] = []
     for page in pages:
         id_esgvoc = page.slug
@@ -936,7 +899,7 @@ def pages_by_id_esgvoc(
 
 
 def _validate_experiment_slugs_to_generate(
-    detailed_pages_by_slug: dict[str, ExperimentPageOld],
+    detailed_pages_by_slug: dict[str, ExperimentPage],
 ) -> None:
     """Validate the hard-coded experiment page inventory."""
     duplicate_slugs = _duplicate_slugs(EXPERIMENT_SLUGS_TO_GENERATE)
@@ -987,7 +950,7 @@ def _duplicate_slugs(slugs: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def _validate_index_page_slugs(
-    page_lookup: dict[str, ExperimentPageOld | SimplePage],
+    page_lookup: dict[str, ExperimentPage | SimplePage],
 ) -> None:
     """Validate that all index entries have generated pages."""
     missing_slugs = tuple(
@@ -998,7 +961,7 @@ def _validate_index_page_slugs(
         raise ValueError(msg)
 
 
-def all_pages() -> tuple[SimplePage | ExperimentPageOld, ...]:
+def all_pages() -> tuple[SimplePage | ExperimentPage, ...]:
     """Return all generated pages in write order."""
     pages = content_pages()
     return (make_index_page(pages), *pages)
