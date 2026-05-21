@@ -83,7 +83,7 @@ ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
     "    ",
 )
 
-PRESENT_YEAR = get_experiment("historical").end_timestamp.year
+LAST_HISTORICAL_YEAR = get_experiment("historical").end_timestamp.year
 
 
 def get_historical_description(
@@ -314,7 +314,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                     OtherExperimentBasedForcingSpecification(
                         forcing_slug=v.forcing_slug,
                         experiment_esgvoc_id="historical",
-                        user_modifications=f"apply the {PRESENT_YEAR} value on repeat",
+                        user_modifications=f"apply the {LAST_HISTORICAL_YEAR} value on repeat",
                         fixed_override=True,
                     )
                     for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings

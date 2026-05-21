@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
+from local.branching import (
+    BranchAtSameTimeAsOtherExperiment,
+)
 from local.experiment_dates import historical_end_year
 from local.forcing_references import COMMON_FORCING_NOTES
 from local.forcing_versions import (
@@ -20,23 +23,33 @@ from local.forcing_versions import (
     source_ids_for_picontrol_historical_forcing_combination,
     source_ids_from_forcing_versions,
 )
+from local.forcings import (
+    HISTORICAL_FORCINGS_SPECIFICATION,
+    PICONTROL_FORCINGS_SPECIFICATION,
+    ForcingSpecification,
+    OtherExperimentBasedForcingSpecification,
+)
 from local.guidance import (
     HISTORICAL_LINK,
     PI_CONTROL_LINK,
+    ExperimentPage,
     ExperimentPageOld,
 )
-from local.piclim_variants import (
-    HistoricalForcing,
-    make_piclim_historical_forcing_variant_page,
+from local.output_time_axis import (
+    PiClimOutputTimeAxisInformation,
 )
 from local.rendering import (
     block,
     join_blocks,
     join_lines,
+    only_keep_first_sentence,
     render_data_access_body,
 )
 from local.vocab import get_experiment
 
+from .cmip import LAST_HISTORICAL_YEAR
+
+PRE_INDUSTRIAL_YEAR = 1850
 SCEN7_AERCHEM_FORCING_IDS = ("anthropogenic-emissions",)
 SCEN7_NON_DOWNLOADABLE_FORCING_IDS = ("aerosol-optical-properties",)
 
@@ -150,51 +163,113 @@ def make_scen7_aerchem_page(spec: Scen7AerChemPageSpec) -> ExperimentPageOld:
     )
 
 
+def make_piclim_based_page(
+    id_esgvoc: str,
+    forcing_slugs_historical_last_year: tuple[str, ...],
+    historical_last_year: int = LAST_HISTORICAL_YEAR,
+    user_modifications: str | None = None,
+    render_description: Callable[[str], str] = lambda x: x,
+) -> ExperimentPage:
+    """
+    Make a piClim-* page
+    """
+    if user_modifications is None:
+        user_modifications = f"apply the {historical_last_year} value on repeat"
+
+    res = ExperimentPage(
+        id_esgvoc=id_esgvoc,
+        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
+        forcings=ForcingSpecification(
+            other_experiment_based_forcings=(
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="picontrol",
+                    )
+                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug not in forcing_slugs_historical_last_year
+                ),
+                *(
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug=v.forcing_slug,
+                        experiment_esgvoc_id="historical",
+                        user_modifications=user_modifications,
+                        fixed_override=True,
+                    )
+                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+                    if v.forcing_slug in forcing_slugs_historical_last_year
+                ),
+                OtherExperimentBasedForcingSpecification(
+                    forcing_slug="sst-forcing",
+                    experiment_esgvoc_id="piclim-control",
+                ),
+            ),
+        ),
+        output_time_axis_info=PiClimOutputTimeAxisInformation(),
+        render_description=render_description,
+    )
+
+    return res
+
+
 AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
-    make_piclim_historical_forcing_variant_page(
-        slug="piclim-ch4",
-        historical_forcings=(
-            HistoricalForcing(
-                forcing_id="greenhouse-gas-concentrations",
-                label="methane concentrations or emissions (as appropriate for the model)",
-            ),
+    make_piclim_based_page(
+        "piclim-ch4",
+        forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
+        user_modifications=(
+            f"apply the {LAST_HISTORICAL_YEAR} methane (CH<sub>4</sub>) concentrations or emissions "
+            "(as appropriate for your model) value on repeat "
+            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
         ),
+        render_description=only_keep_first_sentence,
     ),
-    make_piclim_historical_forcing_variant_page(
-        slug="piclim-n2o",
-        historical_forcings=(
-            HistoricalForcing(
-                forcing_id="greenhouse-gas-concentrations",
-                label="nitrous oxide concentrations or emissions (as appropriate for the model)",
-            ),
+    make_piclim_based_page(
+        "piclim-n2o",
+        forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
+        user_modifications=(
+            f"apply the {LAST_HISTORICAL_YEAR} nitrous oxide (N<sub>2</sub>O) concentrations or emissions "
+            "(as appropriate for your model) value on repeat "
+            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
         ),
+        render_description=only_keep_first_sentence,
     ),
-    make_piclim_historical_forcing_variant_page(
-        slug="piclim-nox",
-        historical_forcings=(
-            HistoricalForcing(
-                forcing_id="anthropogenic-emissions",
-                label="nitrogen oxides (NOx) emissions",
-            ),
+    make_piclim_based_page(
+        "piclim-nox",
+        # TODO: check if anthro and biomass or just anthro
+        forcing_slugs_historical_last_year=(
+            "anthropogenic-slcf-co2-emissions",
+            "open-biomass-burning-emissions",
         ),
+        user_modifications=(
+            f"apply the {LAST_HISTORICAL_YEAR} nitrogen oxide (NO<sub>x</sub>) emissions "
+            "value on repeat "
+            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
+        ),
+        render_description=only_keep_first_sentence,
     ),
-    make_piclim_historical_forcing_variant_page(
-        slug="piclim-ods",
-        historical_forcings=(
-            HistoricalForcing(
-                forcing_id="greenhouse-gas-concentrations",
-                label="ozone-depleting substance concentrations",
-            ),
+    make_piclim_based_page(
+        "piclim-ods",
+        forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
+        user_modifications=(
+            f"apply the {LAST_HISTORICAL_YEAR} ozone-depleting substances (ODS) concentrations "
+            "(as appropriate for your model) value on repeat "
+            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
         ),
+        render_description=only_keep_first_sentence,
     ),
-    make_piclim_historical_forcing_variant_page(
-        slug="piclim-so2",
-        historical_forcings=(
-            HistoricalForcing(
-                forcing_id="anthropogenic-emissions",
-                label="sulfur dioxide (SO<sub>2</sub>) emissions",
-            ),
+    make_piclim_based_page(
+        "piclim-so2",
+        # TODO: check if anthro and biomass or just anthro
+        forcing_slugs_historical_last_year=(
+            "anthropogenic-slcf-co2-emissions",
+            "open-biomass-burning-emissions",
         ),
+        user_modifications=(
+            f"apply the {LAST_HISTORICAL_YEAR} sulfur dioxide (SO<sub>2</sub>) emissions "
+            "value on repeat "
+            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
+        ),
+        render_description=only_keep_first_sentence,
     ),
     ExperimentPageOld(
         slug="hist-piaer",

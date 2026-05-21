@@ -38,7 +38,7 @@ from local.rendering import (
 )
 from local.vocab import get_experiment
 
-from .cmip import PRESENT_YEAR
+from .cmip import LAST_HISTORICAL_YEAR
 
 # TODO: split out a `render_link_for_experiment` function
 SCEN7_M = get_experiment("scen7-m")
@@ -228,7 +228,7 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPageOld, ...] = (
                     OtherExperimentBasedForcingSpecification(
                         forcing_slug=v.forcing_slug,
                         experiment_esgvoc_id="historical",
-                        user_modifications=f"apply the {PRESENT_YEAR} value on repeat",
+                        user_modifications=f"apply the {LAST_HISTORICAL_YEAR} value on repeat",
                         fixed_override=True,
                     )
                     for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
