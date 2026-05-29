@@ -58,7 +58,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         id_esgvoc="1pctco2-rad",
         branch_information=BranchAtSameTimeAsOtherExperiment("1pctco2"),
         experiment_setup_notes=join_blocks(
-            f"The 1pctCO2-bgc simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
+            f"The 1pctCO2-rad simulation has the same forcing setup as the {ONEPCTCO2_LINK}.",
             block(
                 """
                 The difference is that your model should be configured such that the carbon cycle
@@ -68,7 +68,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         fixed_or_transient_or_mix_forcing_override=(
-            "The 1pctCO2-bgc experiment is a fixed forcings experiment, "
+            "The 1pctCO2-rad experiment is a fixed forcings experiment, "
             "except for CO<sub>2</sub> which is transient."
         ),
         forcings=ForcingSpecification(
