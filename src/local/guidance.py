@@ -134,7 +134,7 @@ class ExperimentPage:
     ID used by esgvoc, typically just the lowercase version of the experiment's DRS name
     """
 
-    forcings: ForcingSpecification
+    forcings: ForcingSpecification | None
     """
     Forcing specification for use in this experiment
     """
@@ -310,6 +310,12 @@ class ExperimentPage:
             internal_data_link=internal_data_link,
             header_level_min=header_level_min,
         )
+        if data_sections is None:
+            return (
+                "No forcings information is provided for this experiment. "
+                "See the other guidance for experiment details."
+            )
+
         return join_blocks(
             join_lines(
                 "The following information will help you identify the forcings to use. "
@@ -344,8 +350,11 @@ class ExperimentPage:
         *,
         internal_data_link: str,
         header_level_min: int,
-    ) -> RenderedForcingDataSections:
+    ) -> RenderedForcingDataSections | None:
         groups = self._forcing_data_groups()
+        if groups is None:
+            return None
+
         return RenderedForcingDataSections(
             from_other_experiments=self._render_data_from_other_experiments(
                 groups,
@@ -368,7 +377,9 @@ class ExperimentPage:
             ),
         )
 
-    def _forcing_data_groups(self) -> ForcingDataGroups:
+    def _forcing_data_groups(self) -> ForcingDataGroups | None:
+        if self.forcings is None:
+            return None
         specific_forcings = self.forcings.specific_forcings
         other_experiment_based_forcings = self.forcings.other_experiment_based_forcings
 
@@ -586,7 +597,7 @@ class ExperimentPage:
                     # esgpull self install
                     ## You may also need to run this step to get the data to download
                     # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
-                    esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(sorted(set(recommended_source_ids)))}
+                    esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{",".join(sorted(set(recommended_source_ids)))}
                     esgpull update --tag ${{EXPERIMENT_NAME}} --yes
                     esgpull download --tag ${{EXPERIMENT_NAME}}
                     ```
@@ -723,16 +734,21 @@ ONEPCTCO2_LINK = render_link("1pctCO2 simulation", "1pctco2")
 
 def experiment_pages() -> tuple[ExperimentPage, ...]:
     """Return generated experiment pages."""
-    from local.activity_pages.aerchemmip import AERCHEMMIP_EXPERIMENT_PAGES
-    from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
-    from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
-    from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
-    from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES
-    from local.activity_pages.geomip import GEOMIP_EXPERIMENT_PAGES
-    from local.activity_pages.lmip import LMIP_EXPERIMENT_PAGES
-    from local.activity_pages.pmip import PMIP_EXPERIMENT_PAGES
-    from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES
-    from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
+    from local.activity_pages.aerchemmip import (  # noqa: PLC0415
+        AERCHEMMIP_EXPERIMENT_PAGES,
+    )
+    from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.dcpp import DCPP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.geomip import GEOMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.lmip import LMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.pmip import PMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.scenariomip import (  # noqa: PLC0415
+        SCENARIOMIP_EXPERIMENT_PAGES,
+    )
 
     detailed_pages = (
         *CMIP_EXPERIMENT_PAGES,
@@ -740,6 +756,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
         *CFMIP_EXPERIMENT_PAGES,
         *C4MIP_EXPERIMENT_PAGES,
         *DAMIP_EXPERIMENT_PAGES,
+        *DCPP_EXPERIMENT_PAGES,
         *GEOMIP_EXPERIMENT_PAGES,
         *LMIP_EXPERIMENT_PAGES,
         *PMIP_EXPERIMENT_PAGES,
@@ -850,6 +867,10 @@ INDEX_GROUPS = (
                     "esm-flat10-cdr",
                     "esm-flat10-zec",
                 ),
+            ),
+            IndexActivity(
+                activity_id="dcpp",
+                experiment_slugs=("dcppb-forecast-cmip6",),
             ),
             IndexActivity(
                 activity_id="scenariomip",
@@ -996,7 +1017,7 @@ def _validate_experiment_slugs_to_generate(
     """Validate the hard-coded experiment page inventory."""
     duplicate_slugs = _duplicate_slugs(EXPERIMENT_SLUGS_TO_GENERATE)
     if duplicate_slugs:
-        msg = "Duplicate hard-coded experiment slugs: " f"{', '.join(duplicate_slugs)}."
+        msg = f"Duplicate hard-coded experiment slugs: {', '.join(duplicate_slugs)}."
         raise ValueError(msg)
 
     unlisted_detailed_pages = tuple(
