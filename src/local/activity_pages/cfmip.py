@@ -13,6 +13,7 @@ from local.guidance import (
     PI_CONTROL_LINK,
     ExperimentPage,
 )
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.rendering import (
     join_blocks,
 )
@@ -36,6 +37,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
     ),
     ExperimentPage(
         id_esgvoc="amip-piforcing",
@@ -54,6 +56,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
     ),
     ExperimentPage(
         id_esgvoc="abrupt-2xco2",
@@ -84,6 +87,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "After branching, the atmospheric CO<sub>2</sub> concentrations should "
             "be set to two times the CO<sub>2</sub> concentrations used in the piControl experiment.",
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
     ),
     ExperimentPage(
         id_esgvoc="abrupt-0p5xco2",
@@ -114,5 +118,6 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "After branching, the atmospheric CO<sub>2</sub> concentrations should "
             "be set to half the CO<sub>2</sub> concentrations used in the piControl experiment.",
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
     ),
 )

@@ -463,9 +463,7 @@ class ExperimentPage:
             modification_lines.append(
                 f"- for {source_forcing.label}, use the forcings from {source_experiment.drs_name} but\n  {forcing.user_modifications}".replace(
                     f" {source_experiment.drs_name} ", f" {source_experiment_link} "
-                ).replace(
-                    f" {source_experiment.id} ", f" {source_experiment_link} "
-                )
+                ).replace(f" {source_experiment.id} ", f" {source_experiment_link} ")
             )
 
         return join_blocks(
@@ -731,6 +729,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
     from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES
     from local.activity_pages.geomip import GEOMIP_EXPERIMENT_PAGES
+    from local.activity_pages.lmip import LMIP_EXPERIMENT_PAGES
     from local.activity_pages.pmip import PMIP_EXPERIMENT_PAGES
     from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES
     from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
@@ -742,6 +741,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
         *C4MIP_EXPERIMENT_PAGES,
         *DAMIP_EXPERIMENT_PAGES,
         *GEOMIP_EXPERIMENT_PAGES,
+        *LMIP_EXPERIMENT_PAGES,
         *PMIP_EXPERIMENT_PAGES,
         *RFMIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
@@ -759,11 +759,13 @@ def content_pages() -> tuple[ExperimentPage | SimplePage, ...]:
 
 INDEX_INTRO = block(
     """
-    !!! tip "Documentation under development"
+    !!! tip "Documentation under review"
 
-        The contents of these pages are currently in development.
-        Their format and content will evolve as feedback is received on the drafts.
-        We will remove this tip once the guidance is stable.
+        The contents of these pages are currently under review.
+        On each experiment page, you will see a dot point for "MIP co-chair review".
+        Where this says "Complete", you can assume that the guidance is stable and reliable.
+        Otherwise, please treat the guidance with some caution,
+        because it has not been reviewed by the experiment designers (the MIP co-chairs) yet.
         If you have any feedback, please feel free to raise an issue at
         https://github.com/WCRP-CMIP/cmip7-guidance/issues/new and tag @znichollscr.
 
@@ -844,9 +846,9 @@ INDEX_GROUPS = (
                 experiment_slugs=(
                     "1pctco2-bgc",
                     "1pctco2-rad",
-                    # "esm-flat10",
-                    # "esm-flat10-cdr",
-                    # "esm-flat10-zec",
+                    "esm-flat10",
+                    "esm-flat10-cdr",
+                    "esm-flat10-zec",
                 ),
             ),
             IndexActivity(
@@ -889,6 +891,10 @@ INDEX_GROUPS = (
             IndexActivity(
                 activity_id="geomip",
                 experiment_slugs=("g7-1p5k-sai",),
+            ),
+            IndexActivity(
+                activity_id="lmip",
+                experiment_slugs=("land-hist",),
             ),
             IndexActivity(
                 activity_id="pmip",

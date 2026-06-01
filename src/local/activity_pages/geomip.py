@@ -11,12 +11,15 @@ from local.forcings import (
     get_scen7_forcing_specification,
 )
 from local.guidance import ExperimentPage
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.rendering import render_link
 
 GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
         id_esgvoc="g7-1p5k-sai",
-        render_description=lambda _: "Stablisation of global-mean temperature at 1.5C by increasing stratospheric sulfur forcing.",
+        render_description=lambda _: (
+            "Stablisation of global-mean temperature at 1.5C by increasing stratospheric sulfur forcing."
+        ),
         branch_information=BranchFromParentAtTime(dt.datetime(2035, 1, 1)),
         experiment_setup_notes=(
             f"This experiment is the same as {render_link('scen7-ml', 'scen7-ml')}, "
@@ -40,5 +43,6 @@ GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in get_scen7_forcing_specification("scen7-ml").specific_forcings
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("geomip"),
     ),
 )

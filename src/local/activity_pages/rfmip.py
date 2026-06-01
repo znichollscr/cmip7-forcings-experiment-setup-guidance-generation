@@ -13,6 +13,7 @@ from local.guidance import (
     HISTORICAL_LINK,
     ExperimentPage,
 )
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.output_time_axis import PiClimOutputTimeAxisInformation
 from local.rendering import (
     block,
@@ -71,6 +72,7 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=only_keep_first_sentence,
+        mip_co_chair_review=get_pending_review_aft_experiments("rfmip"),
     ),
     ExperimentPage(
         id_esgvoc="piclim-histaer",
@@ -126,6 +128,7 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("rfmip"),
     ),
     ExperimentPage(
         id_esgvoc="piclim-histall",
@@ -159,5 +162,6 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("rfmip"),
     ),
 )

@@ -15,6 +15,7 @@ from local.guidance import (
     PI_CONTROL_LINK,
     ExperimentPage,
 )
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.output_time_axis import (
     PiClimOutputTimeAxisInformation,
 )
@@ -71,6 +72,7 @@ def make_piclim_based_page(
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=render_description,
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
     )
 
     return res
@@ -111,6 +113,7 @@ def make_hist_star_page(
             ),
         ),
         render_description=render_description,
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
     )
 
     return res
@@ -159,6 +162,7 @@ def make_aerchemmip_scen7_vl_based_page(
             ),
         ),
         render_description=render_description,
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
     )
 
     return res
@@ -211,6 +215,7 @@ def make_aerchemmip_scen7_h_based_page(
             ),
         ),
         render_description=render_description,
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
     )
 
     return res
@@ -237,6 +242,7 @@ def make_aerchemmip_esm_variant_page(
             ),
         ),
         render_description=render_description,
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
     )
 
     return res

@@ -30,6 +30,10 @@ pre-commit:  ## run pre-commit on all files in the repository
 generate-guidance:  ## generate CMIP7 guidance markdown files
 	uv run python scripts/generate_guidance_docs.py
 
+.PHONY: install-esgvoc
+install-esgvoc:  ## run pre-commit on all files in the repository
+	uv run bash scripts/install-esgvoc.sh
+
 .PHONY: update-cvs
 update-cvs:  ## install the latest CMIP7 controlled vocabularies for esgvoc
 	uv run esgvoc use cmip7@latest

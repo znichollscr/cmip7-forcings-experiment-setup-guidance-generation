@@ -103,6 +103,10 @@ GEOMIP = Activity(
     activity_id="geomip",
     description_modifier=lambda description: description,
 )
+LMIP = Activity(
+    activity_id="lmip",
+    description_modifier=lambda description: description,
+)
 PMIP = Activity(
     activity_id="pmip",
     description_modifier=lambda description: description,
@@ -132,6 +136,7 @@ ACTIVITY_DEFINITIONS: tuple[Activity, ...] = (
     C4MIP,
     DAMIP,
     GEOMIP,
+    LMIP,
     PMIP,
     RFMIP,
     SCENARIOMIP,
