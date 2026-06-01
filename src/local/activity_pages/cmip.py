@@ -18,6 +18,7 @@ from local.guidance import (
     PI_CONTROL_LINK,
     ExperimentPage,
 )
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.output_time_axis import PiClimOutputTimeAxisInformation
 from local.rendering import (
     block,
@@ -113,11 +114,13 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="picontrol",
         branch_information=BranchFromParentAtAnyTime(),
         forcings=PICONTROL_FORCINGS_SPECIFICATION,
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-picontrol-spinup",
@@ -130,6 +133,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-picontrol",
@@ -143,12 +147,14 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="historical",
         branch_information=BranchFromParentAtAnyTime(),
         forcings=HISTORICAL_FORCINGS_SPECIFICATION,
         render_description=get_historical_description,
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-hist",
@@ -163,6 +169,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         render_description=partial(get_historical_description, emms_driven=True),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="1pctco2",
@@ -197,6 +204,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="abrupt-4xco2",
@@ -223,6 +231,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="piclim-control",
@@ -260,6 +269,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="piclim-4xco2",
@@ -291,6 +301,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=only_keep_first_sentence,
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     # TODO: de-duplicate the piclim-* definitions across activities
     ExperimentPage(
@@ -332,6 +343,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=only_keep_first_sentence,
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="amip",
@@ -345,5 +357,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
 )

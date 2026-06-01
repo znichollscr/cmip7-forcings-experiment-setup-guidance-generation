@@ -14,6 +14,7 @@ from local.forcings import (
 from local.guidance import (
     ExperimentPage,
 )
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 
 # TODO: split out a `render_link_for_experiment` function
 
@@ -61,6 +62,7 @@ def make_historical_forcing_page(spec: HistoricalForcingPageSpec) -> ExperimentP
                 ),
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("damip"),
     )
 
 

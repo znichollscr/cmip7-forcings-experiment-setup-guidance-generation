@@ -16,6 +16,7 @@ from local.guidance import (
     ONEPCTCO2_LINK,
     ExperimentPage,
 )
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.output_time_axis import RecommendSameAsOtherExperimentTimeAxisInformation
 from local.rendering import (
     block,
@@ -53,6 +54,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         output_time_axis_info=RecommendSameAsOtherExperimentTimeAxisInformation(
             "1pctco2"
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
     ),
     ExperimentPage(
         id_esgvoc="1pctco2-rad",
@@ -83,6 +85,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         output_time_axis_info=RecommendSameAsOtherExperimentTimeAxisInformation(
             "1pctco2"
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-flat10",
@@ -108,6 +111,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-flat10-cdr",
@@ -141,6 +145,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-flat10-zec",
@@ -156,5 +161,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
     ),
 )
