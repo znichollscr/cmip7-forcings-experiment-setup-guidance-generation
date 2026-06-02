@@ -211,7 +211,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         scaling_action="quadrupling",
         scaling_factor_phrase="four times",
         co2_modification="quadruple the CO<sub>2</sub> concentrations",
-        greenhouse_gas_source_experiment_id="piclim-control",
     ),
     ExperimentPage(
         id_esgvoc="piclim-control",

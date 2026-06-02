@@ -32,7 +32,6 @@ def make_abrupt_co2_page(
     scaling_action: str,
     scaling_factor_phrase: str,
     co2_modification: str,
-    greenhouse_gas_source_experiment_id: str = "picontrol",
 ) -> ExperimentPage:
     """
     Make an abrupt CO2 scaling page
@@ -42,8 +41,8 @@ def make_abrupt_co2_page(
     times`), and `co2_modification` is the instruction applied to the greenhouse
     gas concentrations (e.g. `double the CO<sub>2</sub> concentrations`). All
     `piControl` forcings other than the greenhouse gas concentrations are used
-    as-is; the greenhouse gas concentrations come from
-    `greenhouse_gas_source_experiment_id` with `co2_modification` applied.
+    as-is; the greenhouse gas concentrations come from `piControl` with
+    `co2_modification` applied.
     """
     return ExperimentPage(
         id_esgvoc=id_esgvoc,
@@ -65,7 +64,7 @@ def make_abrupt_co2_page(
                 ),
                 OtherExperimentBasedForcingSpecification(
                     forcing_slug=GREENHOUSE_GAS_CONCENTRATIONS_SLUG,
-                    experiment_esgvoc_id=greenhouse_gas_source_experiment_id,
+                    experiment_esgvoc_id="picontrol",
                     user_modifications=co2_modification,
                 ),
             )
