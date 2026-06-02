@@ -20,13 +20,13 @@ from local.guidance import (
 )
 from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.output_time_axis import PiClimOutputTimeAxisInformation
+from local.piclim_variants import make_piclim_based_page
 from local.rendering import (
     block,
     join_blocks,
     only_keep_first_sentence,
     render_link,
 )
-from local.vocab import get_experiment
 
 ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
     block(
@@ -83,8 +83,6 @@ ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
     ),
     "    ",
 )
-
-LAST_HISTORICAL_YEAR = get_experiment("historical").end_timestamp.year
 
 
 def get_historical_description(
@@ -303,47 +301,21 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         render_description=only_keep_first_sentence,
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
-    # TODO: de-duplicate the piclim-* definitions across activities
-    ExperimentPage(
-        id_esgvoc="piclim-anthro",
-        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
-        forcings=ForcingSpecification(
-            other_experiment_based_forcings=(
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug
-                    in (
-                        "solar",
-                        "stratospheric-volcanic-so2-emissions-aod",
-                    )
-                ),
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="historical",
-                        user_modifications=f"apply the {LAST_HISTORICAL_YEAR} value on repeat",
-                        fixed_override=True,
-                    )
-                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug
-                    not in (
-                        "solar",
-                        "stratospheric-volcanic-so2-emissions-aod",
-                    )
-                ),
-                OtherExperimentBasedForcingSpecification(
-                    forcing_slug="sst-forcing",
-                    experiment_esgvoc_id="piclim-control",
-                ),
-            ),
-        ),
-        output_time_axis_info=PiClimOutputTimeAxisInformation(),
-        render_description=only_keep_first_sentence,
+    make_piclim_based_page(
+        "piclim-anthro",
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        # All forcings except solar and volcanic come from the final
+        # historical year; solar and volcanic stay at their piControl values.
+        forcing_slugs_historical_last_year=tuple(
+            v.forcing_slug
+            for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+            if v.forcing_slug
+            not in (
+                "solar",
+                "stratospheric-volcanic-so2-emissions-aod",
+            )
+        ),
+        render_description=only_keep_first_sentence,
     ),
     ExperimentPage(
         id_esgvoc="amip",

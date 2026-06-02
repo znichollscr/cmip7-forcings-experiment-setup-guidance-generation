@@ -2,10 +2,10 @@
 """Create GitHub issues asking MIP co-chairs to review the guidance pages.
 
 For every activity in the generated experiments, this creates one issue on the
-``cmip7-guidance`` repository inviting that activity's co-chairs to review their
+`cmip7-guidance` repository inviting that activity's co-chairs to review their
 experiment pages, then immediately adds a follow-up comment tagging the CMIP IPO.
 
-The ``--dry-run`` option prints the issue titles, bodies and comments that would
+The `--dry-run` option prints the issue titles, bodies and comments that would
 be created rather than touching GitHub.
 """
 
@@ -126,7 +126,7 @@ def print_dry_run(plans: tuple[IssuePlan, ...]) -> None:
 
 
 def resolve_gh() -> str:
-    """Return the full path to the ``gh`` executable."""
+    """Return the full path to the `gh` executable."""
     gh = shutil.which("gh")
     if gh is None:
         msg = "Could not find the 'gh' CLI on PATH. Install it from https://cli.github.com/."

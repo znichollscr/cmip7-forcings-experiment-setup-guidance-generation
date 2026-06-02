@@ -7,7 +7,6 @@ from collections.abc import Callable
 from local.branching import BranchAtSameTimeAsOtherExperiment, BranchFromParentEnd
 from local.forcings import (
     HISTORICAL_FORCINGS_SPECIFICATION,
-    PICONTROL_FORCINGS_SPECIFICATION,
     ForcingSpecification,
     OtherExperimentBasedForcingSpecification,
 )
@@ -16,66 +15,12 @@ from local.guidance import (
     ExperimentPage,
 )
 from local.mip_co_chair_review import get_pending_review_aft_experiments
-from local.output_time_axis import (
-    PiClimOutputTimeAxisInformation,
-)
+from local.piclim_variants import LAST_HISTORICAL_YEAR, make_piclim_based_page
 from local.rendering import (
     only_keep_first_sentence,
 )
 
-from .cmip import LAST_HISTORICAL_YEAR
-
 PRE_INDUSTRIAL_YEAR = 1850
-
-
-def make_piclim_based_page(
-    id_esgvoc: str,
-    forcing_slugs_historical_last_year: tuple[str, ...],
-    historical_last_year: int = LAST_HISTORICAL_YEAR,
-    user_modifications: str | None = None,
-    render_description: Callable[[str], str] = lambda x: x,
-) -> ExperimentPage:
-    """
-    Make a piClim-* page
-    """
-    if user_modifications is None:
-        user_modifications = f"apply the {historical_last_year} value on repeat"
-
-    res = ExperimentPage(
-        id_esgvoc=id_esgvoc,
-        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
-        forcings=ForcingSpecification(
-            other_experiment_based_forcings=(
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug not in forcing_slugs_historical_last_year
-                ),
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="historical",
-                        user_modifications=user_modifications,
-                        fixed_override=True,
-                    )
-                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug in forcing_slugs_historical_last_year
-                ),
-                OtherExperimentBasedForcingSpecification(
-                    forcing_slug="sst-forcing",
-                    experiment_esgvoc_id="piclim-control",
-                ),
-            ),
-        ),
-        output_time_axis_info=PiClimOutputTimeAxisInformation(),
-        render_description=render_description,
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
-    )
-
-    return res
 
 
 # TODO: re-use something like this elsewhere
@@ -251,6 +196,7 @@ def make_aerchemmip_esm_variant_page(
 AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     make_piclim_based_page(
         "piclim-ch4",
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
         user_modifications=(
             f"apply the {LAST_HISTORICAL_YEAR} methane (CH<sub>4</sub>) concentrations or emissions "
@@ -261,6 +207,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_piclim_based_page(
         "piclim-n2o",
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
         user_modifications=(
             f"apply the {LAST_HISTORICAL_YEAR} nitrous oxide (N<sub>2</sub>O) concentrations or emissions "
@@ -271,6 +218,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_piclim_based_page(
         "piclim-nox",
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
         # TODO: check if anthro and biomass or just anthro
         forcing_slugs_historical_last_year=(
             "anthropogenic-slcf-co2-emissions",
@@ -285,6 +233,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_piclim_based_page(
         "piclim-ods",
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
         user_modifications=(
             f"apply the {LAST_HISTORICAL_YEAR} ozone-depleting substances (ODS) concentrations "
@@ -295,6 +244,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_piclim_based_page(
         "piclim-so2",
+        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
         # TODO: check if anthro and biomass or just anthro
         forcing_slugs_historical_last_year=(
             "anthropogenic-slcf-co2-emissions",
