@@ -5,6 +5,7 @@ from __future__ import annotations
 from functools import partial
 from textwrap import indent
 
+from local.abrupt_co2_variants import make_abrupt_co2_page
 from local.branching import BranchAtSameTimeAsOtherExperiment, BranchFromParentAtAnyTime
 from local.forcings import (
     HISTORICAL_FORCINGS_SPECIFICATION,
@@ -204,32 +205,13 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
-    ExperimentPage(
-        id_esgvoc="abrupt-4xco2",
-        branch_information=BranchFromParentAtAnyTime(),
-        experiment_setup_notes=join_blocks(
-            f"The abrupt CO<sub>2</sub> quadrupling experiment is a simple branch from the {PI_CONTROL_LINK}. ",
-            "After branching, the atmospheric CO<sub>2</sub> concentrations should "
-            "be set to four times the CO<sub>2</sub> concentrations used in the piControl experiment.",
-        ),
-        forcings=ForcingSpecification(
-            other_experiment_based_forcings=(
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug != "greenhouse-gas-concentrations"
-                ),
-                OtherExperimentBasedForcingSpecification(
-                    forcing_slug="greenhouse-gas-concentrations",
-                    experiment_esgvoc_id="piclim-control",
-                    user_modifications="quadruple the CO<sub>2</sub> concentrations",
-                ),
-            )
-        ),
+    make_abrupt_co2_page(
+        "abrupt-4xco2",
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        scaling_action="quadrupling",
+        scaling_factor_phrase="four times",
+        co2_modification="quadruple the CO<sub>2</sub> concentrations",
+        greenhouse_gas_source_experiment_id="piclim-control",
     ),
     ExperimentPage(
         id_esgvoc="piclim-control",
