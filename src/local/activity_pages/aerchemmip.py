@@ -23,7 +23,6 @@ from local.rendering import (
 PRE_INDUSTRIAL_YEAR = 1850
 
 
-# TODO: re-use something like this elsewhere
 def make_hist_star_page(
     id_esgvoc: str,
     forcing_slugs_historical_modified: tuple[str, ...],
@@ -166,7 +165,6 @@ def make_aerchemmip_scen7_h_based_page(
     return res
 
 
-# TODO: use something like this elsewhere
 def make_aerchemmip_esm_variant_page(
     id_esgvoc: str,
     render_description: Callable[[str], str] = lambda x: x,
