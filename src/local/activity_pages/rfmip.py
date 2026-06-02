@@ -14,15 +14,13 @@ from local.guidance import (
     ExperimentPage,
 )
 from local.mip_co_chair_review import get_pending_review_aft_experiments
-from local.output_time_axis import PiClimOutputTimeAxisInformation
+from local.piclim_variants import make_piclim_based_page
 from local.rendering import (
     block,
     only_keep_first_sentence,
     render_link,
 )
 from local.vocab import get_experiment
-
-from .cmip import LAST_HISTORICAL_YEAR
 
 # TODO: split out a `render_link_for_experiment` function
 SCEN7_M = get_experiment("scen7-m")
@@ -33,46 +31,14 @@ PICLIM_CONTROL_LINK = render_link(PICLIM_CONTROL.drs_name, PICLIM_CONTROL.id)
 
 
 RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
-    ExperimentPage(
-        id_esgvoc="piclim-aer",
-        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
-        forcings=ForcingSpecification(
-            other_experiment_based_forcings=(
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug
-                    not in (
-                        "anthropogenic-slcf-co2-emissions",
-                        "open-biomass-burning-emissions",
-                    )
-                ),
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="historical",
-                        user_modifications=f"apply the {LAST_HISTORICAL_YEAR} value on repeat",
-                        fixed_override=True,
-                    )
-                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug
-                    in (
-                        "anthropogenic-slcf-co2-emissions",
-                        "open-biomass-burning-emissions",
-                    )
-                ),
-                OtherExperimentBasedForcingSpecification(
-                    forcing_slug="sst-forcing",
-                    experiment_esgvoc_id="piclim-control",
-                ),
-            ),
-        ),
-        output_time_axis_info=PiClimOutputTimeAxisInformation(),
-        render_description=only_keep_first_sentence,
+    make_piclim_based_page(
+        "piclim-aer",
         mip_co_chair_review=get_pending_review_aft_experiments("rfmip"),
+        forcing_slugs_historical_last_year=(
+            "anthropogenic-slcf-co2-emissions",
+            "open-biomass-burning-emissions",
+        ),
+        render_description=only_keep_first_sentence,
     ),
     ExperimentPage(
         id_esgvoc="piclim-histaer",

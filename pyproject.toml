@@ -52,7 +52,13 @@ convention = "numpy"
 [tool.ruff.lint.per-file-ignores]
 "src/local/guidance.py" = [
     "E501",  # generated markdown prose intentionally keeps source lines readable
-    "PLR0913",  # page factory helpers are clearer with named keyword fields
+    "PLR0913",
+]
+"src/local/piclim_variants.py" = [
+    "PLR0913",
+]
+"src/local/abrupt_co2_variants.py" = [
+    "E501",  # generated markdown prose intentionally keeps source lines readable
 ]
 "src/local/rendering.py" = [
     "E501",  # generated markdown prose intentionally keeps source lines readable
