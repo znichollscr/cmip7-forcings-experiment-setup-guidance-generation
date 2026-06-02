@@ -5,6 +5,7 @@ from __future__ import annotations
 from functools import partial
 from textwrap import indent
 
+from local.abrupt_co2_variants import make_abrupt_co2_page
 from local.branching import BranchAtSameTimeAsOtherExperiment, BranchFromParentAtAnyTime
 from local.forcings import (
     HISTORICAL_FORCINGS_SPECIFICATION,
@@ -18,14 +19,15 @@ from local.guidance import (
     PI_CONTROL_LINK,
     ExperimentPage,
 )
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.output_time_axis import PiClimOutputTimeAxisInformation
+from local.piclim_variants import make_piclim_based_page
 from local.rendering import (
     block,
     join_blocks,
     only_keep_first_sentence,
     render_link,
 )
-from local.vocab import get_experiment
 
 ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
     block(
@@ -83,8 +85,6 @@ ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
     "    ",
 )
 
-LAST_HISTORICAL_YEAR = get_experiment("historical").end_timestamp.year
-
 
 def get_historical_description(
     esgvoc_description: str, emms_driven: bool = False
@@ -113,11 +113,13 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="picontrol",
         branch_information=BranchFromParentAtAnyTime(),
         forcings=PICONTROL_FORCINGS_SPECIFICATION,
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-picontrol-spinup",
@@ -130,6 +132,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-picontrol",
@@ -143,12 +146,14 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="historical",
         branch_information=BranchFromParentAtAnyTime(),
         forcings=HISTORICAL_FORCINGS_SPECIFICATION,
         render_description=get_historical_description,
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="esm-hist",
@@ -163,6 +168,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         render_description=partial(get_historical_description, emms_driven=True),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="1pctco2",
@@ -197,32 +203,14 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             )
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
-    ExperimentPage(
-        id_esgvoc="abrupt-4xco2",
-        branch_information=BranchFromParentAtAnyTime(),
-        experiment_setup_notes=join_blocks(
-            f"The abrupt CO<sub>2</sub> quadrupling experiment is a simple branch from the {PI_CONTROL_LINK}. ",
-            "After branching, the atmospheric CO<sub>2</sub> concentrations should "
-            "be set to four times the CO<sub>2</sub> concentrations used in the piControl experiment.",
-        ),
-        forcings=ForcingSpecification(
-            other_experiment_based_forcings=(
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug != "greenhouse-gas-concentrations"
-                ),
-                OtherExperimentBasedForcingSpecification(
-                    forcing_slug="greenhouse-gas-concentrations",
-                    experiment_esgvoc_id="piclim-control",
-                    user_modifications="quadruple the CO<sub>2</sub> concentrations",
-                ),
-            )
-        ),
+    make_abrupt_co2_page(
+        "abrupt-4xco2",
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        scaling_action="quadrupling",
+        scaling_factor_phrase="four times",
+        co2_modification="quadruple the CO<sub>2</sub> concentrations",
     ),
     ExperimentPage(
         id_esgvoc="piclim-control",
@@ -260,6 +248,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
     ExperimentPage(
         id_esgvoc="piclim-4xco2",
@@ -291,46 +280,22 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=only_keep_first_sentence,
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
-    # TODO: de-duplicate the piclim-* definitions across activities
-    ExperimentPage(
-        id_esgvoc="piclim-anthro",
-        branch_information=BranchAtSameTimeAsOtherExperiment("piclim-control"),
-        forcings=ForcingSpecification(
-            other_experiment_based_forcings=(
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug
-                    in (
-                        "solar",
-                        "stratospheric-volcanic-so2-emissions-aod",
-                    )
-                ),
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="historical",
-                        user_modifications=f"apply the {LAST_HISTORICAL_YEAR} value on repeat",
-                        fixed_override=True,
-                    )
-                    for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug
-                    not in (
-                        "solar",
-                        "stratospheric-volcanic-so2-emissions-aod",
-                    )
-                ),
-                OtherExperimentBasedForcingSpecification(
-                    forcing_slug="sst-forcing",
-                    experiment_esgvoc_id="piclim-control",
-                ),
-            ),
+    make_piclim_based_page(
+        "piclim-anthro",
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        # All forcings except solar and volcanic come from the final
+        # historical year; solar and volcanic stay at their piControl values.
+        forcing_slugs_historical_last_year=tuple(
+            v.forcing_slug
+            for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+            if v.forcing_slug
+            not in (
+                "solar",
+                "stratospheric-volcanic-so2-emissions-aod",
+            )
         ),
-        output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=only_keep_first_sentence,
     ),
     ExperimentPage(
@@ -345,5 +310,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
     ),
 )

@@ -7,6 +7,7 @@ from local.forcings import (
     get_scen7_forcing_specification,
 )
 from local.guidance import ExperimentPage
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 
 SCENARIOMIP_EXPERIMENT_SLUGS = (
     "scen7-h",
@@ -46,6 +47,7 @@ def make_scenariomip_page(slug: str) -> ExperimentPage:
         id_esgvoc=slug,
         branch_information=BranchFromParentEnd(),
         forcings=get_scen7_forcing_specification(slug),
+        mip_co_chair_review=get_pending_review_aft_experiments("scenariomip"),
     )
 
 

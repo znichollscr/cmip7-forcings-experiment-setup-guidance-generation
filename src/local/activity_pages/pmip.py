@@ -11,6 +11,7 @@ from local.forcings import (
 from local.guidance import (
     ExperimentPage,
 )
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.output_time_axis import RecommendContinueFromBranchPointTimeAxisInformation
 from local.rendering import block
 
@@ -52,5 +53,6 @@ PMIP_EXPERIMENT_PAGES = (
             )
         ),
         output_time_axis_info=RecommendContinueFromBranchPointTimeAxisInformation(),
+        mip_co_chair_review=get_pending_review_aft_experiments("pmip"),
     ),
 )

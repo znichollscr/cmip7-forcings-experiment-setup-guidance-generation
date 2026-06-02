@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from local.branching import BranchFromParentAtAnyTime
+from local.abrupt_co2_variants import make_abrupt_co2_page
 from local.forcings import (
     HISTORICAL_FORCINGS_SPECIFICATION,
     PICONTROL_FORCINGS_SPECIFICATION,
@@ -10,12 +10,9 @@ from local.forcings import (
     OtherExperimentBasedForcingSpecification,
 )
 from local.guidance import (
-    PI_CONTROL_LINK,
     ExperimentPage,
 )
-from local.rendering import (
-    join_blocks,
-)
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 
 CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
@@ -36,6 +33,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
     ),
     ExperimentPage(
         id_esgvoc="amip-piforcing",
@@ -54,65 +52,20 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 ),
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
     ),
-    ExperimentPage(
-        id_esgvoc="abrupt-2xco2",
-        branch_information=BranchFromParentAtAnyTime(),
-        forcings=ForcingSpecification(
-            other_experiment_based_forcings=(
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug != "greenhouse-gas-concentrations"
-                ),
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                        user_modifications="double the CO<sub>2</sub> concentrations",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug == "greenhouse-gas-concentrations"
-                ),
-            )
-        ),
-        experiment_setup_notes=join_blocks(
-            f"The abrupt CO<sub>2</sub> doubling experiment is a simple branch from the {PI_CONTROL_LINK}. ",
-            "After branching, the atmospheric CO<sub>2</sub> concentrations should "
-            "be set to two times the CO<sub>2</sub> concentrations used in the piControl experiment.",
-        ),
+    make_abrupt_co2_page(
+        "abrupt-2xco2",
+        mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
+        scaling_action="doubling",
+        scaling_factor_phrase="two times",
+        co2_modification="double the CO<sub>2</sub> concentrations",
     ),
-    ExperimentPage(
-        id_esgvoc="abrupt-0p5xco2",
-        branch_information=BranchFromParentAtAnyTime(),
-        forcings=ForcingSpecification(
-            other_experiment_based_forcings=(
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug != "greenhouse-gas-concentrations"
-                ),
-                *(
-                    OtherExperimentBasedForcingSpecification(
-                        forcing_slug=v.forcing_slug,
-                        experiment_esgvoc_id="picontrol",
-                        user_modifications="halve the CO<sub>2</sub> concentrations",
-                    )
-                    for v in PICONTROL_FORCINGS_SPECIFICATION.specific_forcings
-                    if v.forcing_slug == "greenhouse-gas-concentrations"
-                ),
-            )
-        ),
-        experiment_setup_notes=join_blocks(
-            f"The abrupt CO<sub>2</sub> halving experiment is a simple branch from the {PI_CONTROL_LINK}. ",
-            "After branching, the atmospheric CO<sub>2</sub> concentrations should "
-            "be set to half the CO<sub>2</sub> concentrations used in the piControl experiment.",
-        ),
+    make_abrupt_co2_page(
+        "abrupt-0p5xco2",
+        mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
+        scaling_action="halving",
+        scaling_factor_phrase="half",
+        co2_modification="halve the CO<sub>2</sub> concentrations",
     ),
 )

@@ -9,6 +9,7 @@ from local.forcings import (
     OtherExperimentBasedForcingSpecification,
 )
 from local.guidance import ExperimentPage
+from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.rendering import block
 
 LMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
@@ -45,5 +46,6 @@ LMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
             ),
         ),
+        mip_co_chair_review=get_pending_review_aft_experiments("lmip"),
     ),
 )
