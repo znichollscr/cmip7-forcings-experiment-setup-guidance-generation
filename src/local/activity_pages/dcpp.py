@@ -11,8 +11,11 @@ DCPP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         experiment_setup_notes=block(
             """
             This is a CMIP6-era experiment that uses CMIP6-era forcings.
-            No guidance is provided here about forcing versions or similar.
-            It is assumed that you already know what you're doing.
+            For detailed guidance about the experiment setup,
+            please see the [DCPP guidance pages](https://www.wcrp-esmo.org/projects-and-panels/dcpp/dcpp-resources)
+            (look at the "DCPP contribution to CMIP7 AFT" header).
+            For guidance on how to set the `variant_label` of your output,
+            please the [dedicated guidance](../Global_Attributes.md#5-notes-on-variant_label).
             """
         ),
         forcings=None,  # CMIP6 era forcings
