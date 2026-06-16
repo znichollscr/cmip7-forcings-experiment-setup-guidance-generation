@@ -14,7 +14,7 @@ from local.guidance import (
     PI_CONTROL_LINK,
     ExperimentPage,
 )
-from local.mip_co_chair_review import get_pending_review_aft_experiments
+from local.mip_co_chair_review import get_complete_review_aft_experiments
 from local.piclim_variants import LAST_HISTORICAL_YEAR, make_piclim_based_page
 from local.rendering import (
     only_keep_first_sentence,
@@ -57,7 +57,7 @@ def make_hist_star_page(
             ),
         ),
         render_description=render_description,
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
     )
 
     return res
@@ -106,7 +106,7 @@ def make_aerchemmip_scen7_vl_based_page(
             ),
         ),
         render_description=render_description,
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
     )
 
     return res
@@ -159,7 +159,7 @@ def make_aerchemmip_scen7_h_based_page(
             ),
         ),
         render_description=render_description,
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
     )
 
     return res
@@ -185,7 +185,7 @@ def make_aerchemmip_esm_variant_page(
             ),
         ),
         render_description=render_description,
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
     )
 
     return res
@@ -219,7 +219,7 @@ def get_piclim_user_modifications_for_aerosol(aerosol: str):
 AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     make_piclim_based_page(
         "piclim-ch4",
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
         user_modifications=get_piclim_user_modifications_for_ghg(
             "methane (CH<sub>4</sub>)"
@@ -228,7 +228,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_piclim_based_page(
         "piclim-n2o",
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
         user_modifications=get_piclim_user_modifications_for_ghg(
             "nitrous oxide (N<sub>2</sub>O)"
@@ -237,7 +237,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_piclim_based_page(
         "piclim-nox",
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
         # TODO: check if anthro and biomass or just anthro
         forcing_slugs_historical_last_year=(
             "anthropogenic-slcf-co2-emissions",
@@ -250,7 +250,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_piclim_based_page(
         "piclim-ods",
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
         user_modifications=get_piclim_user_modifications_for_aerosol(
             "ozone-depleting substances (ODS)"
@@ -259,7 +259,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ),
     make_piclim_based_page(
         "piclim-so2",
-        mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("aerchemmip"),
         # TODO: check if anthro and biomass or just anthro
         forcing_slugs_historical_last_year=(
             "anthropogenic-slcf-co2-emissions",
