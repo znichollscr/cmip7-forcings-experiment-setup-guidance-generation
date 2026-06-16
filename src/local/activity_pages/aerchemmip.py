@@ -191,15 +191,38 @@ def make_aerchemmip_esm_variant_page(
     return res
 
 
+def get_piclim_user_modifications_for_ghg(ghg: str):
+    """
+    Get piclim user modifications for a given GHG
+    """
+    return (
+        "hold the values constant throughout the simulation; "
+        f"apply {LAST_HISTORICAL_YEAR} values "
+        f"for {ghg} concentrations or emissions "
+        "(as appropriate for your model) "
+        f"and {PRE_INDUSTRIAL_YEAR} values for all other species"
+    )
+
+
+def get_piclim_user_modifications_for_aerosol(aerosol: str):
+    """
+    Get piclim user modifications for a given aerosol precursor
+    """
+    return (
+        "hold the values constant throughout the simulation; "
+        f"apply {LAST_HISTORICAL_YEAR} values "
+        f"for {aerosol} emissions "
+        f"and {PRE_INDUSTRIAL_YEAR} values for all other species"
+    )
+
+
 AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     make_piclim_based_page(
         "piclim-ch4",
         mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
-        user_modifications=(
-            f"apply the {LAST_HISTORICAL_YEAR} methane (CH<sub>4</sub>) concentrations or emissions "
-            "(as appropriate for your model) value on repeat "
-            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
+        user_modifications=get_piclim_user_modifications_for_ghg(
+            "methane (CH<sub>4</sub>)"
         ),
         render_description=only_keep_first_sentence,
     ),
@@ -207,10 +230,8 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         "piclim-n2o",
         mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
-        user_modifications=(
-            f"apply the {LAST_HISTORICAL_YEAR} nitrous oxide (N<sub>2</sub>O) concentrations or emissions "
-            "(as appropriate for your model) value on repeat "
-            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
+        user_modifications=get_piclim_user_modifications_for_ghg(
+            "nitrous oxide (N<sub>2</sub>O)"
         ),
         render_description=only_keep_first_sentence,
     ),
@@ -222,10 +243,8 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "anthropogenic-slcf-co2-emissions",
             "open-biomass-burning-emissions",
         ),
-        user_modifications=(
-            f"apply the {LAST_HISTORICAL_YEAR} nitrogen oxide (NO<sub>x</sub>) emissions "
-            "value on repeat "
-            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
+        user_modifications=get_piclim_user_modifications_for_aerosol(
+            "nitrogen oxide (NO<sub>x</sub>)"
         ),
         render_description=only_keep_first_sentence,
     ),
@@ -233,10 +252,8 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         "piclim-ods",
         mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
         forcing_slugs_historical_last_year=("greenhouse-gas-concentrations",),
-        user_modifications=(
-            f"apply the {LAST_HISTORICAL_YEAR} ozone-depleting substances (ODS) concentrations "
-            "(as appropriate for your model) value on repeat "
-            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
+        user_modifications=get_piclim_user_modifications_for_aerosol(
+            "ozone-depleting substances (ODS)"
         ),
         render_description=only_keep_first_sentence,
     ),
@@ -248,10 +265,8 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "anthropogenic-slcf-co2-emissions",
             "open-biomass-burning-emissions",
         ),
-        user_modifications=(
-            f"apply the {LAST_HISTORICAL_YEAR} sulfur dioxide (SO<sub>2</sub>) emissions "
-            "value on repeat "
-            f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
+        user_modifications=get_piclim_user_modifications_for_aerosol(
+            "sulfur dioxide (SO<sub>2</sub>)"
         ),
         render_description=only_keep_first_sentence,
     ),
