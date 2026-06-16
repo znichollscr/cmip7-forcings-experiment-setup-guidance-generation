@@ -36,7 +36,6 @@ from local.rendering import (
     render_activity_urls_v2,
     render_front_matter,
     render_link,
-    render_list_human_like,
 )
 from local.rendering import (
     render_pages as render_page_map,
@@ -648,16 +647,9 @@ class ExperimentPage:
             res = f"The {self.drs_name} experiment is a transient forcings experiment."
 
         else:
-            fixed_forcings_names = render_list_human_like(
-                *sorted(set(v.label for v in self.forcings.all_forcings if v.fixed))
-            )
-            transient_forcings_names = render_list_human_like(
-                *sorted(set(v.label for v in self.forcings.all_forcings if not v.fixed))
-            )
             res = join_lines(
                 f"The {self.drs_name} experiment uses a mix of fixed and transient forcings.",
-                f"The fixed forcings are: {fixed_forcings_names}."
-                f"The transient forcings are: {transient_forcings_names}.",
+                "Please see the data sections below for details.",
             )
 
         return res
