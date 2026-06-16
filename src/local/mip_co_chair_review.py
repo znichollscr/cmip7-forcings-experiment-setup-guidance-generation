@@ -58,6 +58,7 @@ def get_pending_review_aft_experiments(activity: str) -> PendingReview:
         "cfmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/185",
         "cmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/183",
         "damip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/188",
+        "dcpp": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/207",
         "geomip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/189",
         "lmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/190",
         "pmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/191",
