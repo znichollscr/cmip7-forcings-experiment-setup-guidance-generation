@@ -43,7 +43,10 @@ def make_piclim_based_page(
     while all other `piControl` forcings are used as-is.
     """
     if user_modifications is None:
-        user_modifications = f"apply the {historical_last_year} value on repeat"
+        user_modifications = (
+            "hold the values constant throughout the simulation; "
+            f"apply {LAST_HISTORICAL_YEAR} values"
+        )
 
     res = ExperimentPage(
         id_esgvoc=id_esgvoc,
