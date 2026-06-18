@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from local.guidance import ExperimentPage
-from local.mip_co_chair_review import get_pending_review_aft_experiments
+from local.mip_co_chair_review import get_complete_review_aft_experiments
 from local.rendering import block
 
 DCPP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
@@ -29,6 +29,6 @@ DCPP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         #         for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
         #     ),
         # ),
-        mip_co_chair_review=get_pending_review_aft_experiments("dcpp"),
+        mip_co_chair_review=get_complete_review_aft_experiments("dcpp"),
     ),
 )
