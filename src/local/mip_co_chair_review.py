@@ -58,6 +58,7 @@ def get_pending_review_aft_experiments(activity: str) -> PendingReview:
         "cfmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/185",
         "cmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/183",
         "damip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/188",
+        "dcpp": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/207",
         "geomip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/189",
         "lmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/190",
         "pmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/191",
@@ -66,3 +67,24 @@ def get_pending_review_aft_experiments(activity: str) -> PendingReview:
     }
 
     return PendingReview(review_lookup[activity])
+
+
+def get_complete_review_aft_experiments(activity: str) -> CompleteReview:
+    """
+    Get complete review based on activity
+    """
+    review_lookup = {
+        "aerchemmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/184",
+        # "c4mip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/186",
+        # "cfmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/185",
+        # "cmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/183",
+        # "damip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/188",
+        "dcpp": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/207",
+        # "geomip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/189",
+        # "lmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/190",
+        # "pmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/191",
+        # "rfmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/192",
+        # "scenariomip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/187",
+    }
+
+    return CompleteReview(review_lookup[activity])
