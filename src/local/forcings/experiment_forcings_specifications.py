@@ -189,21 +189,32 @@ def get_iam_based_emissions_scenario_forcings(
     """
     Get the IAM-based emissions forcings for a given scenario
     """
-    if scenario_drs_name.endswith("ext"):
-        return Input4MIPsBasedForcingSpecification(
-            forcing_slug,
-            fixed=False,
-            recommended_versions=(NOT_AVAILABLE_YET,),
-            notes="In preparation",
-        )
-
     common = "IIASA-IAMC-1-1-1"
     scenario_specific = f"IIASA-IAMC-{scenario_short_name}-1-1-1"
+    recommended_versions_l = [common, scenario_specific]
+    notes = None
+    if "ext" not in scenario_short_name:
+        # TODO: check how this comes through in text
+        scenario_specific_aviation_emms_fix = f"IIASA-IAMC-{scenario_short_name}-1-1-2"
+        recommended_versions_l.append(scenario_specific_aviation_emms_fix)
+        notes = (
+            "the aviation emissions should come from "
+            f"`{scenario_specific_aviation_emms_fix}`. "
+            f"`{scenario_specific_aviation_emms_fix}` was released quite late "
+            "and the impact of the change is likely to be small, so if you have "
+            f"simulations based on `{scenario_specific}`, "
+            "you do not need to re-run them "
+            "(but note that the extensions emissions have the fix included, "
+            "so there will be a small jump "
+            "from the uncorrected scenario aviation emissions "
+            "to the corrected extension aviation emissions)."
+        )
 
     res = Input4MIPsBasedForcingSpecification(
         forcing_slug,
         fixed=False,
-        recommended_versions=(scenario_specific, common),
+        recommended_versions=tuple(recommended_versions_l),
+        notes=notes,
     )
 
     return res
@@ -215,7 +226,7 @@ def get_land_use_scenario_forcings(
     """
     Get the land-use forcings for a given scenario
     """
-    if scenario_drs_name.endswith("ext") or scenario_short_name not in {"vl", "h"}:
+    if scenario_drs_name.endswith("ext") or scenario_short_name not in {"vl", "h", "m"}:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -295,7 +306,7 @@ def get_ozone_scenario_forcings(
             forcing_slug, scenario_drs_name
         )
 
-    if scenario_short_name not in {"vl", "h"}:
+    if scenario_short_name not in {"vl", "h", "hl", "m"}:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -327,7 +338,7 @@ def get_nitrogen_deposition_scenario_forcings(
             forcing_slug, scenario_drs_name
         )
 
-    if scenario_short_name not in {"vl", "h"}:
+    if scenario_short_name not in {"vl", "h", "hl", "m"}:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -385,7 +396,7 @@ def get_simple_plumes_forcings(
         # Not available yet, waiting on emissions
         res = dataclasses.replace(
             SIMPLE_PLUMES_SPECIFICATION,
-            notes="In preparation, waiting on the emissions to be available",
+            notes="In preparation, will be made available at https://zenodo.org/records/21671953",
         )
 
     else:
