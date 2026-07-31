@@ -190,24 +190,26 @@ def get_iam_based_emissions_scenario_forcings(
     Get the IAM-based emissions forcings for a given scenario
     """
     common = "IIASA-IAMC-1-1-1"
-    scenario_specific = f"IIASA-IAMC-{scenario_short_name}-1-1-1"
+    scenario_slug = scenario_short_name.replace("esm-", "")
+    scenario_specific = f"IIASA-IAMC-{scenario_slug}-1-1-1"
     recommended_versions_l = [common, scenario_specific]
-    notes = None
-    if "ext" not in scenario_short_name:
-        # TODO: check how this comes through in text
-        scenario_specific_aviation_emms_fix = f"IIASA-IAMC-{scenario_short_name}-1-1-2"
-        recommended_versions_l.append(scenario_specific_aviation_emms_fix)
+    scenario_specific_aviation_emms_fix = f"IIASA-IAMC-{scenario_slug}-1-1-2"
+    recommended_versions_l.append(scenario_specific_aviation_emms_fix)
+
+    notes = (
+        "the aviation emissions should come from "
+        f"`{scenario_specific_aviation_emms_fix}`. "
+        f"`{scenario_specific_aviation_emms_fix}` was released quite late "
+        "and the impact of the change is likely to be small, so if you have "
+        f"simulations based on `{scenario_specific}`, "
+        "you do not need to re-run them."
+    )
+    if "ext" in scenario_short_name:
         notes = (
-            "the aviation emissions should come from "
-            f"`{scenario_specific_aviation_emms_fix}`. "
-            f"`{scenario_specific_aviation_emms_fix}` was released quite late "
-            "and the impact of the change is likely to be small, so if you have "
-            f"simulations based on `{scenario_specific}`, "
-            "you do not need to re-run them "
-            "(but note that the extensions emissions have the fix included, "
-            "so there will be a small jump "
-            "from the uncorrected scenario aviation emissions "
-            "to the corrected extension aviation emissions)."
+            f"{notes} Please follow this pull request "
+            "to track progress of the publication of the "
+            f"`{scenario_specific_aviation_emms_fix}` aviation emissions: "
+            "[https://github.com/PCMDI/input4MIPs_CVs/pull/465](https://github.com/PCMDI/input4MIPs_CVs/pull/465)"
         )
 
     res = Input4MIPsBasedForcingSpecification(
