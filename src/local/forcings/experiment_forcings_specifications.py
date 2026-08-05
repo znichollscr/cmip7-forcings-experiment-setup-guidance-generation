@@ -7,6 +7,7 @@ Designed to be re-used and have these all in one place
 from __future__ import annotations
 
 import dataclasses
+from functools import partial
 
 from local.vocab import get_experiment
 
@@ -185,6 +186,7 @@ def get_iam_based_emissions_scenario_forcings(
     forcing_slug: str,
     scenario_drs_name: str,
     scenario_short_name: str,
+    biomass_burning: bool,
 ) -> Input4MIPsBasedForcingSpecification:
     """
     Get the IAM-based emissions forcings for a given scenario
@@ -193,23 +195,21 @@ def get_iam_based_emissions_scenario_forcings(
     scenario_slug = scenario_short_name.replace("esm-", "")
     scenario_specific = f"IIASA-IAMC-{scenario_slug}-1-1-1"
     recommended_versions_l = [common, scenario_specific]
-    scenario_specific_aviation_emms_fix = f"IIASA-IAMC-{scenario_slug}-1-1-2"
-    recommended_versions_l.append(scenario_specific_aviation_emms_fix)
 
-    notes = (
-        "the aviation emissions should come from "
-        f"`{scenario_specific_aviation_emms_fix}`. "
-        f"`{scenario_specific_aviation_emms_fix}` was released quite late "
-        "and the impact of the change is likely to be small, so if you have "
-        f"simulations based on `{scenario_specific}`, "
-        "you do not need to re-run them."
-    )
-    if "ext" in scenario_short_name:
+    if biomass_burning:
+        notes = None
+
+    else:
+        scenario_specific_aviation_emms_fix = f"IIASA-IAMC-{scenario_slug}-1-1-2"
+        recommended_versions_l.append(scenario_specific_aviation_emms_fix)
+
         notes = (
-            f"{notes} Please follow this pull request "
-            "to track progress of the publication of the "
-            f"`{scenario_specific_aviation_emms_fix}` aviation emissions: "
-            "[https://github.com/PCMDI/input4MIPs_CVs/pull/465](https://github.com/PCMDI/input4MIPs_CVs/pull/465)"
+            "the aviation emissions should come from "
+            f"`{scenario_specific_aviation_emms_fix}`. "
+            f"`{scenario_specific_aviation_emms_fix}` was released quite late "
+            "and the impact of the change is likely to be small, so if you have "
+            f"simulations based on `{scenario_specific}`, "
+            "you do not need to re-run them."
         )
 
     res = Input4MIPsBasedForcingSpecification(
@@ -442,8 +442,12 @@ def get_scenario_extension_forcing_for_constant_extension(
 
 
 GET_SCEN7_FORCINGS_BY_FORCING_TYPE = {
-    "anthropogenic-slcf-co2-emissions": get_iam_based_emissions_scenario_forcings,
-    "open-biomass-burning-emissions": get_iam_based_emissions_scenario_forcings,
+    "anthropogenic-slcf-co2-emissions": partial(
+        get_iam_based_emissions_scenario_forcings, biomass_burning=False
+    ),
+    "open-biomass-burning-emissions": partial(
+        get_iam_based_emissions_scenario_forcings, biomass_burning=True
+    ),
     "land-use": get_land_use_scenario_forcings,
     "greenhouse-gas-concentrations": get_ghg_concentrations_scenario_forcings,
     "stratospheric-volcanic-so2-emissions-aod": get_volcanic_scenario_forcings,
