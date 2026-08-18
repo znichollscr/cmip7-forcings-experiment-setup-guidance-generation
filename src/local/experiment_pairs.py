@@ -95,23 +95,20 @@ EMISSIONS_CONCENTRATION_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
         left_id_esgvoc="scen7-vl-aq",
         right_id_esgvoc="esm-scen7-vl-aq",
     ),
+    *(
+        ExperimentPair(
+            left_id_esgvoc=f"scen7-{scenario_base}{suffix}",
+            right_id_esgvoc=f"esm-scen7-{scenario_base}{suffix}",
+        )
+        for scenario_base in ["vl", "l", "ln", "m", "ml", "h", "hl", "vl-cf"]
+        for suffix in ["", "-ext"]
+    ),
 )
 
-# # TODO: switch to these
-# AQ_AER_LEFT_TO_RIGHT_TEXT = (
-#     "is the corresponding experiment for models that include interactive chemistry"
-# )
-# AQ_AER_RIGHT_TO_LEFT_TEXT = (
-#     "is the corresponding experiment for models that do not include interactive chemistry"  # noqa: E501
-# )
 AQ_AER_LEFT_TO_RIGHT_TEXT = (
-    "is the corresponding interactive-chemistry experiment for models "
-    "that include interactive chemistry."
+    "is the corresponding experiment for models that include interactive chemistry"
 )
-AQ_AER_RIGHT_TO_LEFT_TEXT = (
-    "is the corresponding non-interactive-chemistry experiment for "
-    "models that do not include interactive chemistry."
-)
+AQ_AER_RIGHT_TO_LEFT_TEXT = "is the corresponding experiment for models that do not include interactive chemistry"  # noqa: E501
 
 
 def make_aq_aer_experiment_pair(*, aer_slug: str, aq_slug: str) -> ExperimentPair:
