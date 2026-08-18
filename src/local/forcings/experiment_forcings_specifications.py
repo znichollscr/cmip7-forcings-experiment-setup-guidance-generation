@@ -7,6 +7,7 @@ Designed to be re-used and have these all in one place
 from __future__ import annotations
 
 import dataclasses
+from functools import partial
 
 from local.vocab import get_experiment
 
@@ -185,25 +186,37 @@ def get_iam_based_emissions_scenario_forcings(
     forcing_slug: str,
     scenario_drs_name: str,
     scenario_short_name: str,
+    biomass_burning: bool,
 ) -> Input4MIPsBasedForcingSpecification:
     """
     Get the IAM-based emissions forcings for a given scenario
     """
-    if scenario_drs_name.endswith("ext"):
-        return Input4MIPsBasedForcingSpecification(
-            forcing_slug,
-            fixed=False,
-            recommended_versions=(NOT_AVAILABLE_YET,),
-            notes="In preparation",
-        )
-
     common = "IIASA-IAMC-1-1-1"
-    scenario_specific = f"IIASA-IAMC-{scenario_short_name}-1-1-1"
+    scenario_slug = scenario_short_name.replace("esm-", "")
+    scenario_specific = f"IIASA-IAMC-{scenario_slug}-1-1-1"
+    recommended_versions_l = [common, scenario_specific]
+
+    if biomass_burning:
+        notes = None
+
+    else:
+        scenario_specific_aviation_emms_fix = f"IIASA-IAMC-{scenario_slug}-1-1-2"
+        recommended_versions_l.append(scenario_specific_aviation_emms_fix)
+
+        notes = (
+            "the aviation emissions should come from "
+            f"`{scenario_specific_aviation_emms_fix}`. "
+            f"`{scenario_specific_aviation_emms_fix}` was released quite late "
+            "and the impact of the change is likely to be small, so if you have "
+            f"simulations based on `{scenario_specific}`, "
+            "you do not need to re-run them."
+        )
 
     res = Input4MIPsBasedForcingSpecification(
         forcing_slug,
         fixed=False,
-        recommended_versions=(scenario_specific, common),
+        recommended_versions=tuple(recommended_versions_l),
+        notes=notes,
     )
 
     return res
@@ -215,7 +228,7 @@ def get_land_use_scenario_forcings(
     """
     Get the land-use forcings for a given scenario
     """
-    if scenario_drs_name.endswith("ext") or scenario_short_name not in {"vl", "h"}:
+    if scenario_drs_name.endswith("ext") or scenario_short_name not in {"vl", "h", "m"}:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -295,7 +308,7 @@ def get_ozone_scenario_forcings(
             forcing_slug, scenario_drs_name
         )
 
-    if scenario_short_name not in {"vl", "h"}:
+    if scenario_short_name not in {"vl", "h", "hl", "m"}:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -327,7 +340,7 @@ def get_nitrogen_deposition_scenario_forcings(
             forcing_slug, scenario_drs_name
         )
 
-    if scenario_short_name not in {"vl", "h"}:
+    if scenario_short_name not in {"vl", "h", "hl", "m"}:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -385,7 +398,7 @@ def get_simple_plumes_forcings(
         # Not available yet, waiting on emissions
         res = dataclasses.replace(
             SIMPLE_PLUMES_SPECIFICATION,
-            notes="In preparation, waiting on the emissions to be available",
+            notes="In preparation, will be made available at https://zenodo.org/records/21671953",
         )
 
     else:
@@ -429,8 +442,12 @@ def get_scenario_extension_forcing_for_constant_extension(
 
 
 GET_SCEN7_FORCINGS_BY_FORCING_TYPE = {
-    "anthropogenic-slcf-co2-emissions": get_iam_based_emissions_scenario_forcings,
-    "open-biomass-burning-emissions": get_iam_based_emissions_scenario_forcings,
+    "anthropogenic-slcf-co2-emissions": partial(
+        get_iam_based_emissions_scenario_forcings, biomass_burning=False
+    ),
+    "open-biomass-burning-emissions": partial(
+        get_iam_based_emissions_scenario_forcings, biomass_burning=True
+    ),
     "land-use": get_land_use_scenario_forcings,
     "greenhouse-gas-concentrations": get_ghg_concentrations_scenario_forcings,
     "stratospheric-volcanic-so2-emissions-aod": get_volcanic_scenario_forcings,
