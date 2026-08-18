@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from local.branching import BranchFromParentEnd
-from local.forcings import (
-    get_scen7_forcing_specification,
-)
+from local.forcings import get_polmip_vl_cf_forcing_specification
 from local.guidance import ExperimentPage
 from local.mip_co_chair_review import get_pending_review_aft_experiments
 
@@ -20,12 +18,15 @@ POLMIP_EXPERIMENT_SLUGS = (
 
 def make_polmip_page(slug: str) -> ExperimentPage:
     """Create a PolMIP experiment page."""
-    return ExperimentPage(
-        id_esgvoc=slug,
-        branch_information=BranchFromParentEnd(),
-        forcings=get_scen7_forcing_specification(slug),
-        mip_co_chair_review=get_pending_review_aft_experiments("polmip"),
-    )
+    if "vl-cf" in slug:
+        return ExperimentPage(
+            id_esgvoc=slug,
+            branch_information=BranchFromParentEnd(),
+            forcings=get_polmip_vl_cf_forcing_specification(slug),
+            mip_co_chair_review=get_pending_review_aft_experiments("polmip"),
+        )
+
+    raise NotImplementedError(slug)
 
 
 POLMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = tuple(

@@ -175,7 +175,7 @@ class ForcingSpecification:
         if not self.other_experiment_based_forcings:
             return self.specific_forcings
 
-        from local.guidance import experiment_pages
+        from local.guidance import experiment_pages  # noqa: PLC0415
 
         experiment_pages_by_id = {page.id_esgvoc: page for page in experiment_pages()}
         resolved_forcings = [*self.specific_forcings]
