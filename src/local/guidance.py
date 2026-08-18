@@ -891,15 +891,6 @@ INDEX_GROUPS = (
                 ),
             ),
             IndexActivity(
-                activity_id="polmip",
-                experiment_slugs=(
-                    "vl-cf",
-                    "esm-vl-cf",
-                    "vl-cf-ext",
-                    "esm-vl-cf-ext",
-                ),
-            ),
-            IndexActivity(
                 activity_id="damip",
                 experiment_slugs=("hist-aer", "hist-ghg", "hist-nat"),
             ),
@@ -921,6 +912,20 @@ INDEX_GROUPS = (
                     "piclim-aer",
                     "piclim-histaer",
                     "piclim-histall",
+                ),
+            ),
+        ),
+    ),
+    IndexGroup(
+        heading="Other experiments",
+        activities=(
+            IndexActivity(
+                activity_id="polmip",
+                experiment_slugs=(
+                    "vl-cf",
+                    "esm-vl-cf",
+                    "vl-cf-ext",
+                    "esm-vl-cf-ext",
                 ),
             ),
         ),
