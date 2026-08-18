@@ -111,6 +111,10 @@ PMIP = Activity(
     activity_id="pmip",
     description_modifier=lambda description: description,
 )
+POLMIP = Activity(
+    activity_id="polmip",
+    description_modifier=lambda description: description,
+)
 RFMIP = Activity(
     activity_id="rfmip",
     description_modifier=lambda description: description,
@@ -139,6 +143,7 @@ ACTIVITY_DEFINITIONS: tuple[Activity, ...] = (
     LMIP,
     PMIP,
     RFMIP,
+    POLMIP,
     SCENARIOMIP,
 )
 ACTIVITY_DEFINITIONS_BY_ID: Mapping[str, Activity] = {

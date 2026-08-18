@@ -586,7 +586,7 @@ class ExperimentPage:
                     # esgpull self install
                     ## You may also need to run this step to get the data to download
                     # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
-                    esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(sorted(set(recommended_source_ids)))}
+                    esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{",".join(sorted(set(recommended_source_ids)))}
                     esgpull update --tag ${{EXPERIMENT_NAME}} --yes
                     esgpull download --tag ${{EXPERIMENT_NAME}}
                     ```
@@ -723,16 +723,21 @@ ONEPCTCO2_LINK = render_link("1pctCO2 simulation", "1pctco2")
 
 def experiment_pages() -> tuple[ExperimentPage, ...]:
     """Return generated experiment pages."""
-    from local.activity_pages.aerchemmip import AERCHEMMIP_EXPERIMENT_PAGES
-    from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
-    from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
-    from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
-    from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES
-    from local.activity_pages.geomip import GEOMIP_EXPERIMENT_PAGES
-    from local.activity_pages.lmip import LMIP_EXPERIMENT_PAGES
-    from local.activity_pages.pmip import PMIP_EXPERIMENT_PAGES
-    from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES
-    from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
+    from local.activity_pages.aerchemmip import (  # noqa: PLC0415
+        AERCHEMMIP_EXPERIMENT_PAGES,
+    )
+    from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.geomip import GEOMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.lmip import LMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.pmip import PMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.polmip import POLMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES  # noqa: PLC0415
+    from local.activity_pages.scenariomip import (  # noqa: PLC0415
+        SCENARIOMIP_EXPERIMENT_PAGES,
+    )
 
     detailed_pages = (
         *CMIP_EXPERIMENT_PAGES,
@@ -743,6 +748,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
         *GEOMIP_EXPERIMENT_PAGES,
         *LMIP_EXPERIMENT_PAGES,
         *PMIP_EXPERIMENT_PAGES,
+        *POLMIP_EXPERIMENT_PAGES,
         *RFMIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
     )
@@ -885,6 +891,15 @@ INDEX_GROUPS = (
                 ),
             ),
             IndexActivity(
+                activity_id="polmip",
+                experiment_slugs=(
+                    "vl-cf",
+                    "esm-vl-cf",
+                    "vl-cf-ext",
+                    "esm-vl-cf-ext",
+                ),
+            ),
+            IndexActivity(
                 activity_id="damip",
                 experiment_slugs=("hist-aer", "hist-ghg", "hist-nat"),
             ),
@@ -996,7 +1011,7 @@ def _validate_experiment_slugs_to_generate(
     """Validate the hard-coded experiment page inventory."""
     duplicate_slugs = _duplicate_slugs(EXPERIMENT_SLUGS_TO_GENERATE)
     if duplicate_slugs:
-        msg = "Duplicate hard-coded experiment slugs: " f"{', '.join(duplicate_slugs)}."
+        msg = f"Duplicate hard-coded experiment slugs: {', '.join(duplicate_slugs)}."
         raise ValueError(msg)
 
     unlisted_detailed_pages = tuple(
