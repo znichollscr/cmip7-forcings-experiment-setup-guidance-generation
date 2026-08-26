@@ -659,13 +659,28 @@ def get_polmip_vl_cf_forcing_specification(
         ) or (not co2_emissions_driven and (forcing_slug in vl_cf_specific_slugs))
 
         if use_vl_cf:
-            specification = GET_POLMIP_VL_CF_FORCINGS_BY_FORCING_TYPE[forcing_slug](
-                forcing_slug, scenario_drs_name
-            )
-            init_kwargs["specific_forcings"].extend(specification["specific_forcings"])
-            init_kwargs["other_experiment_based_forcings"].extend(
-                specification["other_experiment_based_forcings"]
-            )
+            if co2_emissions_driven and forcing_slug in vl_cf_specific_slugs:
+                concentration_driven_experiment_id = scenario_drs_name.replace(
+                    "esm-", ""
+                ).lower()
+                specification = (
+                    OtherExperimentBasedForcingSpecification(
+                        forcing_slug,
+                        experiment_esgvoc_id=concentration_driven_experiment_id,
+                    ),
+                )
+                init_kwargs["other_experiment_based_forcings"].extend(specification)
+
+            else:
+                specification = GET_POLMIP_VL_CF_FORCINGS_BY_FORCING_TYPE[forcing_slug](
+                    forcing_slug, scenario_drs_name
+                )
+                init_kwargs["specific_forcings"].extend(
+                    specification["specific_forcings"]
+                )
+                init_kwargs["other_experiment_based_forcings"].extend(
+                    specification["other_experiment_based_forcings"]
+                )
 
         else:
             specifications = get_polmip_vl_cf_forcing_specification_purely_vl_based(
