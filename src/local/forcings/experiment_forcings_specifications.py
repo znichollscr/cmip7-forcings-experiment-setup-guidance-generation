@@ -238,12 +238,13 @@ def get_land_use_scenario_forcings(
             notes="In preparation",
         )
 
+    scenario_forcing_key = scenario_short_name.replace("esm-", "")
     if scenario_short_name.endswith("ext"):
-        scenario_specific = f"UofMD-landState-{scenario_short_name}-3-1"
+        scenario_specific = f"UofMD-landState-{scenario_forcing_key}-3-1"
         acceptable_versions = None
 
     else:
-        scenario_specific = f"UofMD-landState-{scenario_short_name}-3-1-1"
+        scenario_specific = f"UofMD-landState-{scenario_forcing_key}-3-1-1"
         acceptable_versions = (scenario_specific.replace("3-1-1", "3-1"),)
 
     res = Input4MIPsBasedForcingSpecification(
