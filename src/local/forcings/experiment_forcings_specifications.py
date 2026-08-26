@@ -228,7 +228,9 @@ def get_land_use_scenario_forcings(
     """
     Get the land-use forcings for a given scenario
     """
-    if scenario_drs_name.endswith("ext") or scenario_short_name not in {"vl", "h", "m"}:
+    if not any(
+        scenario_short_name.endswith(v) for v in ("vl", "vl-ext", "m", "h", "h-ext")
+    ):
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -236,14 +238,19 @@ def get_land_use_scenario_forcings(
             notes="In preparation",
         )
 
-    scenario_specific = f"UofMD-landState-{scenario_short_name}-3-1-1"
-    scenario_specific_alternate = scenario_specific.replace("3-1-1", "3-1")
+    if scenario_short_name.endswith("ext"):
+        scenario_specific = f"UofMD-landState-{scenario_short_name}-3-1"
+        acceptable_versions = None
+
+    else:
+        scenario_specific = f"UofMD-landState-{scenario_short_name}-3-1-1"
+        acceptable_versions = (scenario_specific.replace("3-1-1", "3-1"),)
 
     res = Input4MIPsBasedForcingSpecification(
         forcing_slug,
         fixed=False,
         recommended_versions=(scenario_specific,),
-        acceptable_versions=(scenario_specific_alternate,),
+        acceptable_versions=acceptable_versions,
     )
 
     return res
