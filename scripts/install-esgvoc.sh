@@ -24,19 +24,19 @@ set -euo pipefail
 # If they're not set, the default values are used.
 ### Non-versioned esgvoc config
 # Use when we are using a branches of CVs
-esgvoc_versioned=0
-UNIVERSE_CVS_FORK="${UNIVERSE_CVS_FORK:=WCRP-CMIP}"
-UNIVERSE_CVS_REF="${UNIVERSE_CVS_REF:=esgvoc_dev}"
+# esgvoc_versioned=0
 # UNIVERSE_CVS_FORK="${UNIVERSE_CVS_FORK:=WCRP-CMIP}"
 # UNIVERSE_CVS_REF="${UNIVERSE_CVS_REF:=esgvoc_dev}"
-CMIP7_CVS_FORK="${CMIP7_CVS_FORK:=WCRP-CMIP}"
-# CMIP7_CVS_REF="${CMIP7_CVS_REF:=update-experiment-definitions}"
-CMIP7_CVS_REF="${CMIP7_CVS_REF:=esgvoc_dev}"
+# # UNIVERSE_CVS_FORK="${UNIVERSE_CVS_FORK:=WCRP-CMIP}"
+# # UNIVERSE_CVS_REF="${UNIVERSE_CVS_REF:=esgvoc_dev}"
+# CMIP7_CVS_FORK="${CMIP7_CVS_FORK:=WCRP-CMIP}"
+# # CMIP7_CVS_REF="${CMIP7_CVS_REF:=update-experiment-definitions}"
+# CMIP7_CVS_REF="${CMIP7_CVS_REF:=esgvoc_dev}"
 
 ### Versioned esgvoc config
 # Use when we are using a versioned esgvoc release
-# esgvoc_versioned=1
-# ESGVOC_CMIP7_DB_VERSION="${ESGVOC_CMIP7_DB_VERSION:=latest}"
+esgvoc_versioned=1
+ESGVOC_CMIP7_DB_VERSION="${ESGVOC_CMIP7_DB_VERSION:=latest}"
 
 verbose=0
 
