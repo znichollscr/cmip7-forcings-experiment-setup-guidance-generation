@@ -239,7 +239,7 @@ def get_land_use_scenario_forcings(
     scenario_slug = scenario_short_name.replace("esm-", "")
     if scenario_short_name.endswith("ext"):
         scenario_specific = f"UofMD-landState-{scenario_slug}-3-1"
-        acceptable_versions = None
+        acceptable_versions = ()
 
     else:
         scenario_specific = f"UofMD-landState-{scenario_slug}-3-1-1"
