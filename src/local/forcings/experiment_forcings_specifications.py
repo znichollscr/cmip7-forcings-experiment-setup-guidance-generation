@@ -228,7 +228,7 @@ def get_land_use_scenario_forcings(
     """
     Get the land-use forcings for a given scenario
     """
-    if scenario_drs_name.endswith("ext") or scenario_short_name not in {"vl", "h", "m"}:
+    if scenario_short_name not in {"vl", "vl-ext", "m", "h", "h-ext"}:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -236,14 +236,20 @@ def get_land_use_scenario_forcings(
             notes="In preparation",
         )
 
-    scenario_specific = f"UofMD-landState-{scenario_short_name}-3-1-1"
-    scenario_specific_alternate = scenario_specific.replace("3-1-1", "3-1")
+    scenario_slug = scenario_short_name.replace("esm-", "")
+    if scenario_short_name.endswith("ext"):
+        scenario_specific = f"UofMD-landState-{scenario_slug}-3-1"
+        acceptable_versions = ()
+
+    else:
+        scenario_specific = f"UofMD-landState-{scenario_slug}-3-1-1"
+        acceptable_versions = (scenario_specific.replace("3-1-1", "3-1"),)
 
     res = Input4MIPsBasedForcingSpecification(
         forcing_slug,
         fixed=False,
         recommended_versions=(scenario_specific,),
-        acceptable_versions=(scenario_specific_alternate,),
+        acceptable_versions=acceptable_versions,
     )
 
     return res
@@ -468,9 +474,20 @@ def get_scen7_forcing_specification(
         v.forcing_slug for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
     ):
         scenario_short_name = scenario_drs_name.replace("scen7-", "")
-        specification = GET_SCEN7_FORCINGS_BY_FORCING_TYPE[forcing_slug](
-            forcing_slug, scenario_drs_name, scenario_short_name
-        )
+        if scenario_short_name.startswith("esm-"):
+            concentration_driven_experiment_id = scenario_drs_name.replace(
+                "esm-", ""
+            ).lower()
+            specification = OtherExperimentBasedForcingSpecification(
+                forcing_slug,
+                experiment_esgvoc_id=concentration_driven_experiment_id,
+            )
+
+        else:
+            specification = GET_SCEN7_FORCINGS_BY_FORCING_TYPE[forcing_slug](
+                forcing_slug, scenario_drs_name, scenario_short_name
+            )
+
         if isinstance(specification, OtherExperimentBasedForcingSpecification):
             init_kwargs["other_experiment_based_forcings"].append(specification)
 
