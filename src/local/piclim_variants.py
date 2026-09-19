@@ -21,6 +21,7 @@ from local.forcings import (
 )
 from local.guidance import ExperimentPage, RenderableMIPCoChairReviewInformation
 from local.output_time_axis import PiClimOutputTimeAxisInformation
+from local.tags import Tag
 from local.vocab import get_experiment
 
 LAST_HISTORICAL_YEAR = get_experiment("historical").end_timestamp.year
@@ -34,6 +35,7 @@ def make_piclim_based_page(
     historical_last_year: int = LAST_HISTORICAL_YEAR,
     user_modifications: str | None = None,
     render_description: Callable[[str], str] = lambda x: x,
+    tags: tuple[Tag, ...],
 ) -> ExperimentPage:
     """
     Make a piClim-* page
@@ -77,6 +79,7 @@ def make_piclim_based_page(
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=render_description,
         mip_co_chair_review=mip_co_chair_review,
+        tags=tags,
     )
 
     return res

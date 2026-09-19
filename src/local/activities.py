@@ -95,6 +95,10 @@ C4MIP = Activity(
     activity_id="c4mip",
     description_modifier=lambda description: description,
 )
+DCPP = Activity(
+    activity_id="dcpp",
+    description_modifier=lambda description: description,
+)
 DAMIP = Activity(
     activity_id="damip",
     description_modifier=lambda description: description,
@@ -135,6 +139,7 @@ ACTIVITY_DEFINITIONS: tuple[Activity, ...] = (
     CFMIP,
     C4MIP,
     DAMIP,
+    DCPP,
     GEOMIP,
     LMIP,
     PMIP,

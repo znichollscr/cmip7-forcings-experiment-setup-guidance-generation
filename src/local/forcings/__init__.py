@@ -11,6 +11,7 @@ from .experiment_forcings_specifications import (
     get_scen7_forcing_specification,
 )
 from .specification import (
+    ForcingsInformationNotProvided,
     ForcingSpecification,
     Input4MIPsBasedForcingSpecification,
     NonInput4MIPsBasedForcingSpecification,
@@ -23,6 +24,7 @@ __all__ = [
     "NOT_AVAILABLE_YET",
     "PICONTROL_FORCINGS_SPECIFICATION",
     "ForcingSpecification",
+    "ForcingsInformationNotProvided",
     "Input4MIPsBasedForcingSpecification",
     "NonInput4MIPsBasedForcingSpecification",
     "OtherExperimentBasedForcingSpecification",

@@ -13,6 +13,7 @@ from local.guidance import (
     ExperimentPage,
 )
 from local.mip_co_chair_review import get_pending_review_aft_experiments
+from local.tags import AFT
 
 CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
@@ -34,6 +35,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="amip-piforcing",
@@ -53,6 +55,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("cfmip"),
+        tags=(AFT,),
     ),
     make_abrupt_co2_page(
         "abrupt-2xco2",
@@ -60,6 +63,7 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         scaling_action="doubling",
         scaling_factor_phrase="two times",
         co2_modification="double the CO<sub>2</sub> concentrations",
+        tags=(AFT,),
     ),
     make_abrupt_co2_page(
         "abrupt-0p5xco2",
@@ -67,5 +71,6 @@ CFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         scaling_action="halving",
         scaling_factor_phrase="half",
         co2_modification="halve the CO<sub>2</sub> concentrations",
+        tags=(AFT,),
     ),
 )

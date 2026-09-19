@@ -20,6 +20,7 @@ from local.rendering import (
     only_keep_first_sentence,
     render_link,
 )
+from local.tags import AFT
 from local.vocab import get_experiment
 
 # TODO: split out a `render_link_for_experiment` function
@@ -39,6 +40,7 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "open-biomass-burning-emissions",
         ),
         render_description=only_keep_first_sentence,
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="piclim-histaer",
@@ -95,6 +97,7 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("rfmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="piclim-histall",
@@ -129,5 +132,6 @@ RFMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("rfmip"),
+        tags=(AFT,),
     ),
 )

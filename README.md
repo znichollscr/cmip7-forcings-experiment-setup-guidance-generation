@@ -66,6 +66,7 @@ uv run python scripts/generate_guidance_docs.py --output-dir /tmp/cmip7-guidance
   aggregation, and file writing/checking functionality.
 - `src/local/rendering.py`: markdown rendering helpers.
 - `src/local/branching.py`: parent/branching text helpers.
+- `src/local/tags.py`: tag definitions applied to experiment pages.
 - `src/local/vocab.py`: access helpers for CMIP7 metadata from `esgvoc`.
 - `src/local/forcing_references.py`: forcing reference-page definitions.
 - `src/local/forcing_versions.py`: forcing version definitions and source-ID

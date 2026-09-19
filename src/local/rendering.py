@@ -505,7 +505,7 @@ def only_keep_first_sentence(inval: str) -> str:
     """
     Only keep the first sentence
     """
-    first_sentence = inval.split(".")[0]
+    first_sentence = inval.split(".", maxsplit=1)[0]
     res = f"{first_sentence}."
 
     return res

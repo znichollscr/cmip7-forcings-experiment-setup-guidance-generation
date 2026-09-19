@@ -11,6 +11,7 @@ from local.forcings import (
 from local.guidance import ExperimentPage
 from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.rendering import block
+from local.tags import AFT
 
 LMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
@@ -47,5 +48,6 @@ LMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("lmip"),
+        tags=(AFT,),
     ),
 )
