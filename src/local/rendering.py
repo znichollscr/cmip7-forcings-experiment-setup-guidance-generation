@@ -434,13 +434,8 @@ def render_term_reference(label: str, urls: Sequence[str]) -> str:
     return f"{label} ({render_url_list(urls)})"
 
 
-# TODO: delete when everything is transitioned
-def render_activity_urls(urls: Sequence[str]) -> str:
-    """Render activity URLs as further-information links."""
-    # TODO: alter so first sentence below is always included
-    if not urls:
-        return ""
-
+def render_activity_citations(citations: Sequence[str]) -> str:
+    """Render activity citations as further-information links."""
     return join_blocks(
         join_lines(
             "These pages are intended to help with implementation of these experiments. "
@@ -448,12 +443,12 @@ def render_activity_urls(urls: Sequence[str]) -> str:
             "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new). "
             "For the full background of the experiments, please see the following URLs:",
         ),
-        render_url_bullet_list(urls),
+        "\n".join(f"- {v}" for v in citations),
     ).strip()
 
 
-def render_activity_urls_v2(urls: Sequence[str]) -> str:
-    """Render activity URLs as further-information links."""
+def render_activity_citations_v2(citations: Sequence[str]) -> str:
+    """Render activity citations as further-information links."""
     blocks = [
         join_lines(
             "This page is intended to help with implementation. "
@@ -461,11 +456,11 @@ def render_activity_urls_v2(urls: Sequence[str]) -> str:
             "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new)."
         )
     ]
-    if urls:
+    if citations:
         blocks.extend(
             [
-                "For the full background of the experiment, please see the following URLs:",
-                render_url_bullet_list(urls),
+                "For the full background of the experiment, please see the following references:",
+                "\n".join(f"- {v}" for v in citations),
             ]
         )
 

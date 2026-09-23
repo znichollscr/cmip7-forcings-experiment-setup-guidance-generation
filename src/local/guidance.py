@@ -31,25 +31,23 @@ from local.rendering import (
     block,
     join_blocks,
     join_lines,
+    render_activity_citations,
+    render_activity_citations_v2,
     render_activity_index_link,
-    render_activity_urls,
-    render_activity_urls_v2,
     render_front_matter,
     render_link,
     render_list_human_like,
 )
-from local.rendering import (
-    render_pages as render_page_map,
-)
+from local.rendering import render_pages as render_page_map
 from local.tags import Tag, render_tags
 
 # TODO: rename vocab to esgvoc
 # TODO: import the module then use namespaced access instead
 from local.vocab import (
+    citations_from_term,
     get_activity,
     get_experiment,
     get_responsible_activity,
-    urls_from_term,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -285,7 +283,10 @@ class ExperimentPage:
             f"# {title}",
             description,
             activity_info,
-            render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
+            # render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
+            render_activity_citations_v2(
+                citations_from_term(responsible_activity_esgvoc)
+            ),
             experiment_pair_info,
             "## Experiment set up",
             # Headline notes that don't belong elsewhere
@@ -955,7 +956,7 @@ def render_activity_section(
     """Render one activity section on the index page."""
     activity_definition = get_activity_definition(activity.activity_id)
     activity_term = get_activity(activity_definition.activity_id)
-    activity_urls = urls_from_term(activity_term)
+    activity_citations = citations_from_term(activity_term)
     links = [
         f"1. [{page_lookup[slug].display_name}](./{slug}.md)"
         for slug in sort_experiment_slugs(activity.experiment_slugs)
@@ -965,7 +966,7 @@ def render_activity_section(
         f"### {activity_term.drs_name}",
         activity_definition.description_from(activity_term.description),
         activity_definition.further_details,
-        render_activity_urls(activity_urls),
+        render_activity_citations(activity_citations),
         f"The following experiments are included in `{activity_term.drs_name}`:",
         "\n".join(links),
     ).strip()
