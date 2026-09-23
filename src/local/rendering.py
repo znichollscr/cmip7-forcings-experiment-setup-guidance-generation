@@ -12,12 +12,14 @@ MARKDOWN_WRAP_WIDTH = 120
 LIST_ITEM_RE = re.compile(r"^(\s*(?:[-*+]|\d+[.])\s+)(.*)$")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^)]+\)")
 MARKDOWN_LINK_SPACE = "\x07"
+# Single capital letters followed by a full stop are treated as initials
+# (e.g. author names in references), not sentence ends.
 SENTENCE_BOUNDARY_RE = re.compile(
-    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
+    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)(?<!\b[A-Z])[.!?][)`\"']*)"
     r"\s+(?=[`\"'(\[]?[A-Z])"
 )
 MISSING_SENTENCE_SPACE_RE = re.compile(
-    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
+    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)(?<!\b[A-Z])[.!?][)`\"']*)"
     r"(?=[A-Z])"
 )
 

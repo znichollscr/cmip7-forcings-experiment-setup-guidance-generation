@@ -60,5 +60,9 @@ def urls_from_term(term: Any) -> tuple[str, ...]:
 
 
 def citations_from_term(term: Any) -> tuple[str, ...]:
-    """Return citation strings from an esgvoc term that has a `references` attribute."""
-    return tuple(str(v["citation"].strip()) for v in term.references)
+    """Return citation strings from an esgvoc term that has a `references` attribute.
+
+    Whitespace (including newlines and non-breaking spaces) is collapsed
+    so each citation renders as a single markdown list item.
+    """
+    return tuple(" ".join(str(v["citation"]).split()) for v in term.references)
