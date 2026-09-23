@@ -745,7 +745,9 @@ ONEPCTCO2_LINK = render_link("1pctCO2 simulation", "1pctco2")
 
 def experiment_pages() -> tuple[ExperimentPage, ...]:
     """Return generated experiment pages."""
-    from local.activity_pages.aerchemmip import AERCHEMMIP_EXPERIMENT_PAGES
+    from local.activity_pages.aerchemmip import (
+        AERCHEMMIP_EXPERIMENT_PAGES,
+    )
     from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
     from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
     from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
@@ -754,8 +756,11 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
     from local.activity_pages.geomip import GEOMIP_EXPERIMENT_PAGES
     from local.activity_pages.lmip import LMIP_EXPERIMENT_PAGES
     from local.activity_pages.pmip import PMIP_EXPERIMENT_PAGES
+    from local.activity_pages.polmip import POLMIP_EXPERIMENT_PAGES
     from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES
-    from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
+    from local.activity_pages.scenariomip import (
+        SCENARIOMIP_EXPERIMENT_PAGES,
+    )
 
     detailed_pages = (
         *CMIP_EXPERIMENT_PAGES,
@@ -767,6 +772,7 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
         *GEOMIP_EXPERIMENT_PAGES,
         *LMIP_EXPERIMENT_PAGES,
         *PMIP_EXPERIMENT_PAGES,
+        *POLMIP_EXPERIMENT_PAGES,
         *RFMIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
     )
@@ -934,6 +940,20 @@ INDEX_GROUPS = (
                     "piclim-aer",
                     "piclim-histaer",
                     "piclim-histall",
+                ),
+            ),
+        ),
+    ),
+    IndexGroup(
+        heading="Other experiments",
+        activities=(
+            IndexActivity(
+                activity_id="polmip",
+                experiment_slugs=(
+                    "vl-cf",
+                    "esm-vl-cf",
+                    "vl-cf-ext",
+                    "esm-vl-cf-ext",
                 ),
             ),
         ),
