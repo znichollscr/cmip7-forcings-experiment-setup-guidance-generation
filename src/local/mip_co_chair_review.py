@@ -61,6 +61,7 @@ def get_pending_review_aft_experiments(activity: str) -> PendingReview:
         "geomip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/189",
         "lmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/190",
         "pmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/191",
+        "polmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/226",
         "rfmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/192",
         "scenariomip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/187",
     }

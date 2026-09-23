@@ -15,6 +15,7 @@ from local.guidance import (
     ExperimentPage,
 )
 from local.mip_co_chair_review import get_pending_review_aft_experiments
+from local.tags import AFT, Tag
 
 # TODO: split out a `render_link_for_experiment` function
 
@@ -25,6 +26,7 @@ class HistoricalForcingPageSpec:
 
     id_esgvoc: str
     historical_forcing_ids: tuple[str, ...]
+    tags: tuple[Tag, ...]
 
 
 def make_historical_forcing_page(spec: HistoricalForcingPageSpec) -> ExperimentPage:
@@ -63,6 +65,7 @@ def make_historical_forcing_page(spec: HistoricalForcingPageSpec) -> ExperimentP
             ),
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("damip"),
+        tags=spec.tags,
     )
 
 
@@ -74,12 +77,14 @@ DAMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 "anthropogenic-slcf-co2-emissions",
                 "open-biomass-burning-emissions",
             ),
+            tags=(AFT,),
         )
     ),
     make_historical_forcing_page(
         HistoricalForcingPageSpec(
             id_esgvoc="hist-ghg",
             historical_forcing_ids=("greenhouse-gas-concentrations",),
+            tags=(AFT,),
         )
     ),
     make_historical_forcing_page(
@@ -89,6 +94,7 @@ DAMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 "solar",
                 "stratospheric-volcanic-so2-emissions-aod",
             ),
+            tags=(AFT,),
         )
     ),
 )

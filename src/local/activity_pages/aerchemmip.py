@@ -19,6 +19,7 @@ from local.piclim_variants import LAST_HISTORICAL_YEAR, make_piclim_based_page
 from local.rendering import (
     only_keep_first_sentence,
 )
+from local.tags import AFT, Tag
 
 PRE_INDUSTRIAL_YEAR = 1850
 
@@ -28,6 +29,8 @@ def make_hist_star_page(
     forcing_slugs_historical_modified: tuple[str, ...],
     user_modifications: str | None = None,
     render_description: Callable[[str], str] = lambda x: x,
+    *,
+    tags: tuple[Tag, ...],
 ) -> ExperimentPage:
     """
     Make a hist-* page
@@ -58,6 +61,7 @@ def make_hist_star_page(
         ),
         render_description=render_description,
         mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        tags=tags,
     )
 
     return res
@@ -68,6 +72,8 @@ def make_aerchemmip_scen7_vl_based_page(
     forcing_slugs_scen7_h: tuple[str, ...],
     user_modifications_text: str,
     render_description: Callable[[str], str] = lambda x: x,
+    *,
+    tags: tuple[Tag, ...],
 ) -> ExperimentPage:
     """
     Make a scen7-vl* AerChemMIP page
@@ -107,6 +113,7 @@ def make_aerchemmip_scen7_vl_based_page(
         ),
         render_description=render_description,
         mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        tags=tags,
     )
 
     return res
@@ -117,6 +124,8 @@ def make_aerchemmip_scen7_h_based_page(
     forcing_slugs_historical_constant: tuple[str, ...],
     user_modifications_text: str,
     render_description: Callable[[str], str] = lambda x: x,
+    *,
+    tags: tuple[Tag, ...],
 ) -> ExperimentPage:
     """
     Make a scen7-h* AerChemMIP page
@@ -160,6 +169,7 @@ def make_aerchemmip_scen7_h_based_page(
         ),
         render_description=render_description,
         mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        tags=tags,
     )
 
     return res
@@ -168,6 +178,8 @@ def make_aerchemmip_scen7_h_based_page(
 def make_aerchemmip_esm_variant_page(
     id_esgvoc: str,
     render_description: Callable[[str], str] = lambda x: x,
+    *,
+    tags: tuple[Tag, ...],
 ) -> ExperimentPage:
     """
     Make a esm-scen7-* AerChemMIP page
@@ -186,6 +198,7 @@ def make_aerchemmip_esm_variant_page(
         ),
         render_description=render_description,
         mip_co_chair_review=get_pending_review_aft_experiments("aerchemmip"),
+        tags=tags,
     )
 
     return res
@@ -202,6 +215,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
         ),
         render_description=only_keep_first_sentence,
+        tags=(AFT,),
     ),
     make_piclim_based_page(
         "piclim-n2o",
@@ -213,6 +227,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
         ),
         render_description=only_keep_first_sentence,
+        tags=(AFT,),
     ),
     make_piclim_based_page(
         "piclim-nox",
@@ -228,6 +243,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
         ),
         render_description=only_keep_first_sentence,
+        tags=(AFT,),
     ),
     make_piclim_based_page(
         "piclim-ods",
@@ -239,6 +255,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
         ),
         render_description=only_keep_first_sentence,
+        tags=(AFT,),
     ),
     make_piclim_based_page(
         "piclim-so2",
@@ -254,6 +271,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             f"and the {PRE_INDUSTRIAL_YEAR} value on repeat for all other species"
         ),
         render_description=only_keep_first_sentence,
+        tags=(AFT,),
     ),
     make_hist_star_page(
         "hist-piaer",
@@ -274,6 +292,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         #     "Intended for models without interactive chemistry. "
         #     "Identical to hist-piAer in AerChemMIP phase 1."
         # ),
+        tags=(AFT,),
     ),
     make_hist_star_page(
         "hist-piaq",
@@ -294,6 +313,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         #     f"{only_keep_first_sentence(x)} "
         #     "Intended for models with interactive chemistry. "
         # ),
+        tags=(AFT,),
     ),
     make_aerchemmip_scen7_h_based_page(
         "scen7-h-aer",
@@ -307,8 +327,9 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         user_modifications_text=(
             "aerosol (BC, OC, NH<sub>3</sub>, SO<sub>2</sub>) emissions"
         ),
+        tags=(AFT,),
     ),
-    make_aerchemmip_esm_variant_page("esm-scen7-h-aer"),
+    make_aerchemmip_esm_variant_page("esm-scen7-h-aer", tags=(AFT,)),
     make_aerchemmip_scen7_h_based_page(
         "scen7-h-aq",
         forcing_slugs_historical_constant=tuple(
@@ -322,8 +343,9 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "aerosol (BC, OC, NH<sub>3</sub>, SO<sub>2</sub>) "
             "and tropospheric non-methane ozone precursor emissions (NMVOCs, CO, NO<sub>x</sub>)"
         ),
+        tags=(AFT,),
     ),
-    make_aerchemmip_esm_variant_page("esm-scen7-h-aq"),
+    make_aerchemmip_esm_variant_page("esm-scen7-h-aq", tags=(AFT,)),
     make_aerchemmip_scen7_vl_based_page(
         "scen7-vl-aer",
         forcing_slugs_scen7_h=tuple(
@@ -336,8 +358,9 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         user_modifications_text=(
             "aerosol (BC, OC, NH<sub>3</sub>, SO<sub>2</sub>) emissions"
         ),
+        tags=(AFT,),
     ),
-    make_aerchemmip_esm_variant_page("esm-scen7-vl-aer"),
+    make_aerchemmip_esm_variant_page("esm-scen7-vl-aer", tags=(AFT,)),
     make_aerchemmip_scen7_vl_based_page(
         "scen7-vl-aq",
         forcing_slugs_scen7_h=tuple(
@@ -351,6 +374,7 @@ AERCHEMMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "aerosol (BC, OC, NH<sub>3</sub>, SO<sub>2</sub>) "
             "and tropospheric non-methane ozone precursor emissions (NMVOCs, CO, NO<sub>x</sub>)"
         ),
+        tags=(AFT,),
     ),
-    make_aerchemmip_esm_variant_page("esm-scen7-vl-aq"),
+    make_aerchemmip_esm_variant_page("esm-scen7-vl-aq", tags=(AFT,)),
 )

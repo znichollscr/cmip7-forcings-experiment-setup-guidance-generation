@@ -5,9 +5,10 @@ Forcings specification
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from typing import Any
 
 from local.forcing_references import ALL_FORCING_REFERENCES, ForcingReference
-from local.rendering import render_external_link
+from local.rendering import join_lines, render_external_link
 
 
 @dataclass(frozen=True)
@@ -134,6 +135,28 @@ class OtherExperimentBasedForcingSpecification:
     """
     Should the fixed or transient status of the forcing being used be overridden?
     """
+
+
+@dataclass(frozen=True)
+class ForcingsInformationNotProvided:
+    """
+    Marker that no forcings information is provided for an experiment
+
+    This is used for experiments whose forcings are documented elsewhere,
+    for example CMIP6-era experiments that are run with CMIP6-era forcings.
+    """
+
+    notes: str = "See the other guidance for experiment details."
+    """
+    Notes to render after the "no forcings information" statement
+    """
+
+    def render(self, experiment: Any) -> str:
+        """Render the forcing information as a string"""
+        return join_lines(
+            "No forcings information is provided for this experiment.",
+            self.notes,
+        )
 
 
 @dataclass(frozen=True)

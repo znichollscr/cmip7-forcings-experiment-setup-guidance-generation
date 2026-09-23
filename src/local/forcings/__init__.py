@@ -8,9 +8,11 @@ from .experiment_forcings_specifications import (
     HISTORICAL_FORCINGS_SPECIFICATION_AMIP_SSTS,
     NOT_AVAILABLE_YET,
     PICONTROL_FORCINGS_SPECIFICATION,
+    get_polmip_vl_cf_forcing_specification,
     get_scen7_forcing_specification,
 )
 from .specification import (
+    ForcingsInformationNotProvided,
     ForcingSpecification,
     Input4MIPsBasedForcingSpecification,
     NonInput4MIPsBasedForcingSpecification,
@@ -23,8 +25,10 @@ __all__ = [
     "NOT_AVAILABLE_YET",
     "PICONTROL_FORCINGS_SPECIFICATION",
     "ForcingSpecification",
+    "ForcingsInformationNotProvided",
     "Input4MIPsBasedForcingSpecification",
     "NonInput4MIPsBasedForcingSpecification",
     "OtherExperimentBasedForcingSpecification",
+    "get_polmip_vl_cf_forcing_specification",
     "get_scen7_forcing_specification",
 ]
