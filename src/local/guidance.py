@@ -45,6 +45,7 @@ from local.tags import Tag, render_tags
 # TODO: import the module then use namespaced access instead
 from local.vocab import (
     citations_from_term,
+    description_from_term,
     get_activity,
     get_experiment,
     get_responsible_activity,
@@ -247,11 +248,9 @@ class ExperimentPage:
         # page_slugs = page_slugs or frozenset()
 
         title = f"Experiment Setup and Forcings Guidance: {self.display_name}"
-        description = (
-            self.render_description(experiment_esgvoc.description)
-            if self.render_description is not None
-            else experiment_esgvoc.description
-        )
+        description = description_from_term(experiment_esgvoc)
+        if self.render_description is not None:
+            description = self.render_description(description)
 
         activity_info = join_lines(
             f"- Responsible activity: {render_activity_index_link(responsible_activity_esgvoc)}",
@@ -988,7 +987,7 @@ def render_activity_section(
 
     return join_blocks(
         f"### {activity_term.drs_name}",
-        activity_definition.description_from(activity_term.description),
+        activity_definition.description_from(description_from_term(activity_term)),
         activity_definition.further_details,
         render_activity_citations(activity_citations),
         f"The following experiments are included in `{activity_term.drs_name}`:",

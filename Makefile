@@ -31,7 +31,7 @@ generate-guidance:  ## generate CMIP7 guidance markdown files
 	uv run python scripts/generate_guidance_docs.py
 
 .PHONY: install-esgvoc
-install-esgvoc:  ## run pre-commit on all files in the repository
+install-esgvoc:  ## install esgvoc from source (see scripts/install-esgvoc.sh)
 	uv run bash scripts/install-esgvoc.sh
 
 .PHONY: update-cvs
