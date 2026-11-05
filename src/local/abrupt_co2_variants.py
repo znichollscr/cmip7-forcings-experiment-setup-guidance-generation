@@ -21,6 +21,7 @@ from local.guidance import (
     RenderableMIPCoChairReviewInformation,
 )
 from local.rendering import join_blocks
+from local.tags import Tag
 
 GREENHOUSE_GAS_CONCENTRATIONS_SLUG = "greenhouse-gas-concentrations"
 
@@ -32,6 +33,7 @@ def make_abrupt_co2_page(
     scaling_action: str,
     scaling_factor_phrase: str,
     co2_modification: str,
+    tags: tuple[Tag, ...],
 ) -> ExperimentPage:
     """
     Make an abrupt CO2 scaling page
@@ -70,4 +72,5 @@ def make_abrupt_co2_page(
             )
         ),
         mip_co_chair_review=mip_co_chair_review,
+        tags=tags,
     )

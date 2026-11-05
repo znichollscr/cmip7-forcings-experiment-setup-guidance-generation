@@ -28,6 +28,7 @@ from local.rendering import (
     only_keep_first_sentence,
     render_link,
 )
+from local.tags import AFT
 
 ONEPCTCO2_GREENHOUSE_GAS_MODIFICATIONS = indent(
     block(
@@ -114,12 +115,14 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="picontrol",
         branch_information=BranchFromParentAtAnyTime(),
         forcings=PICONTROL_FORCINGS_SPECIFICATION,
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="esm-picontrol-spinup",
@@ -133,6 +136,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="esm-picontrol",
@@ -147,6 +151,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="historical",
@@ -154,6 +159,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         forcings=HISTORICAL_FORCINGS_SPECIFICATION,
         render_description=get_historical_description,
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="esm-hist",
@@ -169,6 +175,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         render_description=partial(get_historical_description, emms_driven=True),
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="1pctco2",
@@ -204,6 +211,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     make_abrupt_co2_page(
         "abrupt-4xco2",
@@ -211,6 +219,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         scaling_action="quadrupling",
         scaling_factor_phrase="four times",
         co2_modification="quadruple the CO<sub>2</sub> concentrations",
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="piclim-control",
@@ -249,6 +258,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         ),
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="piclim-4xco2",
@@ -281,6 +291,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
         output_time_axis_info=PiClimOutputTimeAxisInformation(),
         render_description=only_keep_first_sentence,
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
     make_piclim_based_page(
         "piclim-anthro",
@@ -297,6 +308,7 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         render_description=only_keep_first_sentence,
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="amip",
@@ -311,5 +323,6 @@ CMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("cmip"),
+        tags=(AFT,),
     ),
 )

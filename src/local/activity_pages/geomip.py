@@ -13,6 +13,7 @@ from local.forcings import (
 from local.guidance import ExperimentPage
 from local.mip_co_chair_review import get_pending_review_aft_experiments
 from local.rendering import render_link
+from local.tags import AFT
 
 GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
     ExperimentPage(
@@ -44,5 +45,6 @@ GEOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             ),
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("geomip"),
+        tags=(AFT,),
     ),
 )

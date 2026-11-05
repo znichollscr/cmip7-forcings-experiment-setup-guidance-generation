@@ -8,49 +8,51 @@ from local.forcings import (
 )
 from local.guidance import ExperimentPage
 from local.mip_co_chair_review import get_pending_review_aft_experiments
+from local.tags import AFT, Tag
 
-SCENARIOMIP_EXPERIMENT_SLUGS = (
-    "scen7-h",
-    "esm-scen7-h",
-    "scen7-h-ext",
-    "esm-scen7-h-ext",
-    "scen7-hl",
-    "esm-scen7-hl",
-    "scen7-hl-ext",
-    "esm-scen7-hl-ext",
-    "scen7-l",
-    "esm-scen7-l",
-    "scen7-l-ext",
-    "esm-scen7-l-ext",
-    "scen7-ln",
-    "esm-scen7-ln",
-    "scen7-ln-ext",
-    "esm-scen7-ln-ext",
-    "scen7-m",
-    "esm-scen7-m",
-    "scen7-m-ext",
-    "esm-scen7-m-ext",
-    "scen7-ml",
-    "esm-scen7-ml",
-    "scen7-ml-ext",
-    "esm-scen7-ml-ext",
-    "scen7-vl",
-    "esm-scen7-vl",
-    "scen7-vl-ext",
-    "esm-scen7-vl-ext",
+SCENARIOMIP_EXPERIMENTS: tuple[tuple[str, tuple[Tag, ...]], ...] = (
+    ("scen7-h", (AFT,)),
+    ("esm-scen7-h", (AFT,)),
+    ("scen7-h-ext", (AFT,)),
+    ("esm-scen7-h-ext", (AFT,)),
+    ("scen7-hl", (AFT,)),
+    ("esm-scen7-hl", (AFT,)),
+    ("scen7-hl-ext", (AFT,)),
+    ("esm-scen7-hl-ext", (AFT,)),
+    ("scen7-l", (AFT,)),
+    ("esm-scen7-l", (AFT,)),
+    ("scen7-l-ext", (AFT,)),
+    ("esm-scen7-l-ext", (AFT,)),
+    ("scen7-ln", (AFT,)),
+    ("esm-scen7-ln", (AFT,)),
+    ("scen7-ln-ext", (AFT,)),
+    ("esm-scen7-ln-ext", (AFT,)),
+    ("scen7-m", (AFT,)),
+    ("esm-scen7-m", (AFT,)),
+    ("scen7-m-ext", (AFT,)),
+    ("esm-scen7-m-ext", (AFT,)),
+    ("scen7-ml", (AFT,)),
+    ("esm-scen7-ml", (AFT,)),
+    ("scen7-ml-ext", (AFT,)),
+    ("esm-scen7-ml-ext", (AFT,)),
+    ("scen7-vl", (AFT,)),
+    ("esm-scen7-vl", (AFT,)),
+    ("scen7-vl-ext", (AFT,)),
+    ("esm-scen7-vl-ext", (AFT,)),
 )
 
 
-def make_scenariomip_page(slug: str) -> ExperimentPage:
+def make_scenariomip_page(slug: str, *, tags: tuple[Tag, ...]) -> ExperimentPage:
     """Create a ScenarioMIP experiment page."""
     return ExperimentPage(
         id_esgvoc=slug,
         branch_information=BranchFromParentEnd(),
         forcings=get_scen7_forcing_specification(slug),
         mip_co_chair_review=get_pending_review_aft_experiments("scenariomip"),
+        tags=tags,
     )
 
 
 SCENARIOMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = tuple(
-    make_scenariomip_page(slug) for slug in SCENARIOMIP_EXPERIMENT_SLUGS
+    make_scenariomip_page(slug, tags=tags) for slug, tags in SCENARIOMIP_EXPERIMENTS
 )

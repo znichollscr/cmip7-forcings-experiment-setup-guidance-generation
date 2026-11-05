@@ -22,6 +22,7 @@ from local.rendering import (
     block,
     join_blocks,
 )
+from local.tags import AFT
 
 # TODO: reduce duplication with 1pctco2
 C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
@@ -55,6 +56,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "1pctco2"
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="1pctco2-rad",
@@ -86,6 +88,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             "1pctco2"
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="esm-flat10",
@@ -112,6 +115,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="esm-flat10-cdr",
@@ -146,6 +150,7 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
+        tags=(AFT,),
     ),
     ExperimentPage(
         id_esgvoc="esm-flat10-zec",
@@ -162,5 +167,6 @@ C4MIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
             )
         ),
         mip_co_chair_review=get_pending_review_aft_experiments("c4mip"),
+        tags=(AFT,),
     ),
 )

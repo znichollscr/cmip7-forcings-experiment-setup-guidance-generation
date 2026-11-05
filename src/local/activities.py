@@ -95,6 +95,10 @@ C4MIP = Activity(
     activity_id="c4mip",
     description_modifier=lambda description: description,
 )
+DCPP = Activity(
+    activity_id="dcpp",
+    description_modifier=lambda description: description,
+)
 DAMIP = Activity(
     activity_id="damip",
     description_modifier=lambda description: description,
@@ -109,6 +113,10 @@ LMIP = Activity(
 )
 PMIP = Activity(
     activity_id="pmip",
+    description_modifier=lambda description: description,
+)
+POLMIP = Activity(
+    activity_id="polmip",
     description_modifier=lambda description: description,
 )
 RFMIP = Activity(
@@ -135,10 +143,12 @@ ACTIVITY_DEFINITIONS: tuple[Activity, ...] = (
     CFMIP,
     C4MIP,
     DAMIP,
+    DCPP,
     GEOMIP,
     LMIP,
     PMIP,
     RFMIP,
+    POLMIP,
     SCENARIOMIP,
 )
 ACTIVITY_DEFINITIONS_BY_ID: Mapping[str, Activity] = {

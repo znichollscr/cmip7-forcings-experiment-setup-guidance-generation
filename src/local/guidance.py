@@ -31,24 +31,23 @@ from local.rendering import (
     block,
     join_blocks,
     join_lines,
+    render_activity_citations,
+    render_activity_citations_v2,
     render_activity_index_link,
-    render_activity_urls,
-    render_activity_urls_v2,
     render_front_matter,
     render_link,
     render_list_human_like,
 )
-from local.rendering import (
-    render_pages as render_page_map,
-)
+from local.rendering import render_pages as render_page_map
+from local.tags import Tag, render_tags
 
 # TODO: rename vocab to esgvoc
 # TODO: import the module then use namespaced access instead
 from local.vocab import (
+    citations_from_term,
     get_activity,
     get_experiment,
     get_responsible_activity,
-    urls_from_term,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -80,6 +79,13 @@ class RenderableBranchInformation(Protocol):
 
     def render(self, experiment: ExperimentPage) -> str:
         """Render the branch information as a string"""
+
+
+class RenderableForcingInformation(Protocol):
+    """Forcing information that can be rendered in place of a forcing specification"""
+
+    def render(self, experiment: ExperimentPage) -> str:
+        """Render the forcing information as a string"""
 
 
 class RenderableMIPCoChairReviewInformation(Protocol):
@@ -134,9 +140,13 @@ class ExperimentPage:
     ID used by esgvoc, typically just the lowercase version of the experiment's DRS name
     """
 
-    forcings: ForcingSpecification
+    forcings: ForcingSpecification | RenderableForcingInformation
     """
     Forcing specification for use in this experiment
+
+    For experiments whose forcings are documented elsewhere,
+    this can instead be something which renders the forcings section directly,
+    e.g. `local.forcings.ForcingsInformationNotProvided`.
     """
 
     branch_information: str | RenderableBranchInformation | None = None
@@ -163,6 +173,11 @@ class ExperimentPage:
     )
     """
     MIP co-chair review information
+    """
+
+    tags: tuple[Tag, ...] = ()
+    """
+    Tags which apply to this experiment
     """
 
     output_time_axis_info: str | RenderableOutputTimeAxisInformation | None = field(
@@ -242,6 +257,7 @@ class ExperimentPage:
             f"- Responsible activity: {render_activity_index_link(responsible_activity_esgvoc)}",
             f"- Tier: {responsible_activity.get_tier(self.id_esgvoc)}",
             f"- MIP co-chair review: {self.mip_co_chair_review.render(self)}",
+            f"- Tags: {render_tags(self.tags)}".rstrip(),
         )
 
         # These have to be defined in their own module.
@@ -267,7 +283,10 @@ class ExperimentPage:
             f"# {title}",
             description,
             activity_info,
-            render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
+            # render_activity_urls_v2(urls_from_term(responsible_activity_esgvoc)),
+            render_activity_citations_v2(
+                citations_from_term(responsible_activity_esgvoc)
+            ),
             experiment_pair_info,
             "## Experiment set up",
             # Headline notes that don't belong elsewhere
@@ -304,6 +323,9 @@ class ExperimentPage:
         """
         Render the forcing information
         """
+        if not isinstance(self.forcings, ForcingSpecification):
+            return self.forcings.render(self)
+
         # TODO: clean this up
         internal_data_link = "[data](#data)"
         data_sections = self._render_forcing_data_sections(
@@ -586,7 +608,7 @@ class ExperimentPage:
                     # esgpull self install
                     ## You may also need to run this step to get the data to download
                     # esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
-                    esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{','.join(sorted(set(recommended_source_ids)))}
+                    esgpull add --track --tag ${{EXPERIMENT_NAME}} source_id:{",".join(sorted(set(recommended_source_ids)))}
                     esgpull update --tag ${{EXPERIMENT_NAME}} --yes
                     esgpull download --tag ${{EXPERIMENT_NAME}}
                     ```
@@ -723,16 +745,22 @@ ONEPCTCO2_LINK = render_link("1pctCO2 simulation", "1pctco2")
 
 def experiment_pages() -> tuple[ExperimentPage, ...]:
     """Return generated experiment pages."""
-    from local.activity_pages.aerchemmip import AERCHEMMIP_EXPERIMENT_PAGES
+    from local.activity_pages.aerchemmip import (
+        AERCHEMMIP_EXPERIMENT_PAGES,
+    )
     from local.activity_pages.c4mip import C4MIP_EXPERIMENT_PAGES
     from local.activity_pages.cfmip import CFMIP_EXPERIMENT_PAGES
     from local.activity_pages.cmip import CMIP_EXPERIMENT_PAGES
     from local.activity_pages.damip import DAMIP_EXPERIMENT_PAGES
+    from local.activity_pages.dcpp import DCPP_EXPERIMENT_PAGES
     from local.activity_pages.geomip import GEOMIP_EXPERIMENT_PAGES
     from local.activity_pages.lmip import LMIP_EXPERIMENT_PAGES
     from local.activity_pages.pmip import PMIP_EXPERIMENT_PAGES
+    from local.activity_pages.polmip import POLMIP_EXPERIMENT_PAGES
     from local.activity_pages.rfmip import RFMIP_EXPERIMENT_PAGES
-    from local.activity_pages.scenariomip import SCENARIOMIP_EXPERIMENT_PAGES
+    from local.activity_pages.scenariomip import (
+        SCENARIOMIP_EXPERIMENT_PAGES,
+    )
 
     detailed_pages = (
         *CMIP_EXPERIMENT_PAGES,
@@ -740,9 +768,11 @@ def experiment_pages() -> tuple[ExperimentPage, ...]:
         *CFMIP_EXPERIMENT_PAGES,
         *C4MIP_EXPERIMENT_PAGES,
         *DAMIP_EXPERIMENT_PAGES,
+        *DCPP_EXPERIMENT_PAGES,
         *GEOMIP_EXPERIMENT_PAGES,
         *LMIP_EXPERIMENT_PAGES,
         *PMIP_EXPERIMENT_PAGES,
+        *POLMIP_EXPERIMENT_PAGES,
         *RFMIP_EXPERIMENT_PAGES,
         *SCENARIOMIP_EXPERIMENT_PAGES,
     )
@@ -885,6 +915,10 @@ INDEX_GROUPS = (
                 ),
             ),
             IndexActivity(
+                activity_id="dcpp",
+                experiment_slugs=("dcppb-forecast-cmip6",),
+            ),
+            IndexActivity(
                 activity_id="damip",
                 experiment_slugs=("hist-aer", "hist-ghg", "hist-nat"),
             ),
@@ -910,6 +944,20 @@ INDEX_GROUPS = (
             ),
         ),
     ),
+    IndexGroup(
+        heading="Other experiments",
+        activities=(
+            IndexActivity(
+                activity_id="polmip",
+                experiment_slugs=(
+                    "vl-cf",
+                    "esm-vl-cf",
+                    "vl-cf-ext",
+                    "esm-vl-cf-ext",
+                ),
+            ),
+        ),
+    ),
 )
 
 EXPERIMENT_SLUGS_TO_GENERATE = tuple(
@@ -928,7 +976,7 @@ def render_activity_section(
     """Render one activity section on the index page."""
     activity_definition = get_activity_definition(activity.activity_id)
     activity_term = get_activity(activity_definition.activity_id)
-    activity_urls = urls_from_term(activity_term)
+    activity_citations = citations_from_term(activity_term)
     links = [
         f"1. [{page_lookup[slug].display_name}](./{slug}.md)"
         for slug in sort_experiment_slugs(activity.experiment_slugs)
@@ -938,7 +986,7 @@ def render_activity_section(
         f"### {activity_term.drs_name}",
         activity_definition.description_from(activity_term.description),
         activity_definition.further_details,
-        render_activity_urls(activity_urls),
+        render_activity_citations(activity_citations),
         f"The following experiments are included in `{activity_term.drs_name}`:",
         "\n".join(links),
     ).strip()
@@ -996,7 +1044,7 @@ def _validate_experiment_slugs_to_generate(
     """Validate the hard-coded experiment page inventory."""
     duplicate_slugs = _duplicate_slugs(EXPERIMENT_SLUGS_TO_GENERATE)
     if duplicate_slugs:
-        msg = "Duplicate hard-coded experiment slugs: " f"{', '.join(duplicate_slugs)}."
+        msg = f"Duplicate hard-coded experiment slugs: {', '.join(duplicate_slugs)}."
         raise ValueError(msg)
 
     unlisted_detailed_pages = tuple(

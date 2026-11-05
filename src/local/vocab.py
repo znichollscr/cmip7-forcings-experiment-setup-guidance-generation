@@ -57,3 +57,12 @@ def get_responsible_activity(experiment: Any) -> Any:
 def urls_from_term(term: Any) -> tuple[str, ...]:
     """Return URL strings from an esgvoc term that has a `urls` attribute."""
     return tuple(str(url) for url in term.urls)
+
+
+def citations_from_term(term: Any) -> tuple[str, ...]:
+    """Return citation strings from an esgvoc term that has a `references` attribute.
+
+    Whitespace (including newlines and non-breaking spaces) is collapsed
+    so each citation renders as a single markdown list item.
+    """
+    return tuple(" ".join(str(v["citation"]).split()) for v in term.references)

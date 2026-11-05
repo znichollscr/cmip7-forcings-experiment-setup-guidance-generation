@@ -12,12 +12,14 @@ MARKDOWN_WRAP_WIDTH = 120
 LIST_ITEM_RE = re.compile(r"^(\s*(?:[-*+]|\d+[.])\s+)(.*)$")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\([^)]+\)")
 MARKDOWN_LINK_SPACE = "\x07"
+# Single capital letters followed by a full stop are treated as initials
+# (e.g. author names in references), not sentence ends.
 SENTENCE_BOUNDARY_RE = re.compile(
-    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
+    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)(?<!\b[A-Z])[.!?][)`\"']*)"
     r"\s+(?=[`\"'(\[]?[A-Z])"
 )
 MISSING_SENTENCE_SPACE_RE = re.compile(
-    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?][)`\"']*)"
+    r"(?P<sentence_end>(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)(?<!\b[A-Z])[.!?][)`\"']*)"
     r"(?=[A-Z])"
 )
 
@@ -434,13 +436,8 @@ def render_term_reference(label: str, urls: Sequence[str]) -> str:
     return f"{label} ({render_url_list(urls)})"
 
 
-# TODO: delete when everything is transitioned
-def render_activity_urls(urls: Sequence[str]) -> str:
-    """Render activity URLs as further-information links."""
-    # TODO: alter so first sentence below is always included
-    if not urls:
-        return ""
-
+def render_activity_citations(citations: Sequence[str]) -> str:
+    """Render activity citations as further-information links."""
     return join_blocks(
         join_lines(
             "These pages are intended to help with implementation of these experiments. "
@@ -448,12 +445,12 @@ def render_activity_urls(urls: Sequence[str]) -> str:
             "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new). "
             "For the full background of the experiments, please see the following URLs:",
         ),
-        render_url_bullet_list(urls),
+        "\n".join(f"- {v}" for v in citations),
     ).strip()
 
 
-def render_activity_urls_v2(urls: Sequence[str]) -> str:
-    """Render activity URLs as further-information links."""
+def render_activity_citations_v2(citations: Sequence[str]) -> str:
+    """Render activity citations as further-information links."""
     blocks = [
         join_lines(
             "This page is intended to help with implementation. "
@@ -461,11 +458,11 @@ def render_activity_urls_v2(urls: Sequence[str]) -> str:
             "please [raise an issue](https://github.com/WCRP-CMIP/cmip7-guidance/issues/new)."
         )
     ]
-    if urls:
+    if citations:
         blocks.extend(
             [
-                "For the full background of the experiment, please see the following URLs:",
-                render_url_bullet_list(urls),
+                "For the full background of the experiment, please see the following references:",
+                "\n".join(f"- {v}" for v in citations),
             ]
         )
 
@@ -505,7 +502,7 @@ def only_keep_first_sentence(inval: str) -> str:
     """
     Only keep the first sentence
     """
-    first_sentence = inval.split(".")[0]
+    first_sentence = inval.split(".", maxsplit=1)[0]
     res = f"{first_sentence}."
 
     return res
