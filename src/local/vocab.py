@@ -7,6 +7,8 @@ from typing import Any
 
 import esgvoc.api as ev
 
+from local.cv_text import cv_text_to_markdown
+
 PROJECT_ID = "cmip7"
 
 
@@ -59,10 +61,24 @@ def urls_from_term(term: Any) -> tuple[str, ...]:
     return tuple(str(url) for url in term.urls)
 
 
+def description_from_term(term: Any) -> str:
+    """Return an esgvoc term's description, converted to markdown.
+
+    Any LaTeX or HTML markup in the CVs is converted
+    (see [`cv_text_to_markdown`][local.cv_text.cv_text_to_markdown]).
+    """
+    return cv_text_to_markdown(term.description)
+
+
 def citations_from_term(term: Any) -> tuple[str, ...]:
     """Return citation strings from an esgvoc term that has a `references` attribute.
 
-    Whitespace (including newlines and non-breaking spaces) is collapsed
+    Any LaTeX or HTML markup in the CVs is converted
+    (see [`cv_text_to_markdown`][local.cv_text.cv_text_to_markdown]).
+    Whitespace (including newlines and non-breaking spaces) is then collapsed
     so each citation renders as a single markdown list item.
     """
-    return tuple(" ".join(str(v["citation"]).split()) for v in term.references)
+    return tuple(
+        " ".join(cv_text_to_markdown(str(v["citation"])).split())
+        for v in term.references
+    )
