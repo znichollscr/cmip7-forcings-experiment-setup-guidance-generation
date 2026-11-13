@@ -697,10 +697,9 @@ def get_iam_based_emissions_polmip_forcings(
     """
     Get the IAM-based emissions forcings for a given PolMIP experiment
     """
-    common = "IIASA-IAMC-1-1-1"
     scenario_slug = scenario_short_name.replace("esm-", "")
-    scenario_specific = f"IIASA-IAMC-{scenario_slug}-1-1-1"
-    recommended_versions_l = [common, scenario_specific]
+    scenario_specific = f"IIASA-IAMC-{scenario_slug}-1-1-2"
+    recommended_versions_l = [scenario_specific]
 
     if biomass_burning:
         notes = None
