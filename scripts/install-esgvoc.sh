@@ -36,7 +36,7 @@ CMIP7_CVS_REF="${CMIP7_CVS_REF:=esgvoc_dev}"
 ## Versioned esgvoc config
 # Use when we are using a versioned esgvoc release
 esgvoc_versioned=1
-ESGVOC_CMIP7_DB_VERSION="${ESGVOC_CMIP7_DB_VERSION:=latest}"
+ESGVOC_CMIP7_DB_VERSION="${ESGVOC_CMIP7_DB_VERSION:=2.5.7}"
 
 verbose=0
 
