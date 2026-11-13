@@ -109,7 +109,8 @@ HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
         Input4MIPsBasedForcingSpecification(
             "population",
             fixed=False,
-            recommended_versions=("PIK-CMIP-1-0-1",),
+            recommended_versions=("PIK-CMIP-1-0-2",),
+            acceptable_versions=("PIK-CMIP-1-0-1",),
         ),
     )
 )
@@ -228,7 +229,17 @@ def get_land_use_scenario_forcings(
     """
     Get the land-use forcings for a given scenario
     """
-    if scenario_short_name not in {"vl", "vl-ext", "m", "h", "h-ext"}:
+    if scenario_short_name not in {
+        "vl",
+        "vl-ext",
+        "ln",
+        "ml",
+        "m",
+        "hl",
+        "hl-ext",
+        "h",
+        "h-ext",
+    }:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -314,20 +325,14 @@ def get_ozone_scenario_forcings(
             forcing_slug, scenario_drs_name
         )
 
-    if scenario_short_name not in {"vl", "h", "hl", "m"}:
-        return Input4MIPsBasedForcingSpecification(
-            forcing_slug,
-            fixed=False,
-            recommended_versions=(NOT_AVAILABLE_YET,),
-            notes="In preparation",
-        )
-
-    scenario_specific = f"FZJ-CMIP-ozone-{scenario_short_name}-1-0"
+    scenario_specific_recommended = f"FZJ-CMIP-ozone-{scenario_short_name}-1-0"
+    scenario_specific_acceptable = f"FZJ-CMIP-ozone-{scenario_short_name}-2-0"
 
     res = Input4MIPsBasedForcingSpecification(
         forcing_slug,
         fixed=False,
-        recommended_versions=(scenario_specific,),
+        recommended_versions=(scenario_specific_recommended,),
+        acceptable_versions=(scenario_specific_acceptable,),
     )
 
     return res
@@ -344,14 +349,6 @@ def get_nitrogen_deposition_scenario_forcings(
     if scenario_drs_name.endswith("ext"):
         return get_scenario_extension_forcing_for_constant_extension(
             forcing_slug, scenario_drs_name
-        )
-
-    if scenario_short_name not in {"vl", "h", "hl", "m"}:
-        return Input4MIPsBasedForcingSpecification(
-            forcing_slug,
-            fixed=False,
-            recommended_versions=(NOT_AVAILABLE_YET,),
-            notes="In preparation",
         )
 
     scenario_specific = f"FZJ-CMIP-nitrogen-{scenario_short_name}-1-0"
@@ -381,9 +378,15 @@ def get_solar_scenario_forcings(
         # Subject "Extending solar data beyond 2300"
         notes=(
             "If running beyond the time period provided in the data, "
-            "repeat the data, starting with 24 August 2038 "
-            "(i.e. for 2300-01-01, use data from 2038-08-24, "
-            "for 2300-01-02, use data from 2038-08-25 etc.)."
+            "the right approach depends on the temporal frequency that you are using. "
+            "If you are using the data with daily resolution, "
+            "simply repeat the data, starting with 24 August 2038. "
+            "In other words, for 2300-01-01, use data from 2038-08-24, "
+            "for 2300-01-02, use data from 2038-08-25 "
+            "and so on. "
+            "If you are using the data with monthly resolution, "
+            "there is a dedicated data file which extends beyond 2500. "
+            "Please use that."
         )
         if scenario_drs_name.endswith("ext")
         else None,
