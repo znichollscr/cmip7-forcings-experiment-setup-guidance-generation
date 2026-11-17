@@ -46,6 +46,12 @@ This writes to:
 ../cmip7-guidance/docs/CMIP7/Experiment_set_up_and_Forcings
 ```
 
+Free text from the CMIP7 CVs (descriptions and citations) can contain LaTeX
+(e.g. `H\"ogner` or `{\textdegree}C`) and HTML entities.
+This is converted to plain text as part of generation using
+[pylatexenc](https://pylatexenc.readthedocs.io/)
+(see `src/local/cv_text.py`).
+
 To check whether the generated files are up to date:
 
 ```sh
@@ -68,9 +74,10 @@ uv run python scripts/generate_guidance_docs.py --output-dir /tmp/cmip7-guidance
 - `src/local/branching.py`: parent/branching text helpers.
 - `src/local/tags.py`: tag definitions applied to experiment pages.
 - `src/local/vocab.py`: access helpers for CMIP7 metadata from `esgvoc`.
+- `src/local/cv_text.py`: conversion of LaTeX/HTML markup in CV text to
+  markdown (via pylatexenc).
 - `src/local/forcing_references.py`: forcing reference-page definitions.
-- `src/local/forcing_versions.py`: forcing version definitions and source-ID
-  selection helpers.
+- `src/local/forcings/`: forcing specifications for each experiment.
 - `src/local/activity_pages/`: experiment page definitions grouped by
   responsible activity.
 - `Makefile`: convenience targets for generating, checking, and development

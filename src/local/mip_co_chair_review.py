@@ -59,7 +59,6 @@ def get_pending_review_aft_experiments(activity: str) -> PendingReview:
         "cmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/183",
         "damip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/188",
         "geomip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/189",
-        "lmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/190",
         "pmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/191",
         "polmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/226",
         "rfmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/192",
@@ -67,3 +66,14 @@ def get_pending_review_aft_experiments(activity: str) -> PendingReview:
     }
 
     return PendingReview(review_lookup[activity])
+
+
+def get_complete_review_aft_experiments(activity: str) -> PendingReview:
+    """
+    Get complete review based on activity
+    """
+    review_lookup = {
+        "lmip": "https://github.com/WCRP-CMIP/cmip7-guidance/issues/190",
+    }
+
+    return CompleteReview(review_lookup[activity])

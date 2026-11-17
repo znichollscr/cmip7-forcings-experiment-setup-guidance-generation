@@ -9,7 +9,7 @@ from local.forcings import (
     OtherExperimentBasedForcingSpecification,
 )
 from local.guidance import ExperimentPage
-from local.mip_co_chair_review import get_pending_review_aft_experiments
+from local.mip_co_chair_review import get_complete_review_aft_experiments
 from local.rendering import block
 from local.tags import AFT
 
@@ -31,10 +31,12 @@ LMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                         "The default forcing data is from a corrected reanalysis product "
                         "that includes all the climate/weather inputs to drive a land model. "
                         "The dataset is typically referred to as CRUJRA. "
-                        "CRUJRA Climate forcing data are provided by Ian Harris at UEA 1901-2024 "
-                        "and available from the following website: "
-                        "[crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.09](). "
-                        "A 2nd historical forcing dataset is in development and would ideally also be run. "
+                        "CRUJRAv10 climate forcing data are provided by Tim Osborn and Andrew Friedman "
+                        "at UEA for the period 1901-2025 "
+                        "(and also used in the TRENDY project that supports the Global Carbon Budget). "
+                        "These data are available from the following location: "
+                        "mdosullivan.github.io/GCB (scroll to bottom and select trendyv15-gcb2026-input). "
+                        "A 2nd historical forcing dataset is in development and would ideally also be run."
                     ),
                     label_override="Land model climate and weather inputs",
                 ),
@@ -47,7 +49,7 @@ LMIP_EXPERIMENT_PAGES: tuple[ExperimentPage, ...] = (
                 for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
             ),
         ),
-        mip_co_chair_review=get_pending_review_aft_experiments("lmip"),
+        mip_co_chair_review=get_complete_review_aft_experiments("lmip"),
         tags=(AFT,),
     ),
 )

@@ -100,7 +100,17 @@ EMISSIONS_CONCENTRATION_EXPERIMENT_PAIRS: tuple[ExperimentPair, ...] = (
             left_id_esgvoc=f"scen7-{scenario_base}{suffix}",
             right_id_esgvoc=f"esm-scen7-{scenario_base}{suffix}",
         )
-        for scenario_base in ["vl", "l", "ln", "m", "ml", "h", "hl", "vl-cf"]
+        for scenario_base in [
+            "vl",
+            "l",
+            "ln",
+            "m",
+            "ml",
+            "h",
+            "hl",
+            "vl-cf",
+            "ssp2-com-cmip7",
+        ]
         for suffix in ["", "-ext"]
     ),
 )

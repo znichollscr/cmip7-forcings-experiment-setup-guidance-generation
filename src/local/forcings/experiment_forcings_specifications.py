@@ -109,7 +109,8 @@ HISTORICAL_FORCINGS_SPECIFICATION = ForcingSpecification(
         Input4MIPsBasedForcingSpecification(
             "population",
             fixed=False,
-            recommended_versions=("PIK-CMIP-1-0-1",),
+            recommended_versions=("PIK-CMIP-1-0-2",),
+            acceptable_versions=("PIK-CMIP-1-0-1",),
         ),
     )
 )
@@ -228,7 +229,17 @@ def get_land_use_scenario_forcings(
     """
     Get the land-use forcings for a given scenario
     """
-    if scenario_short_name not in {"vl", "vl-ext", "m", "h", "h-ext"}:
+    if scenario_short_name not in {
+        "vl",
+        "vl-ext",
+        "ln",
+        "ml",
+        "m",
+        "hl",
+        "hl-ext",
+        "h",
+        "h-ext",
+    }:
         return Input4MIPsBasedForcingSpecification(
             forcing_slug,
             fixed=False,
@@ -314,20 +325,14 @@ def get_ozone_scenario_forcings(
             forcing_slug, scenario_drs_name
         )
 
-    if scenario_short_name not in {"vl", "h", "hl", "m"}:
-        return Input4MIPsBasedForcingSpecification(
-            forcing_slug,
-            fixed=False,
-            recommended_versions=(NOT_AVAILABLE_YET,),
-            notes="In preparation",
-        )
-
-    scenario_specific = f"FZJ-CMIP-ozone-{scenario_short_name}-1-0"
+    scenario_specific_recommended = f"FZJ-CMIP-ozone-{scenario_short_name}-1-0"
+    scenario_specific_acceptable = f"FZJ-CMIP-ozone-{scenario_short_name}-2-0"
 
     res = Input4MIPsBasedForcingSpecification(
         forcing_slug,
         fixed=False,
-        recommended_versions=(scenario_specific,),
+        recommended_versions=(scenario_specific_recommended,),
+        acceptable_versions=(scenario_specific_acceptable,),
     )
 
     return res
@@ -344,14 +349,6 @@ def get_nitrogen_deposition_scenario_forcings(
     if scenario_drs_name.endswith("ext"):
         return get_scenario_extension_forcing_for_constant_extension(
             forcing_slug, scenario_drs_name
-        )
-
-    if scenario_short_name not in {"vl", "h", "hl", "m"}:
-        return Input4MIPsBasedForcingSpecification(
-            forcing_slug,
-            fixed=False,
-            recommended_versions=(NOT_AVAILABLE_YET,),
-            notes="In preparation",
         )
 
     scenario_specific = f"FZJ-CMIP-nitrogen-{scenario_short_name}-1-0"
@@ -381,9 +378,15 @@ def get_solar_scenario_forcings(
         # Subject "Extending solar data beyond 2300"
         notes=(
             "If running beyond the time period provided in the data, "
-            "repeat the data, starting with 24 August 2038 "
-            "(i.e. for 2300-01-01, use data from 2038-08-24, "
-            "for 2300-01-02, use data from 2038-08-25 etc.)."
+            "the right approach depends on the temporal frequency that you are using. "
+            "If you are using the data with daily resolution, "
+            "simply repeat the data, starting with 24 August 2038. "
+            "In other words, for 2300-01-01, use data from 2038-08-24, "
+            "for 2300-01-02, use data from 2038-08-25 "
+            "and so on. "
+            "If you are using the data with monthly resolution, "
+            "there is a dedicated data file which extends beyond 2500. "
+            "Please use that."
         )
         if scenario_drs_name.endswith("ext")
         else None,
@@ -400,15 +403,7 @@ def get_simple_plumes_forcings(
     """
     Get the simple forcings for a given scenario
     """
-    if scenario_drs_name.endswith("ext"):
-        # Not available yet, waiting on emissions
-        res = dataclasses.replace(
-            SIMPLE_PLUMES_SPECIFICATION,
-            notes="In preparation, will be made available at https://zenodo.org/records/21671953",
-        )
-
-    else:
-        res = SIMPLE_PLUMES_SPECIFICATION
+    res = SIMPLE_PLUMES_SPECIFICATION
 
     return res
 
@@ -470,10 +465,10 @@ def get_scen7_forcing_specification(
 ) -> ForcingSpecification:
     """Return ScenarioMIP forcing specification for a given scenario."""
     init_kwargs = {"specific_forcings": [], "other_experiment_based_forcings": []}
+    scenario_short_name = scenario_drs_name.replace("scen7-", "")
     for forcing_slug in (
         v.forcing_slug for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
     ):
-        scenario_short_name = scenario_drs_name.replace("scen7-", "")
         if scenario_short_name.startswith("esm-"):
             concentration_driven_experiment_id = scenario_drs_name.replace(
                 "esm-", ""
@@ -687,6 +682,140 @@ def get_polmip_vl_cf_forcing_specification(
                 forcing_slug, scenario_drs_name
             )
             init_kwargs["other_experiment_based_forcings"].extend(specifications)
+
+    return ForcingSpecification(
+        specific_forcings=tuple(init_kwargs["specific_forcings"]),
+        other_experiment_based_forcings=tuple(
+            init_kwargs["other_experiment_based_forcings"]
+        ),
+    )
+
+
+def get_iam_based_emissions_polmip_forcings(
+    forcing_slug: str,
+    scenario_drs_name: str,
+    scenario_short_name: str,
+    biomass_burning: bool,
+) -> Input4MIPsBasedForcingSpecification:
+    """
+    Get the IAM-based emissions forcings for a given PolMIP experiment
+    """
+    scenario_slug = scenario_short_name.replace("esm-", "")
+    scenario_specific = f"IIASA-IAMC-{scenario_slug}-1-1-2"
+    recommended_versions_l = [scenario_specific]
+
+    if biomass_burning:
+        notes = None
+
+    else:
+        notes = None
+        # scenario_specific_aviation_emms_fix = f"IIASA-IAMC-{scenario_slug}-1-1-2"
+        # recommended_versions_l.append(scenario_specific_aviation_emms_fix)
+        #
+        # notes = (
+        #     "the aviation emissions should come from "
+        #     f"`{scenario_specific_aviation_emms_fix}`. "
+        #     f"`{scenario_specific_aviation_emms_fix}` was released quite late "
+        #     "and the impact of the change is likely to be small, so if you have "
+        #     f"simulations based on `{scenario_specific}`, "
+        #     "you do not need to re-run them."
+        # )
+
+    res = Input4MIPsBasedForcingSpecification(
+        forcing_slug,
+        fixed=False,
+        recommended_versions=tuple(recommended_versions_l),
+        notes=notes,
+    )
+
+    return res
+
+
+def get_ghg_concentrations_polmip_forcings(
+    forcing_slug: str,
+    scenario_drs_name: str,
+    scenario_short_name: str,
+) -> Input4MIPsBasedForcingSpecification:
+    """
+    Get the greenhouse-gas concentrations forcings for a given PolMIP experiment
+    """
+    scenario_specific = f"CR-{scenario_short_name}-1-1-0"
+    acceptable_versions = ()
+
+    res = Input4MIPsBasedForcingSpecification(
+        forcing_slug,
+        fixed=False,
+        recommended_versions=(scenario_specific,),
+        acceptable_versions=acceptable_versions,
+    )
+
+    return res
+
+
+GET_POLMIP_FORCINGS_BY_FORCING_TYPE = {
+    "anthropogenic-slcf-co2-emissions": partial(
+        get_iam_based_emissions_polmip_forcings, biomass_burning=False
+    ),
+    "open-biomass-burning-emissions": partial(
+        get_iam_based_emissions_polmip_forcings, biomass_burning=True
+    ),
+    # "land-use": get_land_use_scenario_forcings,
+    "greenhouse-gas-concentrations": get_ghg_concentrations_polmip_forcings,
+    # "stratospheric-volcanic-so2-emissions-aod": get_volcanic_scenario_forcings,
+    # "ozone": get_ozone_scenario_forcings,
+    # "nitrogen-deposition": get_nitrogen_deposition_scenario_forcings,
+    # "solar": get_solar_scenario_forcings,
+    "aerosol-optical-properties-macv2-sp": get_simple_plumes_forcings,
+    # "population": get_population_density_scenario_forcings,
+}
+
+
+def get_polmip_scenario_forcing_specification(
+    scenario_experiment_id: str, base_scenario_experiment_id: str
+) -> ForcingSpecification:
+    """Return PolMIP forcing specification for a scenario (that isn't `vl-cf`)."""
+    init_kwargs = {"specific_forcings": [], "other_experiment_based_forcings": []}
+
+    scenario_drs_name = get_experiment(scenario_experiment_id).drs_name
+
+    co2_emissions_driven = scenario_experiment_id.startswith("esm-")
+    # base_scenario_spec = get_scen7_forcing_specification(base_scenario_experiment_id)
+    # base_scenario_spec_by_flug = {
+    #     v.forcing_slug: v for v in base_scenario_spec.all_forcings
+    # }
+    for forcing_slug in (
+        v.forcing_slug for v in HISTORICAL_FORCINGS_SPECIFICATION.specific_forcings
+    ):
+        if co2_emissions_driven:
+            concentration_driven_experiment_id = scenario_experiment_id.replace(
+                "esm-", ""
+            ).lower()
+            specification = OtherExperimentBasedForcingSpecification(
+                forcing_slug,
+                experiment_esgvoc_id=concentration_driven_experiment_id,
+            )
+
+        else:
+            use_base_scenario = (
+                forcing_slug not in GET_POLMIP_FORCINGS_BY_FORCING_TYPE.keys()
+            )
+
+            if use_base_scenario:
+                specification = OtherExperimentBasedForcingSpecification(
+                    forcing_slug,
+                    experiment_esgvoc_id=base_scenario_experiment_id,
+                )
+
+            else:
+                specification = GET_POLMIP_FORCINGS_BY_FORCING_TYPE[forcing_slug](
+                    forcing_slug, scenario_drs_name, scenario_drs_name
+                )
+
+        if isinstance(specification, OtherExperimentBasedForcingSpecification):
+            init_kwargs["other_experiment_based_forcings"].append(specification)
+
+        else:
+            init_kwargs["specific_forcings"].append(specification)
 
     return ForcingSpecification(
         specific_forcings=tuple(init_kwargs["specific_forcings"]),
